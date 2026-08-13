@@ -375,6 +375,10 @@ const BAUTEIL_RE = /^164[-X*]\d{5}[-SG_]/;
 function colName(n){           // 0-basiert -> A, B, ... AA
   let s='';
   for(n = n+1; n > 0; ){
+/* ==========================================================
+   Arbeitsmappen-Validierung
+   Erst nach den vollständig definierten Raster-/Spaltenhilfen.
+   ========================================================== */
 const EXCEL_MAX_AGE_DAYS = 14;
 
 function pruefeStruktur(wb){
@@ -396,12 +400,6 @@ function pruefeStruktur(wb){
 
   const check=pruefeStruktur(wb);
   if(check.errors.length) throw new Error(check.errors.join(' '));
-    const r = (n-1) % 26;
-    s = String.fromCharCode(65+r) + s;
-    n = Math.floor((n-1)/26);
-  }
-  return s;
-}
 
 /* Blatt in ein 2D-Raster lesen, verbundene Zellen auflösen */
 function raster(ws, maxCols){
@@ -623,6 +621,49 @@ const RECENT_KEY='recaro-recent-v1', COMPARE_KEY='recaro-compare-session-v1'; le
 let compareSelection=loadCompareSelection();
   return '<div class="k">'+esc(k)+'</div><div class="v'+(mono?' num':'')+'">'+inner+(mono?' <button class="copy" data-copy="'+esc(v)+'" aria-label="'+esc(k)+' kopieren">Kopieren</button>':'')+'</div>';
   let h = backHTML() + bandHTML(nr) + compareActionHTML(nr);
+/* ==========================================================
+   Vergleichsmodell und -darstellung
+   Bewusst als abgeschlossener Hilfsblock zwischen den allgemeinen
+   Darstellungshelfern und den Ansichten angeordnet.
+   ========================================================== */
+function entryType(nr){ const s=SCH.get(nr); return BT.has(nr)?'bt':(s&&s.ebene==='Einzelteil'?'ez':s?'sch':null); }
+function typeLabel(t){return t==='bt'?'Bauteil':t==='ez'?'Einzelteil':'Schablone';}
+function loadCompareSelection(){try{return JSON.parse(sessionStorage.getItem(COMPARE_KEY)||'{"A":null,"B":null}');}catch(e){return {A:null,B:null};}}
+function saveCompareSelection(){try{sessionStorage.setItem(COMPARE_KEY,JSON.stringify(compareSelection));}catch(e){}}
+function compareButtonHTML(nr){if(!entryType(nr))return '';const slot=compareSelection.A===nr?'A':compareSelection.B===nr?'B':'';return '<button class="comparepick'+(slot?' chosen':'')+'" data-compare="'+esc(nr)+'" aria-label="'+esc(nr)+' vergleichen">'+(slot?'Vergleich '+slot:'Vergleichen')+'</button>';}
+function compareActionHTML(nr){return '<div class="comparebar"><span>Zum Vergleich auswählen:</span>'+compareButtonHTML(nr)+(compareSelection.A?'<span>A: <b>'+esc(compareSelection.A)+'</b></span>':'')+(compareSelection.B?'<span>B: <b>'+esc(compareSelection.B)+'</b></span>':'')+(compareSelection.A||compareSelection.B?'<button class="comparepick" data-compare-clear="all">Zurücksetzen</button>':'')+'</div>';}
+function waehleVergleich(nr){
+  const typ=entryType(nr);if(!typ)return;
+  if(compareSelection.A===nr||compareSelection.B===nr)return;
+  if(compareSelection.A&&entryType(compareSelection.A)!==typ){
+    if(!confirm('Es können nur Einträge desselben Typs verglichen werden. Vergleich A durch „'+nr+'“ ersetzen?'))return;
+    compareSelection={A:nr,B:null};
+  }else if(!compareSelection.A)compareSelection.A=nr;else compareSelection.B=nr;
+  saveCompareSelection();
+  if(compareSelection.A&&compareSelection.B){safeHistory('pushState',{compare:true},'#compare');zeigeVergleich();}else render();
+}
+function resetVergleich(slot){if(slot==='A'){compareSelection.A=compareSelection.B;compareSelection.B=null;}else if(slot==='B')compareSelection.B=null;else compareSelection={A:null,B:null};saveCompareSelection();if(location.hash==='#compare')safeHistory('replaceState',{},location.pathname+location.search);render();}
+function htParts(v){const out={roh:'',proalpha:'',staerke:''};teile(v||'').forEach(x=>{if(/^HT\d/i.test(x))out.roh+=(out.roh?' | ':'')+x;else{const m=PROALPHA_MUSTER.exec(x.trim());if(m){out.proalpha+=(out.proalpha?' | ':'')+m[1];out.staerke+=(out.staerke?' | ':'')+m[2].replace(',','.')+' mm';}}});return out;}
+function entryWarnings(nr){if(BT.has(nr)){const b=BT.get(nr),w=[];if(b.nurMatrix)w.push('Nicht in Übersichtsliste');if(!b.nurMatrix&&(b.sch||[]).length&&(b.spalteR||'').includes('keine Schablone'))w.push('Abweichende Schablonenzuordnung');return w;}const s=SCH.get(nr),w=[];if(s.ohneReg)w.push('Kein Registereintrag');if(s.regAls)w.push('Abweichende Schreibweise: '+s.regAls);return w;}
+function comparisonFields(nr){
+ const typ=entryType(nr);
+ if(typ==='bt'){const b=BT.get(nr),h=htParts(b.ht);return [['Bauteilnummer',nr],['Externe Nummer',b.extern],['Interne Bezeichnung',b.bez],['Projekt',b.projekt],['HT-Rohteilnummer',h.roh],['ProAlpha-Nummer',h.proalpha],['Bauteilstärke',h.staerke],['Top-Assy',b.topassy],['Mastermodell',b.mastermodell],['Wabenkernnummer',b.wabenkern],['Pottingschablonen',b.potting],['FAI',b.fai],['Programminformationen',b.prog],['Bemerkungen',b.bemerkung],['Zugeordnete Schablonen',b.sch||[],true],['Warnungen / Abweichungen',entryWarnings(nr),true]];}
+ const x=SCH.get(nr),children=kinderVon.get(basis(nr))||[],parts=btVonSch.get(nr)||[];return [['Nummer',nr],['Art',typeLabel(typ)],['Bezeichnung',x.bez],['Beschreibung',x.beschr],['Material / Hinweis',x.material],['Vorlage',x.pdf],['Übergeordnete Schablone',x.eltern],['Enthaltene Einzelteile',children,true],['Zugeordnete Bauteile',parts,true],['Registerstatus',x.ohneReg?'Kein Registereintrag':x.regAls?'Register als '+x.regAls:'Registereintrag vorhanden'],['Warnungen / Abweichungen',entryWarnings(nr),true]];
+}
+function normalizedSet(v){return Array.from(new Set((Array.isArray(v)?v:teile(v||'')).map(x=>norm(x)))).sort();}
+function sameValue(a,b,set){return set?JSON.stringify(normalizedSet(a))===JSON.stringify(normalizedSet(b)):clean(a)===clean(b);}
+function valueHTML(v,set,other){if(set){const vals=Array.isArray(v)?v:teile(v||''),common=new Set(normalizedSet(other));if(!vals.length)return '<span class="missing">Nicht vorhanden</span>';return vals.map(x=>'<span class="setitem '+(common.has(norm(x))?'':'only')+'">'+esc(x)+'</span>').join('');}return clean(v)?esc(v):'<span class="missing">Nicht vorhanden</span>';}
+function zeigeVergleich(fromHistory){
+ const a=compareSelection.A,b=compareSelection.B;if(!a||!b||!entryType(a)||entryType(a)!==entryType(b)){render();return;}
+ const af=comparisonFields(a),bf=comparisonFields(b),rows=[];let differences=0;
+ af.forEach((f,i)=>{const g=bf[i],different=!sameValue(f[1],g[1],f[2]);if(different)differences++;if(!compareOnlyDiff||different)rows.push({label:f[0],a:f[1],b:g[1],set:f[2],different});});
+ let h=backHTML()+'<div class="comparetools"><strong>'+differences+' unterschiedliche Felder</strong><label><input type="checkbox" id="onlyDiff" '+(compareOnlyDiff?'checked':'')+'> Nur Unterschiede anzeigen</label><button class="smallbtn" id="printCompare">Drucken / PDF</button><button class="smallbtn" data-compare-clear="all">Vergleich zurücksetzen</button></div>';
+ h+='<div class="comparehead"><div>Feld</div><div class="side">A · '+esc(a)+' '+compareButtonHTML(a)+' <button class="copy" data-copy="'+esc(a)+'">Kopieren</button> <button class="smallbtn" data-go="'+esc(a)+'">Detail</button> <button class="smallbtn" data-compare-clear="A">Ersetzen</button></div><div class="side">B · '+esc(b)+' '+compareButtonHTML(b)+' <button class="copy" data-copy="'+esc(b)+'">Kopieren</button> <button class="smallbtn" data-go="'+esc(b)+'">Detail</button> <button class="smallbtn" data-compare-clear="B">Ersetzen</button></div></div><div class="comparegrid">';
+ rows.forEach(r=>{h+='<div class="comparelabel">'+esc(r.label)+'</div><div class="comparecell '+(r.different?'different':'')+'"><span class="compare-mobile-side">A · '+esc(a)+'</span>'+valueHTML(r.a,r.set,r.b)+'</div><div class="comparecell '+(r.different?'different':'')+'"><span class="compare-mobile-side">B · '+esc(b)+'</span>'+valueHTML(r.b,r.set,r.a)+'</div>';});
+ main.innerHTML=h+'</div>';bind();window.scrollTo(0,0);
+}
+
+
   let h = backHTML() + bandHTML(nr) + compareActionHTML(nr);
 function entryType(nr){ const s=SCH.get(nr); return BT.has(nr)?'bt':(s&&s.ebene==='Einzelteil'?'ez':s?'sch':null); }
 function typeLabel(t){return t==='bt'?'Bauteil':t==='ez'?'Einzelteil':'Schablone';}
@@ -765,43 +806,6 @@ function bandHTML(nr){
 /* ---------- Ansichten ---------- */
 const main = document.getElementById('main');
 const qEl  = document.getElementById('q');
-const clrEl= document.getElementById('clr');
-let treffer = [], sel = -1, stack = [], current = null;
-
-function feld(k, v, mono){
-  if(!v) return '';
-  const parts = teile(v);
-  const inner = parts.length>1
-    ? parts.map(p => '<span class="multi">'+esc(p)+'</span>').join('')
-    : esc(v);
-  return '<div class="k">'+esc(k)+'</div><div class="v'+(mono?' num':'')+'">'+inner+'</div>';
-}
-
-function chipsHTML(list, art){
-  if(!list || !list.length) return '';
-  return '<div class="chips">'+list.map(n => {
-    const s = SCH.get(n), b = BT.get(n);
-    let d = '';
-    if(art==='sch' && s) d = s.bez || s.beschr || s.material || '';
-    if(art==='bt'  && b) d = b.bez || b.projekt || '';
-    const ez = s && s.ebene==='Einzelteil';
-    return '<button class="chip'+(ez?' ez':'')+'" data-go="'+esc(n)+'">'+esc(n)
-      + (d ? '<span class="cd">'+esc(d.length>34?d.slice(0,34)+'…':d)+'</span>' : '') + '</button>';
-  }).join('')+'</div>';
-}
-
-/* Spalte H der Übersichtsliste ist gemischt belegt: echte HT-Rohteilnummern,
-   ProAlpha-Nummern mit angehängter Bauteilstärke (z.B. "160-1100-142-9.5"),
-   oder vereinzelt Freitext (z.B. "Schützplatte"). Nicht mehr pauschal als
-   "HT-Nummer" beschriften, sondern pro Wert erkennen und passend aufteilen. */
-const PROALPHA_MUSTER = /^(.+)-(\d+[.,]\d+)$/;
-function feldHT(rohWert){
-  if(!rohWert) return '';
-  let out = '';
-  teile(rohWert).forEach(v => {
-    const t = v.trim();
-    if(/^HT\d/i.test(t)){
-      out += feld('HT-Rohteilnummer', t, 1);
     } else {
       const m = PROALPHA_MUSTER.exec(t);
       if(m){
