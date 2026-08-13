@@ -103,6 +103,99 @@ body{
   text-transform:uppercase;color:#7E919B;
 }
 
+/* ---------- Filterleiste (Kopfbereich) ---------- */
+.filterbar{margin-top:11px}
+.filterbar[hidden]{display:none}
+.filterrow{display:flex;gap:8px;overflow-x:auto;padding:1px 1px 5px;-webkit-overflow-scrolling:touch}
+.filterchip{
+  flex-shrink:0;font-family:var(--cond);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  background:none;border:1px solid #39434C;color:#B8C6CD;border-radius:20px;padding:9px 15px;cursor:pointer;
+  min-height:36px;white-space:nowrap;
+}
+.filterchip:hover{border-color:#5FC8DE;color:#fff}
+.filterchip.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.filterchip.alt{border-style:dashed}
+.filterpanel{
+  margin-top:9px;background:#1E252C;border:1px solid #39434C;border-radius:4px;padding:13px 14px 14px;
+  max-height:38vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+.filterpanel[hidden]{display:none}
+.fgroup{margin-bottom:13px}
+.fgroup:last-child{margin-bottom:0}
+.fgroup h4{
+  font-family:var(--cond);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;
+  color:#7E919B;margin-bottom:8px;
+}
+.fgroup .frow{display:flex;flex-wrap:wrap;gap:7px}
+.fchip-opt{
+  font-family:var(--sans);font-size:12.5px;background:none;border:1px solid #39434C;color:#DCE3E7;border-radius:3px;
+  padding:7px 11px;cursor:pointer;min-height:34px;
+}
+.fchip-opt:hover{border-color:#5FC8DE}
+.fchip-opt.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.fgroup .fempty{font-size:12.5px;color:#7E919B}
+
+/* Aktive-Filter-Zusammenfassung über den Ergebnissen */
+.rescount{display:flex;flex-wrap:wrap;align-items:center;gap:6px 9px}
+.filtersum-sep{color:var(--ink-3);opacity:.6}
+.fchip{
+  display:inline-flex;align-items:center;gap:2px;background:var(--teal-bg);color:var(--teal);
+  border-radius:3px;padding:4px 3px 4px 9px;font-weight:600;
+}
+.fchip-x{background:none;border:0;color:var(--teal);font-size:16px;line-height:1;cursor:pointer;padding:5px 7px}
+.fchip-x:hover{color:var(--red)}
+.gekuerzt-hinweis{color:var(--amber)}
+.filterreset{
+  margin-left:auto;font-family:var(--cond);font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  background:none;border:1px solid var(--rule);color:var(--ink-3);border-radius:3px;padding:6px 11px;cursor:pointer;min-height:32px;
+}
+.filterreset:hover{border-color:var(--teal);color:var(--teal)}
+
+/* ---------- Beziehungsansicht ---------- */
+.bezblock-summary p.bezsummary-text{color:var(--ink-2);margin-bottom:11px;font-size:14.5px;line-height:1.5}
+.bezopen{
+  font-family:var(--cond);font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  background:var(--teal);color:#fff;border:0;border-radius:3px;padding:10px 16px;cursor:pointer;min-height:38px;
+}
+.bezopen:hover{filter:brightness(1.1)}
+.bezheader{display:flex;align-items:center;gap:10px;padding:6px 2px 14px;flex-wrap:wrap}
+.beznr{font-family:var(--mono);font-size:19px;font-weight:600;word-break:break-word}
+.beztree{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.bezebene{background:var(--card);border:1px solid var(--rule-soft);border-radius:3px;padding:12px 14px}
+.bezebene.lvl-1{margin-left:18px}
+.bezebene.lvl-2{margin-left:36px}
+.bezebene.lvl-3{margin-left:54px}
+@media (max-width:620px){
+  .bezebene.lvl-1{margin-left:10px}
+  .bezebene.lvl-2{margin-left:20px}
+  .bezebene.lvl-3{margin-left:30px}
+}
+.bezlabel{
+  font-family:var(--cond);font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;
+  color:var(--ink-3);margin-bottom:9px;
+}
+.bezitems{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.bez-current{
+  font-family:var(--mono);font-size:15px;font-weight:600;color:var(--ink);background:#EDEFEA;
+  border:1px solid var(--rule);border-radius:3px;padding:8px 12px;word-break:break-word;
+}
+.bez-plain{
+  font-family:var(--sans);font-size:13.5px;color:var(--ink-2);background:#F0F1EC;border-radius:3px;padding:7px 11px;
+}
+.bez-hinweis{
+  font-size:13px;color:#5C400B;background:var(--amber-bg);border-radius:3px;padding:9px 12px;margin:-2px 0 2px;
+}
+.bez-leer{color:var(--ink-3);padding:6px 2px}
+.bezmehr{
+  margin-top:9px;font-family:var(--cond);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  background:none;border:1px solid var(--rule);color:var(--ink-2);border-radius:3px;padding:8px 13px;cursor:pointer;min-height:36px;
+}
+.bezmehr:hover{border-color:var(--teal);color:var(--teal)}
+@media (max-width:620px){
+  .filterrow{gap:7px}
+  .filterchip{padding:8px 12px;font-size:12px}
+}
+
 /* ---------- Kamera-Overlay ---------- */
 .scanoverlay{position:fixed;inset:0;z-index:200;background:#0B0E11;display:flex;flex-direction:column}
 .scanoverlay[hidden]{display:none}
@@ -380,6 +473,7 @@ table.cmptable tr.diff td:first-child{background:#F0E4C8}
       </button>
     </div>
     <div class="hint" id="hint">Trennzeichen egal &mdash; 16431161001 findet 164-31161-001</div>
+    <div class="filterbar" id="filterbar" hidden></div>
     <div class="quelle" id="quelle" hidden>
       <span id="qname">&mdash;</span>
       <button class="reload" id="reload">Aktualisieren</button>
@@ -644,7 +738,11 @@ function indexAufbauen(){
   }));
 }
 
-function suche(qr){
+/* sucheAlle liefert die vollständige, nach Relevanz sortierte Trefferliste ohne
+   Begrenzung - wird gebraucht, damit Filter auf alle echten Treffer angewendet werden
+   und nicht nur auf die für die normale Anzeige gekürzten 60. suche() bleibt für
+   bestehende Aufrufer unverändert (inkl. der 60er-Grenze). */
+function sucheAlle(qr){
   const n = norm(qr);
   if(n.length < 2) return [];
   const exakt=[], anfang=[], drin=[], text=[];
@@ -654,7 +752,10 @@ function suche(qr){
     else if(it.n.indexOf(n) >= 0 || (it.n2 && it.n2.indexOf(n) >= 0)) drin.push(it);
     else if(n.length >= 3 && it.txt.indexOf(n) >= 0) text.push(it);
   }
-  return exakt.concat(anfang, drin, text).slice(0, 60);
+  return exakt.concat(anfang, drin, text);
+}
+function suche(qr){
+  return sucheAlle(qr).slice(0, 60);
 }
 
 /* ---------- Hilfen ---------- */
@@ -712,10 +813,258 @@ function bandHTML(nr){
   return h;
 }
 
+/* CNC-Schablonen erkennen: ausschließlich anhand der Nummernkonvention, nicht anhand
+   von Freitextfeldern. zerlege() zerlegt Schablonennummern der Form "T<Programm>-<Nr>[-<Bearbeitung>][_GS]"
+   (siehe oben) - das Bearbeitungssegment ist das, was bei echten CNC-Schablonen "CNC" enthält
+   (z.B. "T164-1234-CNC"). Ein einzelner Token-Vergleich verhindert Fehltreffer durch
+   Bearbeitungscodes, die zufällig "CNC" als Teilstring enthalten. */
+function istCNCSchablone(nr){
+  const z = zerlege(nr);
+  if(z.kind !== 'Schablone') return false;
+  const bearb = z.segs.find(s => s.l === 'Bearbeitung');
+  if(!bearb) return false;
+  return bearb.v.split('-').some(tok => tok.toUpperCase() === 'CNC');
+}
+
+/* ==================== Filter (Teamcenter-artige Filter/Ansichten) ====================
+   Reine lokale Filterung der bereits geladenen Excel-Daten - keine Teamcenter-Anbindung,
+   kein Rückschreiben. Der Filterzustand ist ein einfaches Objekt, getrennt von den
+   Render-Funktionen; jede Filtergruppe speichert bereits ein Array (auch wenn die
+   Oberfläche vorerst nur einen Wert je Gruppe erlaubt), damit spätere Mehrfachauswahl
+   ohne Strukturänderung möglich ist. */
+let filterState = { typ:'alle', projekt:[], material:[], fai:[], topassy:[], bemerkung:null };
+let filterOptionen = { projekt:[], material:[], fai:[], topassy:[] };
+let filterPanelOffen = false;
+
+function hatZuordnung(b){ return !!(b.sch && b.sch.length); }
+
+/* Auffällige Bauteile: nur Merkmale, die zuverlässig aus vorhandenen Datenprüfungen
+   ableitbar sind (siehe auch die Hinweise in zeigeBauteil/zeigeSchablone). */
+function auffaelligkeitenBauteil(b){
+  const gruende = [];
+  if(b.nurMatrix) gruende.push('Nur im Matrixblatt');
+  if(!hatZuordnung(b)) gruende.push('Keine Schablonenzuordnung');
+  if(!b.nurMatrix && hatZuordnung(b) && (b.spalteR||'').indexOf('keine Schablone') >= 0){
+    gruende.push('Abweichung Spalte R');
+  }
+  if(!b.nurMatrix && zerlege(b.nr).kind === 'Nummer') gruende.push('Unbekanntes Nummernformat');
+  return gruende;
+}
+function auffaelligkeitenSchablone(s){
+  const gruende = [];
+  if(s.ohneReg) gruende.push('Kein Registereintrag');
+  if(s.regAls) gruende.push('Abweichende Schreibweise');
+  if(s.ebene === 'Schablone' && !(btVonSch.get(s.nr)||[]).length) gruende.push('Keine Verwendung gefunden');
+  if(zerlege(s.nr).kind === 'Nummer') gruende.push('Unbekanntes Nummernformat');
+  return gruende;
+}
+
+function normFilterWert(v){ return v.trim().toLowerCase().replace(/\s+/g,' '); }
+
+function sammleFilterWerte(map, roh){
+  if(!roh) return;
+  teile(roh).forEach(v => {
+    const t = v.trim();
+    if(!t) return;
+    const key = normFilterWert(t);
+    if(!map.has(key)) map.set(key, {key:key, label:t, anzahl:0});
+    map.get(key).anzahl++;
+  });
+}
+function sortiereFilterOptionen(map){
+  return Array.from(map.values()).sort((a,b) => a.label.localeCompare(b.label, 'de', {numeric:true, sensitivity:'base'}));
+}
+function baueFilterOptionen(){
+  const projekt = new Map(), material = new Map(), fai = new Map(), topassy = new Map();
+  DATA.bauteile.forEach(b => {
+    sammleFilterWerte(projekt, b.projekt);
+    sammleFilterWerte(fai, b.fai);
+    sammleFilterWerte(topassy, b.topassy);
+  });
+  DATA.schablonen.forEach(s => sammleFilterWerte(material, s.material));
+  filterOptionen = {
+    projekt: sortiereFilterOptionen(projekt),
+    material: sortiereFilterOptionen(material),
+    fai: sortiereFilterOptionen(fai),
+    topassy: sortiereFilterOptionen(topassy)
+  };
+}
+function filterOptionLabel(gruppe, key){
+  const opt = (filterOptionen[gruppe]||[]).find(o => o.key === key);
+  return opt ? opt.label : key;
+}
+
+/* Ein Datensatz erfüllt eine Mehrfachwert-Gruppe, wenn mindestens einer seiner
+   (durch " | " getrennten) Werte zu einem der ausgewählten Werte normalisiert passt
+   (ODER innerhalb der Gruppe). Ist die Gruppe leer, ist sie inaktiv (immer erfüllt). */
+function feldPasstAuswahl(roh, ausgewaehlt){
+  if(!ausgewaehlt || !ausgewaehlt.length) return true;
+  if(!roh) return false;
+  const werte = teile(roh).map(v => normFilterWert(v));
+  return ausgewaehlt.some(sel => werte.indexOf(sel) >= 0);
+}
+
+function istFilterAktiv(){
+  return filterState.typ !== 'alle'
+    || filterState.projekt.length > 0
+    || filterState.material.length > 0
+    || filterState.fai.length > 0
+    || filterState.topassy.length > 0
+    || filterState.bemerkung !== null;
+}
+
+function datensatzPasstTyp(item, record){
+  switch(filterState.typ){
+    case 'bt': return item.typ === 'bt';
+    case 'sch': return item.typ === 'sch' || item.typ === 'ez';
+    case 'cnc': return (item.typ === 'sch' || item.typ === 'ez') && istCNCSchablone(item.nr);
+    case 'ohneZuordnung': return item.typ === 'bt' && !hatZuordnung(record);
+    case 'auffaellig':
+      return item.typ === 'bt'
+        ? auffaelligkeitenBauteil(record).length > 0
+        : auffaelligkeitenSchablone(record).length > 0;
+    default: return true;
+  }
+}
+function datensatzPasstErweitert(record){
+  if(!feldPasstAuswahl(record.projekt, filterState.projekt)) return false;
+  if(!feldPasstAuswahl(record.fai, filterState.fai)) return false;
+  if(!feldPasstAuswahl(record.topassy, filterState.topassy)) return false;
+  if(!feldPasstAuswahl(record.material, filterState.material)) return false;
+  if(filterState.bemerkung === 'mit' && !record.bemerkung) return false;
+  if(filterState.bemerkung === 'ohne' && record.bemerkung) return false;
+  return true;
+}
+function datensatzPasstFilter(item){
+  const record = item.typ === 'bt' ? BT.get(item.nr) : SCH.get(item.nr);
+  if(!record) return false;
+  return datensatzPasstTyp(item, record) && datensatzPasstErweitert(record);
+}
+
+function setTyp(t){
+  filterState.typ = (t === 'alle') ? 'alle' : (filterState.typ === t ? 'alle' : t);
+  neuFiltern();
+}
+function setGruppenwert(gruppe, key){
+  if(key === null){ filterState[gruppe] = []; }
+  else { filterState[gruppe] = (filterState[gruppe][0] === key) ? [] : [key]; }
+  neuFiltern();
+}
+function setBemerkung(wert){
+  filterState.bemerkung = (filterState.bemerkung === wert) ? null : wert;
+  neuFiltern();
+}
+function alleFilterZuruecksetzen(){
+  filterState = { typ:'alle', projekt:[], material:[], fai:[], topassy:[], bemerkung:null };
+  neuFiltern();
+}
+function filterZustandZuruecksetzenBeiDateiwechsel(){
+  filterState = { typ:'alle', projekt:[], material:[], fai:[], topassy:[], bemerkung:null };
+  filterPanelOffen = false;
+}
+
+function erweiterteFilterAnzahl(){
+  return (filterState.projekt.length?1:0) + (filterState.material.length?1:0)
+    + (filterState.fai.length?1:0) + (filterState.topassy.length?1:0) + (filterState.bemerkung?1:0);
+}
+
+function filterGruppeHTML(gruppe, titel, optionen){
+  if(!optionen.length) return '';
+  let h = '<div class="fgroup"><h4>'+esc(titel)+'</h4><div class="frow">';
+  h += optionen.map(o => {
+    const aktiv = filterState[gruppe][0] === o.key;
+    return '<button class="fchip-opt'+(aktiv?' active':'')+'" data-gruppe="'+gruppe+'" data-wert="'+esc(o.key)+'">'
+      + esc(o.label) + ' <span style="opacity:.65">(' + o.anzahl + ')</span></button>';
+  }).join('');
+  h += '</div></div>';
+  return h;
+}
+function filterPanelInnerHTML(){
+  let h = filterGruppeHTML('projekt', 'Projekt', filterOptionen.projekt);
+  h += filterGruppeHTML('material', 'Material', filterOptionen.material);
+  h += filterGruppeHTML('fai', 'FAI', filterOptionen.fai);
+  h += filterGruppeHTML('topassy', 'Top Assy', filterOptionen.topassy);
+  h += '<div class="fgroup"><h4>Bemerkung</h4><div class="frow">'
+    + '<button class="fchip-opt'+(filterState.bemerkung==='mit'?' active':'')+'" data-bemerkung="mit">Mit Bemerkung</button>'
+    + '<button class="fchip-opt'+(filterState.bemerkung==='ohne'?' active':'')+'" data-bemerkung="ohne">Ohne Bemerkung</button>'
+    + '</div></div>';
+  if(!filterOptionen.projekt.length && !filterOptionen.material.length && !filterOptionen.fai.length && !filterOptionen.topassy.length){
+    h += '<div class="fempty">Keine weiteren Filterwerte in dieser Excel-Datei gefunden.</div>';
+  }
+  return h;
+}
+function renderFilterleiste(){
+  const schnell = [
+    {key:'alle', label:'Alle'},
+    {key:'bt', label:'Bauteile'},
+    {key:'sch', label:'Schablonen'},
+    {key:'cnc', label:'CNC-Schablonen'},
+    {key:'ohneZuordnung', label:'Ohne Zuordnung'},
+    {key:'auffaellig', label:'Auffällig'}
+  ];
+  let h = '<div class="filterrow">' + schnell.map(f =>
+    '<button class="filterchip'+(filterState.typ===f.key?' active':'')+'" data-typ="'+f.key+'">'+esc(f.label)+'</button>'
+  ).join('');
+  const anzErw = erweiterteFilterAnzahl();
+  h += '<button class="filterchip alt" id="filtermehr" aria-expanded="'+(filterPanelOffen?'true':'false')+'">Weitere Filter'
+    + (anzErw ? ' (' + anzErw + ')' : '') + '</button></div>';
+  h += '<div class="filterpanel" id="filterpanel"' + (filterPanelOffen?'':' hidden') + '>' + filterPanelInnerHTML() + '</div>';
+  filterbarEl.innerHTML = h;
+  bindFilterleiste();
+}
+function bindFilterleiste(){
+  filterbarEl.querySelectorAll('[data-typ]').forEach(b => b.addEventListener('click', () => setTyp(b.dataset.typ)));
+  const mehr = document.getElementById('filtermehr');
+  if(mehr) mehr.addEventListener('click', () => { filterPanelOffen = !filterPanelOffen; renderFilterleiste(); });
+  filterbarEl.querySelectorAll('[data-gruppe]').forEach(b => b.addEventListener('click', () => setGruppenwert(b.dataset.gruppe, b.dataset.wert)));
+  filterbarEl.querySelectorAll('[data-bemerkung]').forEach(b => b.addEventListener('click', () => setBemerkung(b.dataset.bemerkung)));
+}
+
+function aktiveFilterChips(){
+  const chips = [];
+  const typLabels = {bt:'Bauteile', sch:'Schablonen', cnc:'CNC-Schablonen', ohneZuordnung:'Ohne Zuordnung', auffaellig:'Auffällig'};
+  if(filterState.typ !== 'alle') chips.push({label:typLabels[filterState.typ], entfernen:() => setTyp('alle')});
+  if(filterState.projekt.length) chips.push({label:'Projekt: '+filterOptionLabel('projekt', filterState.projekt[0]), entfernen:() => setGruppenwert('projekt', null)});
+  if(filterState.material.length) chips.push({label:'Material: '+filterOptionLabel('material', filterState.material[0]), entfernen:() => setGruppenwert('material', null)});
+  if(filterState.fai.length) chips.push({label:'FAI: '+filterOptionLabel('fai', filterState.fai[0]), entfernen:() => setGruppenwert('fai', null)});
+  if(filterState.topassy.length) chips.push({label:'Top Assy: '+filterOptionLabel('topassy', filterState.topassy[0]), entfernen:() => setGruppenwert('topassy', null)});
+  if(filterState.bemerkung) chips.push({label: filterState.bemerkung==='mit' ? 'mit Bemerkung' : 'ohne Bemerkung', entfernen:() => setBemerkung(filterState.bemerkung)});
+  return chips;
+}
+function filterZusammenfassungHTML(gesamt, gekuerzt){
+  const chips = aktiveFilterChips();
+  let h = '<div class="rescount"><span>' + gesamt + ' Treffer</span>';
+  chips.forEach(c => {
+    h += '<span class="filtersum-sep">&middot;</span><span class="fchip">' + esc(c.label)
+      + '<button class="fchip-x" data-fchip-i="' + (chips.indexOf(c)) + '" aria-label="Filter entfernen">&times;</button></span>';
+  });
+  if(gekuerzt) h += '<span class="filtersum-sep">&middot;</span><span class="gekuerzt-hinweis">gekürzt</span>';
+  if(chips.length) h += '<button class="filterreset" id="filterresetbtn">Alle Filter zurücksetzen</button>';
+  h += '</div>';
+  return h;
+}
+function bindFilterZusammenfassung(){
+  const chips = aktiveFilterChips();
+  main.querySelectorAll('[data-fchip-i]').forEach(b => {
+    b.addEventListener('click', () => { chips[+b.dataset.fchipI]?.entfernen(); });
+  });
+  const reset = document.getElementById('filterresetbtn');
+  if(reset) reset.addEventListener('click', alleFilterZuruecksetzen);
+}
+
+/* Nach jeder Filteränderung: zurück zur Trefferliste (Filter sind nur dort sinnvoll)
+   und Filterleiste + Ergebnisse neu aufbauen. */
+function neuFiltern(){
+  current = null; stack = [];
+  if(filterbarEl && !filterbarEl.hidden) renderFilterleiste();
+  liste();
+}
+
 /* ---------- Ansichten ---------- */
 const main = document.getElementById('main');
 const qEl  = document.getElementById('q');
 const clrEl= document.getElementById('clr');
+const filterbarEl = document.getElementById('filterbar');
 let treffer = [], sel = -1, stack = [], current = null;
 
 /* ---------- Vergleichsfunktion ---------- */
@@ -1100,6 +1449,13 @@ function zurueck(){
 }
 
 function render(){
+  // Das aufklappbare Filterpanel gehört zur Trefferliste - beim Wechsel in eine
+  // Detail-, Vergleichs- oder Beziehungsansicht schließt es sich automatisch, damit
+  // es dort nicht unnötig Platz im (sticky) Kopfbereich beansprucht, gerade am iPhone.
+  if(current !== null && filterPanelOffen){
+    filterPanelOffen = false;
+    if(filterbarEl && !filterbarEl.hidden) renderFilterleiste();
+  }
   if(current === '__VERGLEICH__') return zeigeVergleich();
   if(current && BT.has(current))  return zeigeBauteil(current);
   if(current && SCH.has(current)) return zeigeSchablone(current);
@@ -1116,18 +1472,45 @@ function ohneRevision(s){
   return String(s).replace(/_(NC|[A-Z])_(ST|BA|CP)\s*$/i, '').trim();
 }
 
+/* Reihenfolge Suche -> Filter -> Begrenzung: sucheAlle() liefert alle (unbegrenzten,
+   nach Relevanz sortierten) Treffer zum Suchtext; erst danach werden aktive Filter
+   angewendet, und erst danach wird die sichtbare Liste auf LIMIT gekürzt. Ohne
+   Suchtext, aber mit aktivem Filter, wird stattdessen der komplette Datenbestand
+   (IDX, alphabetisch/numerisch sortiert) gefiltert. So bleiben Trefferzahl und
+   sichtbare Ergebnisse auch mit Filtern korrekt. */
+const LISTE_LIMIT = 60;
+
 function liste(){
   const roh = qEl.value.trim();
-  if(!roh){ startseite(); return; }
-  const qr = ohneRevision(roh);
-  treffer = suche(qr); sel = -1;
+  const filterAktiv = istFilterAktiv();
+  if(!roh && !filterAktiv){ startseite(); return; }
+
+  const qr = roh ? ohneRevision(roh) : '';
+  let kandidaten;
+  if(roh){
+    kandidaten = sucheAlle(qr);
+  } else {
+    kandidaten = IDX.slice().sort((a,b) => a.nr.localeCompare(b.nr, 'de', {numeric:true, sensitivity:'base'}));
+  }
+
+  const gefiltert = filterAktiv ? kandidaten.filter(datensatzPasstFilter) : kandidaten;
+  const gesamt = gefiltert.length;
+  treffer = gefiltert.slice(0, LISTE_LIMIT);
+  sel = -1;
+
   if(!treffer.length){
-    main.innerHTML = '<div class="empty"><h3>Nichts gefunden</h3>'
-      + '<p>Kein Bauteil und keine Schablone passt zu <code>'+esc(roh)+'</code>.</p>'
-      + '<p>Es lässt sich auch nach Bezeichnung, Projekt oder Material suchen &mdash; zum Beispiel <code>Seatshell</code> oder <code>Kompaktplatte</code>.</p></div>';
+    main.innerHTML = filterZusammenfassungHTML(0, false) + '<div class="empty"><h3>Nichts gefunden</h3>'
+      + (roh
+        ? '<p>Kein Bauteil und keine Schablone passt zu <code>'+esc(roh)+'</code>'+(filterAktiv?' mit den aktiven Filtern':'')+'.</p>'
+          + '<p>Es lässt sich auch nach Bezeichnung, Projekt oder Material suchen &mdash; zum Beispiel <code>Seatshell</code> oder <code>Kompaktplatte</code>.</p>'
+        : '<p>Keine Datensätze passen zu den aktiven Filtern.</p>')
+      + '</div>';
+    bindFilterZusammenfassung();
     return;
   }
-  let h = '<div class="rescount">'+treffer.length+' Treffer'+(treffer.length===60?' (gekürzt)':'')+'</div><div class="results">';
+
+  const gekuerzt = gesamt > LISTE_LIMIT;
+  let h = filterZusammenfassungHTML(gesamt, gekuerzt) + '<div class="results">';
   treffer.forEach((t,i) => {
     const tag = t.typ==='bt'?'Bauteil':(t.typ==='ez'?'Einzelteil':'Schablone');
     const cmpAktiv = istImVergleich(t.nr);
@@ -1140,6 +1523,7 @@ function liste(){
   });
   main.innerHTML = h + '</div>';
   bind();
+  bindFilterZusammenfassung();
 }
 
 function startseite(){
@@ -1277,11 +1661,15 @@ function leseDatei(file){
       const wb = XLSX.read(new Uint8Array(fr.result), {type:'array'});
       DATA = baueDaten(wb);
       indexAufbauen();
+      baueFilterOptionen();
+      filterZustandZuruecksetzenBeiDateiwechsel();
       vergleichZuruecksetzen();
       quelleEl.hidden = false;
       qnameEl.textContent = dateiName + ' · ' + new Date().toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
       qEl.disabled = false;
       scanBtn.disabled = false;
+      filterbarEl.hidden = false;
+      renderFilterleiste();
       footEl.textContent = DATA.meta.bauteile + ' Bauteile · ' + DATA.meta.schablonen
         + ' Schablonen · ' + DATA.meta.paare + ' Zuordnungen · gelesen aus ' + dateiName;
       current = null; stack = [];
