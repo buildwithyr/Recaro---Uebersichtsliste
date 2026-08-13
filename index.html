@@ -754,13 +754,23 @@ function render(){
   liste();
 }
 
+/* Revisionskennungen wie "_NC_ST", "_A_ST", "_B_BA" sind eine reine Bezeichnungs-
+   konvention fuer den Bearbeitungsstand (Revision + Standard/BA/CP), keine Excel-
+   Daten - fuer die Suche unwichtig, deshalb automatisch abschneiden. Nur Unterstrich
+   als Trennzeichen, weil echte Schablonen-Suffixe in der Excel Bindestrich nutzen
+   (z.B. "-CNC", "-VP") und so nie versehentlich getroffen werden koennen. */
+function ohneRevision(s){
+  return String(s).replace(/_(NC|[A-Z])_(ST|BA|CP)\s*$/i, '').trim();
+}
+
 function liste(){
-  const qr = qEl.value.trim();
-  if(!qr){ startseite(); return; }
+  const roh = qEl.value.trim();
+  if(!roh){ startseite(); return; }
+  const qr = ohneRevision(roh);
   treffer = suche(qr); sel = -1;
   if(!treffer.length){
     main.innerHTML = '<div class="empty"><h3>Nichts gefunden</h3>'
-      + '<p>Kein Bauteil und keine Schablone passt zu <code>'+esc(qr)+'</code>.</p>'
+      + '<p>Kein Bauteil und keine Schablone passt zu <code>'+esc(roh)+'</code>.</p>'
       + '<p>Es lässt sich auch nach Bezeichnung, Projekt oder Material suchen &mdash; zum Beispiel <code>Seatshell</code> oder <code>Kompaktplatte</code>.</p></div>';
     return;
   }
@@ -1041,19 +1051,15 @@ async function scanStarten(){
     return;
   }
 
+  scanVideo.srcObject = scanStream;
+  try{ await mitZeitlimit(scanVideo.play(), 4000, timeoutFehler); }
+  catch(e){ /* Wiedergabe kann auch ohne await-Bestätigung starten, weiterlaufen lassen */ }
   scanState.textContent = 'Sucht Barcode …';
 
   try{
     if('BarcodeDetector' in window){
-      scanVideo.srcObject = scanStream;
-      try{ await mitZeitlimit(scanVideo.play(), 4000, timeoutFehler); }
-      catch(e){ /* Wiedergabe kann auch ohne await-Bestätigung starten, weiterlaufen lassen */ }
       await scanMitBarcodeDetector();
     } else {
-      // ZXing übernimmt srcObject und play() selbst (decodeFromStream). Würden wir das Video
-      // vorher schon selbst starten, verpasst ZXing das "playing"-Event, auf das es intern
-      // wartet, bevor die Scan-Schleife losläuft - genau das führte dazu, dass die Kamera
-      // zwar lief, aber nie etwas erkannt wurde (v.a. auf iOS Safari ohne BarcodeDetector).
       await scanMitZXing();
     }
   }catch(err){
@@ -1088,8 +1094,8 @@ async function scanMitZXing(){
     ZXing.BarcodeFormat.QR_CODE
   ]);
   zxingReader = new ZXing.BrowserMultiFormatReader(hints);
-  // Stream ist schon offen (siehe scanStarten) - ZXing verwendet ihn weiter, fordert keinen neuen an.
-  await zxingReader.decodeFromStream(scanStream, scanVideo, (result, err) => {
+  // Stream ist schon offen (siehe scanStarten) - Bibliothek soll ihn weiterverwenden, nicht neu anfordern.
+  zxingReader.decodeFromVideoElementContinuously(scanVideo, (result, err) => {
     if(!scanAktiv) return;
     if(result) scanTreffer(result.getText());
     // NotFoundException fliegt bei jedem erfolglosen Frame - normal, kein Fehler.
