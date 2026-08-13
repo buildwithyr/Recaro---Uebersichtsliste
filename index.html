@@ -268,6 +268,92 @@ footer{
 @media (prefers-reduced-motion:no-preference){
   .row,.chip{transition:border-color .12s,background .12s,color .12s}
 }
+
+/* ---------- Vergleichsfunktion ---------- */
+.row{cursor:pointer}
+.cmpmini{
+  font-family:var(--cond);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  border:1px solid var(--rule);background:#fff;color:var(--ink-2);border-radius:3px;padding:7px 10px;
+  cursor:pointer;white-space:nowrap;flex-shrink:0;min-height:30px;
+}
+.cmpmini:hover{border-color:var(--teal);color:var(--teal)}
+.cmpmini.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.cmpmini.detail{font-size:13px;padding:9px 14px;min-height:38px}
+
+.dkopf{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+
+.cmpbar{
+  position:fixed;left:0;right:0;bottom:0;z-index:80;background:var(--ink);color:#fff;
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+  box-shadow:0 -2px 10px rgba(0,0,0,.22);
+}
+.cmpbar[hidden]{display:none}
+.cmpbar-inner{max-width:940px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.cmpchips{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0}
+.cmpchip{
+  display:inline-flex;align-items:center;gap:4px;background:#232B33;border-radius:3px;
+  padding:5px 4px 5px 10px;font-family:var(--mono);font-size:12.5px;color:#fff;
+}
+.cmpchip button{background:none;border:0;color:#8FA3AC;font-size:17px;line-height:1;cursor:pointer;padding:4px 7px}
+.cmpchip button:hover{color:#fff}
+.cmpcount{font-family:var(--cond);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:#8FA3AC;white-space:nowrap}
+.cmpactions{display:flex;gap:8px;flex-shrink:0;margin-left:auto}
+.cmpbtn2{
+  font-family:var(--cond);font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;
+  border:0;border-radius:3px;padding:10px 14px;cursor:pointer;background:var(--teal);color:#fff;min-height:38px;
+}
+.cmpbtn2:disabled{opacity:.4;cursor:default}
+.cmpbtn2.alt{background:none;border:1px solid #39434C;color:#B8C6CD}
+
+body.has-cmpbar{padding-bottom:104px}
+@media (max-width:620px){ body.has-cmpbar{padding-bottom:132px} }
+
+.toast{
+  position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:#fff;font-size:13.5px;padding:11px 16px;border-radius:4px;
+  opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:300;max-width:88vw;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+body.has-cmpbar .toast{bottom:calc(84px + env(safe-area-inset-bottom))}
+
+.cmphead{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin:6px 0 12px}
+.cmphead h2{font-family:var(--cond);font-size:18px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.cmptoggle{display:flex;gap:0;border:1px solid var(--rule);border-radius:3px;overflow:hidden}
+.cmptoggle button{
+  font-family:var(--cond);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  border:0;background:var(--card);color:var(--ink-3);padding:9px 13px;cursor:pointer;
+}
+.cmptoggle button.active{background:var(--teal);color:#fff}
+.cmpwrap{overflow-x:auto;border:1px solid var(--rule-soft);border-radius:3px;background:var(--card);margin-bottom:16px;-webkit-overflow-scrolling:touch}
+table.cmptable{border-collapse:collapse;width:100%;min-width:560px}
+table.cmptable th,table.cmptable td{
+  padding:11px 14px;border-bottom:1px solid var(--rule-soft);text-align:left;vertical-align:top;font-size:14px;line-height:1.4;
+}
+table.cmptable th:first-child,table.cmptable td:first-child{
+  position:sticky;left:0;background:#F4F5F2;z-index:2;font-family:var(--cond);font-size:13px;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600;min-width:160px;
+}
+table.cmptable thead th{
+  background:var(--ink);color:#fff;font-family:var(--mono);font-size:14.5px;font-weight:600;position:sticky;top:0;z-index:3;
+}
+table.cmptable thead th:first-child{background:var(--ink);z-index:4}
+table.cmptable tr.diff td{background:var(--amber-bg)}
+table.cmptable tr.diff td:first-child{background:#F0E4C8}
+.cmpcol-head{display:flex;flex-direction:column;gap:7px}
+.cmpcol-actions{display:flex;gap:6px}
+.cmpcol-actions button{
+  font-family:var(--cond);font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+  border:1px solid #39434C;background:none;color:#B8C6CD;border-radius:2px;padding:6px 8px;cursor:pointer;min-height:28px;
+}
+.cmpcol-actions button:hover{color:#fff;border-color:#5FC8DE}
+.dash{color:var(--ink-3)}
+.cmpfoot{display:flex;justify-content:flex-end;margin-bottom:24px}
+@media (max-width:620px){
+  table.cmptable th,table.cmptable td{padding:9px 11px;font-size:13.5px}
+  table.cmptable th:first-child,table.cmptable td:first-child{min-width:128px}
+  .cmpactions{margin-left:0;width:100%}
+  .cmpbtn2{flex:1}
+}
 </style>
 <link rel="apple-touch-icon" href="icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -317,6 +403,9 @@ footer{
 </div>
 
 <footer class="wrap" id="foot"></footer>
+
+<div class="cmpbar" id="cmpbar" hidden></div>
+<div class="toast" id="toast" hidden></div>
 
 <!-- SheetJS 0.18.5 (Apache-2.0) - liest die Excel-Datei direkt im Browser -->
 <script>
@@ -629,6 +718,228 @@ const qEl  = document.getElementById('q');
 const clrEl= document.getElementById('clr');
 let treffer = [], sel = -1, stack = [], current = null;
 
+/* ---------- Vergleichsfunktion ---------- */
+const cmpbarEl = document.getElementById('cmpbar');
+const toastEl  = document.getElementById('toast');
+let vergleich = [];        // [{typ:'bt'|'sch'|'ez', nr:string}]
+let vergleichModus = 'alle'; // 'alle' | 'diff'
+let toastTimer = null;
+
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.hidden = false;
+  requestAnimationFrame(() => toastEl.classList.add('show'));
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3200);
+}
+
+function vergleichKategorie(typ){ return typ === 'bt' ? 'bt' : 'sch'; }
+function istImVergleich(nr){ return vergleich.some(v => v.nr === nr); }
+
+function vergleichZuruecksetzen(){
+  vergleich = [];
+  vergleichModus = 'alle';
+  vergleichLeisteRender();
+}
+
+function toggleVergleich(typ, nr){
+  const idx = vergleich.findIndex(v => v.nr === nr);
+  if(idx >= 0){
+    vergleich.splice(idx, 1);
+  } else {
+    if(vergleich.length >= 4){
+      toast('Es können höchstens 4 Einträge gleichzeitig verglichen werden.');
+      return;
+    }
+    if(vergleich.length && vergleichKategorie(vergleich[0].typ) !== vergleichKategorie(typ)){
+      toast('Bitte nur Bauteile miteinander oder Schablonen miteinander vergleichen.');
+      return;
+    }
+    vergleich.push({typ:typ, nr:nr});
+  }
+  vergleichButtonsAktualisieren();
+  vergleichLeisteRender();
+}
+
+function entferneVergleich(nr){
+  const idx = vergleich.findIndex(v => v.nr === nr);
+  if(idx >= 0) vergleich.splice(idx, 1);
+  vergleichButtonsAktualisieren();
+  vergleichLeisteRender();
+  if(current === '__VERGLEICH__'){
+    if(vergleich.length < 2) zurueck();
+    else zeigeVergleich();
+  }
+}
+
+function vergleichButtonsAktualisieren(){
+  main.querySelectorAll('[data-cmp]').forEach(el => {
+    const aktiv = istImVergleich(el.dataset.cmp);
+    el.classList.toggle('active', aktiv);
+    el.setAttribute('aria-pressed', aktiv ? 'true' : 'false');
+    el.textContent = aktiv
+      ? (el.classList.contains('detail') ? '✓ Im Vergleich' : '✓ Vergleich')
+      : (el.classList.contains('detail') ? 'Zum Vergleich' : 'Vergleichen');
+  });
+}
+
+function vergleichLeisteRender(){
+  if(!vergleich.length){
+    cmpbarEl.hidden = true;
+    cmpbarEl.innerHTML = '';
+    document.body.classList.remove('has-cmpbar');
+    return;
+  }
+  document.body.classList.add('has-cmpbar');
+  cmpbarEl.hidden = false;
+  let h = '<div class="cmpbar-inner">';
+  h += '<div class="cmpchips">' + vergleich.map(v =>
+    '<span class="cmpchip">' + esc(v.nr) + '<button data-rm="' + esc(v.nr) + '" aria-label="' + esc(v.nr) + ' entfernen">&times;</button></span>'
+  ).join('') + '</div>';
+  h += '<div class="cmpcount">' + vergleich.length + ' ausgewählt</div>';
+  h += '<div class="cmpactions">';
+  h += '<button class="cmpbtn2 alt" id="cmpclear">Auswahl löschen</button>';
+  h += '<button class="cmpbtn2" id="cmpopen"' + (vergleich.length < 2 ? ' disabled' : '') + '>Vergleich öffnen</button>';
+  h += '</div></div>';
+  cmpbarEl.innerHTML = h;
+  cmpbarEl.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => entferneVergleich(b.dataset.rm)));
+  document.getElementById('cmpclear').addEventListener('click', vergleichZuruecksetzen);
+  document.getElementById('cmpopen').addEventListener('click', () => {
+    if(vergleich.length < 2){ toast('Bitte mindestens zwei Einträge auswählen.'); return; }
+    geheVergleich();
+  });
+}
+
+function geheVergleich(){
+  if(vergleich.length < 2){ toast('Bitte mindestens zwei Einträge auswählen.'); return; }
+  if(current) stack.push(current);
+  current = '__VERGLEICH__';
+  render();
+}
+
+/* Spalte H wie in feldHT() aufteilen, aber je Kategorie getrennt für die Vergleichstabelle */
+function htTeile(rohWert){
+  const out = {ht:[], proalpha:[], staerke:[]};
+  teile(rohWert || '').forEach(v => {
+    const t = v.trim();
+    if(/^HT\d/i.test(t)) out.ht.push(t);
+    else {
+      const m = PROALPHA_MUSTER.exec(t);
+      if(m){ out.proalpha.push(m[1]); out.staerke.push(m[2].replace(',','.') + ' mm'); }
+    }
+  });
+  return out;
+}
+
+const BT_FELDER = [
+  {key:'nr',        label:'Bauteilnummer',            get:b => b.nr},
+  {key:'extern',     label:'Externe Nummer',            get:b => b.extern},
+  {key:'bez',        label:'Interne Bezeichnung',       get:b => b.bez},
+  {key:'projekt',    label:'Projekt',                   get:b => b.projekt},
+  {key:'htroh',      label:'HT-Rohteilnummer',          get:b => htTeile(b.ht).ht.join(' | ')},
+  {key:'proalpha',   label:'ProAlpha-Nummer',           get:b => htTeile(b.ht).proalpha.join(' | ')},
+  {key:'staerke',    label:'Bauteilstärke',             get:b => htTeile(b.ht).staerke.join(' | ')},
+  {key:'topassy',    label:'Top Assy',                  get:b => b.topassy},
+  {key:'mastermodell',label:'Mastermodell',             get:b => b.mastermodell},
+  {key:'wabenkern',  label:'Wabenkernnummer',           get:b => b.wabenkern},
+  {key:'potting',    label:'Pottingschablonen',         get:b => b.potting},
+  {key:'fai',        label:'FAI',                       get:b => b.fai},
+  {key:'prog',       label:'Programminformationen',     get:b => b.prog},
+  {key:'bemerkung',  label:'Bemerkungen',               get:b => b.bemerkung},
+  {key:'sch',        label:'Zugeordnete Schablonen',    get:b => (b.sch||[]).join(', '), list:true},
+  {key:'spalteR',    label:'Spalte R',                  get:b => b.spalteR},
+  {key:'spalteN',    label:'Spalte N',                  get:b => b.spalteN},
+  {key:'z',          label:'Herkunft (Excel-Zeile)',    get:b => (b.z||[]).join(', '), list:true}
+];
+
+const SCH_FELDER = [
+  {key:'nr',      label:'Schablonennummer',            get:s => s.nr},
+  {key:'ebene',   label:'Typ / Ebene',                 get:s => s.ebene},
+  {key:'bez',     label:'Bezeichnung',                 get:s => s.bez},
+  {key:'beschr',  label:'Beschreibung',                get:s => s.beschr},
+  {key:'material',label:'Material / Hinweis',          get:s => s.material},
+  {key:'pdf',     label:'Vorlage',                     get:s => s.pdf},
+  {key:'eltern',  label:'Übergeordnete Schablone',     get:s => s.eltern},
+  {key:'kinder',  label:'Enthaltene Einzelteile',      get:s => (kinderVon.get(basis(s.nr))||[]).join(', '), list:true},
+  {key:'bts',     label:'Verwendende Bauteile',        get:s => (btVonSch.get(s.nr)||[]).join(', '), list:true},
+  {key:'reg',     label:'Registereintrag',             get:s => s.ohneReg ? 'nicht vorhanden' : 'vorhanden'},
+  {key:'regAls',  label:'Abweichende Schreibweise',    get:s => s.regAls},
+  {key:'herkunft',label:'Herkunft (Excel-Zeile)',      get:s => [s.zeile?('Schablonen Zeile '+s.zeile):'', s.msp?('Matrix Spalte '+s.msp):''].filter(Boolean).join(' · ')}
+];
+
+function normVergleich(v, isList){
+  const s = (v==null ? '' : String(v)).trim();
+  if(!s) return '';
+  if(isList) return s.split(/\s*[,|]\s*/).filter(Boolean).map(x => x.trim().toLowerCase()).sort().join(',');
+  return s.toLowerCase().replace(/\s+/g,' ');
+}
+
+function zeigeVergleich(){
+  vergleich = vergleich.filter(v => v.typ === 'bt' ? BT.has(v.nr) : SCH.has(v.nr));
+  if(vergleich.length < 2){
+    main.innerHTML = '<button class="back" id="bk">&larr; ' + (stack.length ? 'Zurück' : 'Zurück zur Suche') + '</button>'
+      + '<div class="empty"><h3>Vergleich</h3><p>Bitte mindestens zwei Einträge desselben Typs auswählen.</p></div>';
+    document.getElementById('bk').addEventListener('click', zurueck);
+    vergleichLeisteRender();
+    return;
+  }
+  const istBt = vergleich[0].typ === 'bt';
+  const felder = istBt ? BT_FELDER : SCH_FELDER;
+  const eintraege = vergleich.map(v => ({nr:v.nr, d: istBt ? BT.get(v.nr) : SCH.get(v.nr)}));
+
+  let rows = felder.map(f => {
+    const werte = eintraege.map(e => f.get(e.d) || '');
+    const normSet = new Set(werte.map(w => normVergleich(w, !!f.list)));
+    return {f:f, werte:werte, anders: normSet.size > 1};
+  });
+  if(vergleichModus === 'diff') rows = rows.filter(r => r.anders);
+
+  let h = '<button class="back" id="bk">&larr; ' + (stack.length ? 'Zurück' : 'Zurück zur Suche') + '</button>';
+  h += '<div class="cmphead"><h2>Vergleich &mdash; ' + (istBt ? 'Bauteile' : 'Schablonen') + '</h2>';
+  h += '<div class="cmptoggle"><button data-modus="alle" class="' + (vergleichModus==='alle'?'active':'') + '">Alle Felder</button>'
+     + '<button data-modus="diff" class="' + (vergleichModus==='diff'?'active':'') + '">Nur Unterschiede</button></div></div>';
+
+  h += '<div class="cmpwrap"><table class="cmptable"><thead><tr><th>Feld</th>';
+  eintraege.forEach(e => {
+    h += '<th><div class="cmpcol-head"><span>' + esc(e.nr) + '</span><div class="cmpcol-actions">'
+      + '<button data-copy="' + esc(e.nr) + '">Kopieren</button>'
+      + '<button data-rm="' + esc(e.nr) + '">Entfernen</button>'
+      + '</div></div></th>';
+  });
+  h += '</tr></thead><tbody>';
+  if(!rows.length){
+    h += '<tr><td colspan="' + (eintraege.length+1) + '" style="color:var(--ink-3)">Keine Unterschiede in den vorhandenen Feldern.</td></tr>';
+  }
+  rows.forEach(r => {
+    h += '<tr class="' + (r.anders?'diff':'') + '"><td>' + esc(r.f.label) + '</td>';
+    r.werte.forEach(w => {
+      h += '<td>' + (w ? esc(w).split(' | ').join('<br>') : '<span class="dash">&mdash;</span>') + '</td>';
+    });
+    h += '</tr>';
+  });
+  h += '</tbody></table></div>';
+  h += '<div class="cmpfoot"><button class="cmpbtn2 alt" id="cmpclearview">Auswahl löschen</button></div>';
+
+  main.innerHTML = h;
+  document.getElementById('bk').addEventListener('click', zurueck);
+  main.querySelectorAll('[data-modus]').forEach(b => b.addEventListener('click', () => {
+    vergleichModus = b.dataset.modus; zeigeVergleich();
+  }));
+  main.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', () => {
+    const nr = b.dataset.copy;
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(nr).then(() => toast('Kopiert: ' + nr)).catch(() => toast('Kopieren nicht möglich'));
+    } else toast('Kopieren nicht möglich');
+  }));
+  main.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => entferneVergleich(b.dataset.rm)));
+  document.getElementById('cmpclearview').addEventListener('click', () => {
+    vergleichZuruecksetzen();
+    zurueck();
+  });
+  vergleichLeisteRender();
+  window.scrollTo(0,0);
+}
+
 function feld(k, v, mono){
   if(!v) return '';
   const parts = teile(v);
@@ -676,7 +987,7 @@ function feldHT(rohWert){
 }
 function zeigeBauteil(nr){
   const b = BT.get(nr); if(!b) return;
-  let h = backHTML() + bandHTML(nr);
+  let h = kopfHTML(nr, 'bt') + bandHTML(nr);
 
   if(b.nurMatrix){
     h += '<div class="note note-red"><span class="nl">Nicht in Übersichtsliste</span>'
@@ -722,7 +1033,7 @@ function zeigeSchablone(nr){
   const s = SCH.get(nr); if(!s) return;
   const einzel = kinderVon.get(basis(nr)) || [];
   const bts = btVonSch.get(nr) || [];
-  let h = backHTML() + bandHTML(nr);
+  let h = kopfHTML(nr, s.ebene==='Einzelteil' ? 'ez' : 'sch') + bandHTML(nr);
 
   if(s.ohneReg){
     h += '<div class="note note-amber"><span class="nl">Kein Registereintrag</span>'
@@ -768,6 +1079,13 @@ function backHTML(){
     + (stack.length ? 'Zurück' : 'Zurück zur Suche') + '</button>';
 }
 
+function kopfHTML(nr, typ){
+  const aktiv = istImVergleich(nr);
+  return '<div class="dkopf">' + backHTML()
+    + '<button class="cmpmini detail' + (aktiv?' active':'') + '" data-cmp="' + esc(nr) + '" data-cmptyp="' + typ + '" aria-pressed="' + (aktiv?'true':'false') + '">'
+    + (aktiv ? '✓ Im Vergleich' : 'Zum Vergleich') + '</button></div>';
+}
+
 function gehe(nr){
   if(current) stack.push(current);
   current = nr;
@@ -782,6 +1100,7 @@ function zurueck(){
 }
 
 function render(){
+  if(current === '__VERGLEICH__') return zeigeVergleich();
   if(current && BT.has(current))  return zeigeBauteil(current);
   if(current && SCH.has(current)) return zeigeSchablone(current);
   current = null;
@@ -811,10 +1130,13 @@ function liste(){
   let h = '<div class="rescount">'+treffer.length+' Treffer'+(treffer.length===60?' (gekürzt)':'')+'</div><div class="results">';
   treffer.forEach((t,i) => {
     const tag = t.typ==='bt'?'Bauteil':(t.typ==='ez'?'Einzelteil':'Schablone');
-    h += '<button class="row t-'+t.typ+'" data-go="'+esc(t.nr)+'" data-i="'+i+'">'
+    const cmpAktiv = istImVergleich(t.nr);
+    h += '<div class="row t-'+t.typ+'" data-go="'+esc(t.nr)+'" data-i="'+i+'" role="button" tabindex="0">'
       +  '<span class="n">'+hl(t.nr,qr)+'</span>'
       +  '<span class="tag tag-'+t.typ+'">'+tag+'</span>'
-      +  '<span class="d">'+esc(t.roh)+'</span></button>';
+      +  '<span class="d">'+esc(t.roh)+'</span>'
+      +  '<button class="cmpmini'+(cmpAktiv?' active':'')+'" data-cmp="'+esc(t.nr)+'" data-cmptyp="'+t.typ+'" aria-pressed="'+(cmpAktiv?'true':'false')+'">'
+      +  (cmpAktiv?'✓ Vergleich':'Vergleichen')+'</button></div>';
   });
   main.innerHTML = h + '</div>';
   bind();
@@ -838,6 +1160,15 @@ function startseite(){
 function bind(){
   main.querySelectorAll('[data-go]').forEach(el => {
     el.addEventListener('click', () => gehe(el.dataset.go));
+    el.addEventListener('keydown', e => {
+      if(e.key==='Enter' || e.key===' '){ e.preventDefault(); gehe(el.dataset.go); }
+    });
+  });
+  main.querySelectorAll('[data-cmp]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      toggleVergleich(el.dataset.cmptyp, el.dataset.cmp);
+    });
   });
   const bk = document.getElementById('bk');
   if(bk) bk.addEventListener('click', zurueck);
@@ -946,6 +1277,7 @@ function leseDatei(file){
       const wb = XLSX.read(new Uint8Array(fr.result), {type:'array'});
       DATA = baueDaten(wb);
       indexAufbauen();
+      vergleichZuruecksetzen();
       quelleEl.hidden = false;
       qnameEl.textContent = dateiName + ' · ' + new Date().toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
       qEl.disabled = false;
