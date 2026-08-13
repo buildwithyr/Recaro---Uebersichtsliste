@@ -516,6 +516,15 @@ let BT = new Map(), SCH = new Map(), btVonSch = new Map(), kinderVon = new Map()
 
 const norm = s => (s||'').toString().toUpperCase().replace(/[^A-Z0-9]/g,'');
 
+/* Bei Bauteilnummern im Format 164<Trenner><5-stellig><Trenner><Rest> sind die
+   Trennzeichen an diesen beiden Stellen auch Buchstaben (X, S, G, _), nicht nur "-".
+   Für die Suche sollen sie trotzdem "egal" sein, genau wie der Bindestrich -
+   deshalb zusätzlich eine trennerlose Variante bilden, z.B. "164X31243S004" -> "16431243004". */
+function normOhneTrenner(nr){
+  const m = /^164[-X*](\d{5})[-SG_](.+)$/.exec(nr);
+  return m ? norm('164'+m[1]+m[2]) : null;
+}
+
 function indexAufbauen(){
   BT = new Map(); SCH = new Map(); btVonSch = new Map(); kinderVon = new Map(); IDX = [];
   DATA.bauteile.forEach(b => BT.set(b.nr, b));
@@ -531,7 +540,7 @@ function indexAufbauen(){
     }
   });
   DATA.bauteile.forEach(b => IDX.push({
-    typ:'bt', nr:b.nr, n:norm(b.nr),
+    typ:'bt', nr:b.nr, n:norm(b.nr), n2:normOhneTrenner(b.nr),
     txt: norm([b.bez,b.projekt,b.extern,b.ht,b.topassy,b.bemerkung].join(' ')),
     roh: [b.bez,b.projekt].filter(Boolean).join(' · ')
   }));
@@ -547,9 +556,9 @@ function suche(qr){
   if(n.length < 2) return [];
   const exakt=[], anfang=[], drin=[], text=[];
   for(const it of IDX){
-    if(it.n === n) exakt.push(it);
-    else if(it.n.startsWith(n)) anfang.push(it);
-    else if(it.n.indexOf(n) >= 0) drin.push(it);
+    if(it.n === n || it.n2 === n) exakt.push(it);
+    else if(it.n.startsWith(n) || (it.n2 && it.n2.startsWith(n))) anfang.push(it);
+    else if(it.n.indexOf(n) >= 0 || (it.n2 && it.n2.indexOf(n) >= 0)) drin.push(it);
     else if(n.length >= 3 && it.txt.indexOf(n) >= 0) text.push(it);
   }
   return exakt.concat(anfang, drin, text).slice(0, 60);
@@ -592,7 +601,8 @@ function zerlege(nr){
   }
   if((m = /^164([-X*])(\d{5})([-SG_])(.+)$/.exec(nr))){
     const gespiegelt = m[3] === 'S';
-    return {kind:'Bauteil', segs:[{v:nr, l: gespiegelt ? 'Gespiegelt' : 'Bauteil-Nr.'}]};
+    const lesbar = ['164', m[1], m[2], m[3], m[4]].join(' ');
+    return {kind:'Bauteil', segs:[{v:lesbar, l: gespiegelt ? 'Gespiegelt' : 'Bauteil-Nr.'}]};
   }
   return {kind:'Nummer', segs:[{v:nr, l:'unbekanntes Format'}]};
 }
