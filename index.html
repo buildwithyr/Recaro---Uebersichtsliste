@@ -591,11 +591,8 @@ function zerlege(nr){
     return {kind:'Schablone', segs:s};
   }
   if((m = /^164([-X*])(\d{5})([-SG_])(.+)$/.exec(nr))){
-    const trenn = {'-':'Standard','X':'Variante X','*':'Variante *'}[m[1]] || 'Trenner';
-    const art   = {'-':'Ausführung','S':'Spiegelbild','G':'Variante G','_':'Zusatz'}[m[3]] || 'Index';
-    return {kind:'Bauteil', segs:[
-      {v:'164', l:'Programm'}, {v:m[1], l:trenn},
-      {v:m[2], l:'Bauteil'}, {v:m[3], l:art}, {v:m[4], l:'Index'}]};
+    const gespiegelt = m[3] === 'S';
+    return {kind:'Bauteil', segs:[{v:nr, l: gespiegelt ? 'Gespiegelt' : 'Bauteil-Nr.'}]};
   }
   return {kind:'Nummer', segs:[{v:nr, l:'unbekanntes Format'}]};
 }
