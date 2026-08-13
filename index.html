@@ -640,6 +640,29 @@ function chipsHTML(list, art){
   }).join('')+'</div>';
 }
 
+/* Spalte H der Übersichtsliste ist gemischt belegt: echte HT-Rohteilnummern,
+   ProAlpha-Nummern mit angehängter Bauteilstärke (z.B. "160-1100-142-9.5"),
+   oder vereinzelt Freitext (z.B. "Schützplatte"). Nicht mehr pauschal als
+   "HT-Nummer" beschriften, sondern pro Wert erkennen und passend aufteilen. */
+const PROALPHA_MUSTER = /^(.+)-(\d+[.,]\d+)$/;
+function feldHT(rohWert){
+  if(!rohWert) return '';
+  let out = '';
+  teile(rohWert).forEach(v => {
+    const t = v.trim();
+    if(/^HT\d/i.test(t)){
+      out += feld('HT-Rohteilnummer', t, 1);
+    } else {
+      const m = PROALPHA_MUSTER.exec(t);
+      if(m){
+        out += feld('ProAlpha-Nummer', m[1], 1) + feld('Bauteilstärke', m[2].replace(',','.')+' mm');
+      } else {
+        out += feld('Angabe in Spalte H', t);
+      }
+    }
+  });
+  return out;
+}
 function zeigeBauteil(nr){
   const b = BT.get(nr); if(!b) return;
   let h = backHTML() + bandHTML(nr);
@@ -660,7 +683,7 @@ function zeigeBauteil(nr){
   h += '</div>';
 
   const kern = feld('Externe Nummer', b.extern, 1) + feld('Interne Bezeichnung', b.bez)
-             + feld('Projekt', b.projekt) + feld('HT-Nummer', b.ht, 1)
+             + feld('Projekt', b.projekt) + feldHT(b.ht)
              + feld('Top Assy', b.topassy, 1) + feld('Mastermodell', b.mastermodell, 1);
   if(kern) h += '<div class="block"><h2>Stammdaten</h2><div class="fields">'+kern+'</div></div>';
 
