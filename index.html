@@ -1051,15 +1051,19 @@ async function scanStarten(){
     return;
   }
 
-  scanVideo.srcObject = scanStream;
-  try{ await mitZeitlimit(scanVideo.play(), 4000, timeoutFehler); }
-  catch(e){ /* Wiedergabe kann auch ohne await-Bestätigung starten, weiterlaufen lassen */ }
   scanState.textContent = 'Sucht Barcode …';
 
   try{
     if('BarcodeDetector' in window){
+      scanVideo.srcObject = scanStream;
+      try{ await mitZeitlimit(scanVideo.play(), 4000, timeoutFehler); }
+      catch(e){ /* Wiedergabe kann auch ohne await-Bestätigung starten, weiterlaufen lassen */ }
       await scanMitBarcodeDetector();
     } else {
+      // ZXing übernimmt srcObject und play() selbst (decodeFromStream). Würden wir das Video
+      // vorher schon selbst starten, verpasst ZXing das "playing"-Event, auf das es intern
+      // wartet, bevor die Scan-Schleife losläuft - genau das führte dazu, dass die Kamera
+      // zwar lief, aber nie etwas erkannt wurde (v.a. auf iOS Safari ohne BarcodeDetector).
       await scanMitZXing();
     }
   }catch(err){
@@ -1094,8 +1098,8 @@ async function scanMitZXing(){
     ZXing.BarcodeFormat.QR_CODE
   ]);
   zxingReader = new ZXing.BrowserMultiFormatReader(hints);
-  // Stream ist schon offen (siehe scanStarten) - Bibliothek soll ihn weiterverwenden, nicht neu anfordern.
-  zxingReader.decodeFromVideoElementContinuously(scanVideo, (result, err) => {
+  // Stream ist schon offen (siehe scanStarten) - ZXing verwendet ihn weiter, fordert keinen neuen an.
+  await zxingReader.decodeFromStream(scanStream, scanVideo, (result, err) => {
     if(!scanAktiv) return;
     if(result) scanTreffer(result.getText());
     // NotFoundException fliegt bei jedem erfolglosen Frame - normal, kein Fehler.
