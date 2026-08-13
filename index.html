@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#171C22">
 <title>RECARO – Übersichtsliste</title>
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -102,6 +104,13 @@ body{
   margin-top:8px;font-family:var(--cond);font-size:13px;letter-spacing:.07em;
   text-transform:uppercase;color:#7E919B;
 }
+.datacard{margin:14px 0;background:var(--card);border:1px solid var(--rule-soft);border-radius:3px;padding:12px 14px;font-size:13px;color:var(--ink-2)}
+.datacard b{font-family:var(--mono);word-break:break-all}.dataactions,.filters,.recent{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:9px}
+.smallbtn,.filter{border:1px solid var(--rule);background:#fff;color:var(--ink-2);border-radius:3px;padding:6px 10px;cursor:pointer;font:600 13px var(--cond);letter-spacing:.04em}
+.smallbtn:hover,.filter:hover,.filter.active{border-color:var(--teal);color:var(--teal);background:var(--teal-bg)}
+.agewarn{margin-top:8px;color:var(--amber)}.validation{margin:12px 0;padding:10px 13px;border-left:4px solid var(--amber);background:var(--amber-bg)}
+.copy{margin-left:7px;border:0;background:transparent;color:inherit;cursor:pointer;opacity:.65;font-size:13px}.copy:hover{opacity:1;color:var(--teal)}
+.toast{position:fixed;z-index:300;bottom:calc(18px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 14px;border-radius:3px}
 
 /* ---------- Kamera-Overlay ---------- */
 .scanoverlay{position:fixed;inset:0;z-index:200;background:#0B0E11;display:flex;flex-direction:column}
@@ -299,6 +308,7 @@ footer{
       <button class="reload" id="reload">Aktualisieren</button>
       <button class="reload alt" id="wechseln">Andere Datei</button>
     </div>
+    <div id="datainfo"></div>
   </div>
 </header>
 
@@ -351,6 +361,27 @@ const BAUTEIL_RE = /^164[-X*]\d{5}[-SG_]/;
 function colName(n){           // 0-basiert -> A, B, ... AA
   let s='';
   for(n = n+1; n > 0; ){
+const EXCEL_MAX_AGE_DAYS = 14;
+
+function pruefeStruktur(wb){
+  const errors=[], warnings=[];
+  const required=['Übersichtsliste','Schablnr - Bauteilnr.','Schablonen'];
+  required.forEach(n => { if(!wb.SheetNames.includes(n)) errors.push('Benötigtes Blatt „'+n+'“ fehlt.'); });
+  if(errors.length) return {errors,warnings};
+  const U=raster(wb.Sheets['Übersichtsliste'],18), M=raster(wb.Sheets['Schablnr - Bauteilnr.']), S=raster(wb.Sheets['Schablonen'],19);
+  if(U.cols < 18) errors.push('Blatt „Übersichtsliste“: mindestens 18 Spalten (A–R) erwartet, gefunden: '+U.cols+'.');
+  if(U.rows < 2) errors.push('Blatt „Übersichtsliste“: keine Datenzeilen ab Zeile 2 gefunden.');
+  if(!U.g.slice(1).some(r => BAUTEIL_RE.test(r[0]||''))) errors.push('Blatt „Übersichtsliste“, Spalte A: keine gültige Bauteilnummer gefunden.');
+  if(M.rows < 4) errors.push('Blatt „Schablnr - Bauteilnr.“: Daten ab Zeile 4 fehlen.');
+  if(!(M.g[2]||[]).some(v => /^T/i.test(v||''))) errors.push('Blatt „Schablnr - Bauteilnr.“, Zeile 3: keine gültige Schablonenspalte gefunden.');
+  if(!S.g.slice(1).some(r => clean(r[0]))) errors.push('Blatt „Schablonen“, Spalte A: keine verwendbaren Registereinträge gefunden.');
+  if(U.g[0] && !U.g[0].some(Boolean)) warnings.push('Blatt „Übersichtsliste“, Zeile 1: keine erkennbaren Überschriften. Die Datenpositionen werden strukturell geprüft.');
+  if(S.cols < 7) warnings.push('Blatt „Schablonen“: weniger als 7 Spalten; Materialangaben können fehlen.');
+  return {errors,warnings};
+}
+
+  const check=pruefeStruktur(wb);
+  if(check.errors.length) throw new Error(check.errors.join(' '));
     const r = (n-1) % 26;
     s = String.fromCharCode(65+r) + s;
     n = Math.floor((n-1)/26);
@@ -464,8 +495,8 @@ function baueDaten(wb){
   alleNamen.forEach(nr => {
     if(nr.indexOf('SC0') === 0){ anzeige.set(nr, nr); return; }
     const b = basis(nr);
-    if(btVonSch.has(nr)) anzeige.set(b, nr);
-    else if(!anzeige.has(b)) anzeige.set(b, nr);
+           nurMatrix:nurMatrix.length, register:reg.size, warnings:check.warnings}
+    txt: norm([b.bez,b.projekt,b.extern,b.ht,b.topassy,b.bemerkung,b.mastermodell,b.prog,b.wabenkern,b.potting,b.fai].join(' ')),
   });
 
   /* ---- Bauteile ausgeben ---- */
@@ -572,9 +603,10 @@ function suche(qr){
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function hl(s, qr){
   const n = norm(qr); if(n.length<2) return esc(s);
-  const raw = String(s); let out='', buf='', j=0, start=-1;
-  // Position im Rohstring finden, Trennzeichen überspringend
-  for(let i=0;i<raw.length;i++){
+  h += '<button class="copy" data-copy="'+esc(nr)+'" aria-label="Nummer kopieren">Kopieren</button></div>';
+let treffer = [], alleTreffer = [], sel = -1, stack = [], current = null, activeFilter = 'all', pendingTarget = null;
+const RECENT_KEY='recaro-recent-v1'; let sourceMeta=null, offlineLoaded=false;
+  return '<div class="k">'+esc(k)+'</div><div class="v'+(mono?' num':'')+'">'+inner+(mono?' <button class="copy" data-copy="'+esc(v)+'" aria-label="'+esc(k)+' kopieren">Kopieren</button>':'')+'</div>';
     const c = raw[i].toUpperCase();
     if(/[A-Z0-9]/.test(c)){
       if(c === n[j]){ if(j===0) start=i; j++; if(j===n.length){ 
@@ -724,19 +756,67 @@ function zeigeSchablone(nr){
   const bts = btVonSch.get(nr) || [];
   let h = backHTML() + bandHTML(nr);
 
-  if(s.ohneReg){
-    h += '<div class="note note-amber"><span class="nl">Kein Registereintrag</span>'
-      +  '<span>Diese Schablone wird verwendet, steht aber nicht im Blatt „Schablonen“. Bezeichnung und Material sind deshalb unbekannt.</span></div>';
-  }
-  if(s.regAls){
-    h += '<div class="note note-amber"><span class="nl">Schreibweise weicht ab</span>'
-      +  '<span>Im Register steht diese Schablone als <b style="font-family:var(--mono)">'+esc(s.regAls)+'</b> ohne Bearbeitungskürzel. Die Angaben unten stammen aus diesem Eintrag.</span></div>';
-  }
+function safeHistory(method, state, url){
+  try{ if(location.protocol !== 'about:' && history && history[method]) history[method](state,'',url); }catch(e){}
+}
+function targetUrl(nr){ return '#detail='+encodeURIComponent(nr); }
+function gehe(nr, fromHistory){
+  current = nr; addRecent(nr);
+  if(!fromHistory) safeHistory('pushState',{detail:nr},targetUrl(nr));
+  if(location.hash.indexOf('#detail=')===0){ try{ history.back(); return; }catch(e){} }
+  const prev = stack.pop(); current = prev || null; render(); if(!current) qEl.focus();
+}
+window.addEventListener('popstate', () => applyLocation());
+function applyLocation(){
+  let nr=null; try{ if(location.hash.indexOf('#detail=')===0) nr=decodeURIComponent(location.hash.slice(8)); }catch(e){}
+  if(nr && DATA){ if(BT.has(nr)||SCH.has(nr)) gehe(nr,true); }
+  else if(nr) pendingTarget=nr;
+  else { current=null; stack=[]; render(); }
+  alleTreffer = suche(qr); treffer = activeFilter==='all'?alleTreffer:alleTreffer.filter(t=>t.typ===activeFilter); sel = -1;
+  const counts={bt:alleTreffer.filter(t=>t.typ==='bt').length,sch:alleTreffer.filter(t=>t.typ==='sch').length,ez:alleTreffer.filter(t=>t.typ==='ez').length};
+  const cats=Object.values(counts).filter(Boolean).length;
+  let h = (cats>1?'<div class="filters">'+[['all','Alle',alleTreffer.length],['bt','Bauteile',counts.bt],['sch','Schablonen',counts.sch],['ez','Einzelteile',counts.ez]].filter(x=>x[2]).map(x=>'<button class="filter '+(activeFilter===x[0]?'active':'')+'" data-filter="'+x[0]+'">'+x[1]+' ('+x[2]+')</button>').join('')+'</div>':'') + '<div class="rescount">'+treffer.length+' Treffer'+(treffer.length===60?' (gekürzt)':'')+'</div><div class="results">';
+    + '</div>'+recentHTML()+'</div>';
+  main.querySelectorAll('[data-filter]').forEach(el => el.addEventListener('click',()=>{ activeFilter=el.dataset.filter; liste(); }));
+  main.querySelectorAll('[data-copy]').forEach(el => el.addEventListener('click',e=>{ e.stopPropagation(); kopiere(el.dataset.copy); }));
+  main.querySelectorAll('[data-recent]').forEach(el => el.addEventListener('click',()=>{ qEl.value=el.dataset.recent; clrEl.hidden=false; liste(); }));
+  const cr=document.getElementById('clearRecent'); if(cr) cr.addEventListener('click',()=>{localStorage.removeItem(RECENT_KEY);startseite();});
+}
 
-  if(s.eltern){
-    h += '<div class="block"><h2>Gehört zu</h2>'+chipsHTML([s.eltern],'sch')+'</div>';
+function recentItems(){ try{return JSON.parse(localStorage.getItem(RECENT_KEY)||'[]').slice(0,5);}catch(e){return [];} }
+function addRecent(value){
+  const v=String(value||'').trim(); if(!v)return;
+  const a=[v].concat(recentItems().filter(x=>x!==v)).slice(0,5);
+  try{localStorage.setItem(RECENT_KEY,JSON.stringify(a));}catch(e){}
+}
+function recentHTML(){
+  const a=recentItems(); if(!a.length)return '';
+  return '<div class="recent" aria-label="Letzte Suchvorgänge"><b>Zuletzt:</b> '+a.map(x=>'<button class="smallbtn" data-recent="'+esc(x)+'">'+esc(x)+'</button>').join('')+'<button class="smallbtn" id="clearRecent">Verlauf löschen</button></div>';
+async function kopiere(value){
+  try{
+    if(navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(value);
+    else { const t=document.createElement('textarea');t.value=value;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();document.execCommand('copy');t.remove(); }
+    const toast=document.createElement('div');toast.className='toast';toast.textContent='Kopiert';document.body.appendChild(toast);setTimeout(()=>toast.remove(),1200);
+  }catch(e){}
+}
+function formatSize(bytes){ return bytes>=1048576?(bytes/1048576).toFixed(1)+' MB':Math.max(0.1,bytes/1024).toFixed(1)+' KB'; }
+function formatDate(ms){ return new Date(ms).toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'}); }
+function zeigeDatenstand(){
+  const el=document.getElementById('datainfo'); if(!sourceMeta){el.textContent='';return;}
+  const old=sourceMeta.lastModified && Date.now()-sourceMeta.lastModified>EXCEL_MAX_AGE_DAYS*86400000;
+  el.innerHTML='<div class="datacard"><div><b>'+esc(sourceMeta.name)+'</b> · '+formatSize(sourceMeta.size||0)+'</div><div>Geändert: '+esc(formatDate(sourceMeta.lastModified))+' · Eingelesen: '+esc(formatDate(sourceMeta.loadedAt))+'</div>'+(sourceMeta.offline?'<div><strong>Gespeicherter lokaler Datenstand</strong> – bleibt ausschließlich in diesem Browser.</div>':'')+(old?'<div class="agewarn">Hinweis: Diese Excel-Datei wurde seit mehr als '+EXCEL_MAX_AGE_DAYS+' Tagen nicht aktualisiert.</div>':'')+((DATA&&DATA.meta.warnings||[]).map(w=>'<div class="validation">Warnung: '+esc(w)+'</div>').join(''))+'<div class="dataactions">'+(!sourceMeta.offline?'<button class="smallbtn" id="makeOffline">Offline verfügbar machen</button>':'')+'<button class="smallbtn" id="deleteOffline">Lokale Daten löschen</button></div></div>';
+  const save=document.getElementById('makeOffline'); if(save)save.onclick=speichereOffline;
+  document.getElementById('deleteOffline').onclick=loescheOffline;
+}
+async function speichereOffline(){
+  const existing=await idbGet('processed');
+  if(existing && !confirm('Vorhandenen lokalen Datenstand mit der neuen Datei überschreiben?'))return;
+  await idbPut('processed',{data:DATA,meta:{...sourceMeta,offline:true,savedAt:Date.now()}}); sourceMeta.offline=true; zeigeDatenstand();
+}
+async function loescheOffline(){ await idbDelete('processed'); if(sourceMeta&&sourceMeta.offline){DATA=null;sourceMeta=null;location.hash='';quelleEl.hidden=true;qEl.disabled=true;scanBtn.disabled=true;dropzone();}else zeigeDatenstand(); }
+  current = null; stack = []; activeFilter='all';
   }
-  if(einzel.length && s.ebene==='Schablone'){
+    + '<p>' + (msg ? esc(msg) : 'Wähle die Datei RECARO_-_Übersicht.xlsx aus. Sie wird nur hier im Browser gelesen '
     h += '<div class="block"><h2>Besteht aus &mdash; '+einzel.length+' Einzelteile</h2>'+chipsHTML(einzel,'sch')+'</div>';
   }
 
@@ -893,9 +973,15 @@ function dropzone(msg){
   const dz = document.getElementById('dz');
   ['dragenter','dragover'].forEach(e => dz.addEventListener(e, ev => {
     ev.preventDefault(); dz.classList.add('over');
-  }));
-  ['dragleave','drop'].forEach(e => dz.addEventListener(e, ev => {
-    ev.preventDefault(); dz.classList.remove('over');
+  const eingelesen=Date.now(); sourceMeta={name:file.name,size:file.size,lastModified:file.lastModified,loadedAt:eingelesen,offline:false};
+      offlineLoaded=false; zeigeDatenstand();
+      render(); if(pendingTarget){ const t=pendingTarget; pendingTarget=null; gehe(t,true); }
+    const r = indexedDB.open('schablonen-auskunft', 2);
+    r.onupgradeneeded = () => { if(!r.result.objectStoreNames.contains('handles'))r.result.createObjectStore('handles'); if(!r.result.objectStoreNames.contains('data'))r.result.createObjectStore('data'); };
+async function idbGet(key){ try{const d=await db();return await new Promise((res,rej)=>{const rq=d.transaction('data').objectStore('data').get(key);rq.onsuccess=()=>res(rq.result||null);rq.onerror=()=>rej(rq.error);});}catch(e){return null;} }
+async function idbPut(key,value){const d=await db();return new Promise((res,rej)=>{const tx=d.transaction('data','readwrite');tx.objectStore('data').put(value,key);tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});}
+async function idbDelete(key){try{const d=await db();return new Promise((res,rej)=>{const tx=d.transaction('data','readwrite');tx.objectStore('data').delete(key);tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});}catch(e){}}
+
   }));
   dz.addEventListener('drop', ev => {
     const f = ev.dataTransfer.files[0];
@@ -1035,19 +1121,27 @@ function mitZeitlimit(promise, ms, timeoutFehler){
     const t = setTimeout(() => reject(timeoutFehler), ms);
     promise.then(v => { clearTimeout(t); resolve(v); },
                  e => { clearTimeout(t); reject(e); });
-  });
-}
+      scanFoot.textContent=''; const box=document.createElement('div'); box.className='err'; box.textContent=msg; scanFoot.appendChild(box);
+    scanFoot.textContent=''; const box=document.createElement('div'); box.className='err'; box.textContent=(err&&err.message?err.message:'Der Scanner konnte nicht gestartet werden.'); scanFoot.appendChild(box);
 
-async function scanStarten(){
-  if(!DATA) return;
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    overlay.hidden = false;
-    scanState.textContent = 'Kamera nicht verfügbar';
-    scanFoot.innerHTML = '<div class="err">Dieser Browser unterstützt keinen Kamerazugriff.</div>';
-    return;
-  }
+  let last=0, busy=false;
+  const schleife = async (now=0) => {
+    if(busy || now-last < 125){ scanRAF=requestAnimationFrame(schleife); return; }
+    last=now; busy=true;
+    busy=false; scanRAF = requestAnimationFrame(schleife);
+  let last=0;
+  const schleife = (now=0) => {
+    if(now-last < 125){ scanRAF=requestAnimationFrame(schleife); return; } last=now;
+  const saved=await idbGet('processed');
+  if(saved&&saved.data){ DATA=saved.data;sourceMeta=saved.meta;sourceMeta.offline=true;offlineLoaded=true;indexAufbauen();quelleEl.hidden=false;qnameEl.textContent=sourceMeta.name+' · lokal gespeichert';qEl.disabled=false;scanBtn.disabled=false;zeigeDatenstand();render();applyLocation(); }
+      if(!DATA){
+        dropzone('Zuletzt verwendet: ' + h.name + '. Der Browser fragt aus Sicherheitsgründen bei jedem Start einmal nach Erlaubnis – ein Klick genügt.');
+        const b = document.getElementById('pick'); b.textContent = 'Zugriff erlauben und laden'; b.onclick = aktualisieren;
+      }
+  if(!DATA) dropzone();
+  else applyLocation();
 
-  overlay.hidden = false;
+if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost' || location.hostname==='127.0.0.1')) navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
   scanAktiv = true;
   scanState.textContent = 'Kamera wird gestartet …';
   scanFoot.textContent = 'Nummer im Rahmen halten';
