@@ -961,6 +961,7 @@ function alleFilterZuruecksetzen(){
 function filterZustandZuruecksetzenBeiDateiwechsel(){
   filterState = { typ:'alle', projekt:[], material:[], fai:[], topassy:[], bemerkung:null };
   filterPanelOffen = false;
+  if(typeof bezOffenSektionen !== 'undefined') bezOffenSektionen.clear();
 }
 
 function erweiterteFilterAnzahl(){
@@ -1315,6 +1316,180 @@ function chipsHTML(list, art){
    ProAlpha-Nummern mit angehängter Bauteilstärke (z.B. "160-1100-142-9.5"),
    oder vereinzelt Freitext (z.B. "Schützplatte"). Nicht mehr pauschal als
    "HT-Nummer" beschriften, sondern pro Wert erkennen und passend aufteilen. */
+/* ==================== "Wo verwendet?" / Beziehungsansicht ====================
+   Bereitet ausschließlich Beziehungen auf, die bereits aus BT/SCH/btVonSch/kinderVon
+   sowie den Projekt- und Top-Assy-Feldern ableitbar sind - keine neue Auswertung der
+   Excel-Datei, keine Teamcenter-Anbindung. Rendering (zeigeBeziehungen) ist von diesen
+   reinen Aufbereitungsfunktionen getrennt. */
+function bauteilBeziehungen(b){
+  const schablonenNrs = (b.sch || []).slice();
+  const einzelteilSet = new Set();
+  schablonenNrs.forEach(schNr => {
+    const s = SCH.get(schNr);
+    if(s && s.ebene === 'Schablone'){
+      (kinderVon.get(basis(s.nr)) || []).forEach(e => einzelteilSet.add(e));
+    }
+  });
+  return {
+    schablonen: schablonenNrs,
+    einzelteile: Array.from(einzelteilSet),
+    topassy: teile(b.topassy || ''),
+    projekt: b.projekt || ''
+  };
+}
+function schabloneBeziehungen(s){
+  const bauteilNrs = btVonSch.get(s.nr) || [];
+  const projekte = new Set(), topassys = new Set();
+  bauteilNrs.forEach(n => {
+    const b = BT.get(n);
+    if(!b) return;
+    teile(b.projekt || '').forEach(p => projekte.add(p));
+    teile(b.topassy || '').forEach(t => topassys.add(t));
+  });
+  return {
+    eltern: s.eltern || null,
+    kinder: kinderVon.get(basis(s.nr)) || [],
+    bauteile: bauteilNrs,
+    projekte: Array.from(projekte),
+    topassys: Array.from(topassys)
+  };
+}
+function einzelteilBeziehungen(s){
+  const elternNr = s.eltern || null;
+  const elternObj = elternNr ? SCH.get(elternNr) : null;
+  const geschwister = elternNr ? (kinderVon.get(basis(elternNr)) || []).filter(n => n !== s.nr) : [];
+  const bauteilNrs = elternObj ? (btVonSch.get(elternObj.nr) || []) : [];
+  const projekte = new Set(), topassys = new Set();
+  bauteilNrs.forEach(n => {
+    const b = BT.get(n);
+    if(!b) return;
+    teile(b.projekt || '').forEach(p => projekte.add(p));
+    teile(b.topassy || '').forEach(t => topassys.add(t));
+  });
+  return {
+    eltern: elternNr,
+    geschwister: geschwister,
+    bauteile: bauteilNrs,
+    projekte: Array.from(projekte),
+    topassys: Array.from(topassys)
+  };
+}
+
+function bezSummaryBlockHTML(art, nr, bz){
+  let text;
+  if(art === 'bt'){
+    const teileZ = ['1 Bauteil',
+      bz.schablonen.length + ' zugeordnete Schablone' + (bz.schablonen.length===1?'':'n'),
+      bz.einzelteile.length + ' enthaltene' + (bz.einzelteile.length===1?'s':'') + ' Einzelteil' + (bz.einzelteile.length===1?'':'e')];
+    text = teileZ.join(' · ');
+    if(bz.topassy.length) text += ' · Top Assy: ' + bz.topassy.join(', ');
+  } else if(art === 'sch'){
+    text = 'Diese Schablone wird für ' + bz.bauteile.length + ' Bauteil' + (bz.bauteile.length===1?'':'e')
+      + ', ' + bz.projekte.length + ' Projekt' + (bz.projekte.length===1?'':'e')
+      + ' und ' + bz.topassys.length + ' Top Assy' + (bz.topassys.length===1?'':'s') + ' verwendet.';
+  } else {
+    text = bz.eltern
+      ? ('Über die übergeordnete Schablone ' + bz.eltern + ' abgeleitet: ' + bz.bauteile.length + ' Bauteil' + (bz.bauteile.length===1?'':'e')
+         + ', ' + bz.projekte.length + ' Projekt' + (bz.projekte.length===1?'':'e') + '.')
+      : 'Keine übergeordnete Schablone bekannt.';
+  }
+  return '<div class="block bezblock-summary"><h2>Beziehungen</h2>'
+    + '<p class="bezsummary-text">' + esc(text) + '</p>'
+    + '<button class="bezopen" data-bez="' + esc(nr) + '">Gesamte Ansicht öffnen</button></div>';
+}
+
+function geheBeziehungen(nr){
+  if(current) stack.push(current);
+  current = '__BEZIEHUNG__:' + nr;
+  render();
+}
+
+let bezOffenSektionen = new Set();
+function bezListeHTML(sektionKey, titel, nrs, art, lvl){
+  const eindeutig = Array.from(new Set(nrs)).filter(Boolean).sort((a,b) => a.localeCompare(b, 'de', {numeric:true, sensitivity:'base'}));
+  if(!eindeutig.length) return '';
+  const LIMIT = 20;
+  const offen = bezOffenSektionen.has(sektionKey);
+  const gekuerzt = !offen && eindeutig.length > LIMIT;
+  const sichtbar = gekuerzt ? eindeutig.slice(0, LIMIT) : eindeutig;
+  let h = '<div class="bezebene' + (lvl ? ' lvl-'+lvl : '') + '"><div class="bezlabel">' + esc(titel) + ' &mdash; ' + eindeutig.length + '</div>';
+  h += '<div class="bezitems">' + chipsHTML(sichtbar, art) + '</div>';
+  if(gekuerzt) h += '<button class="bezmehr" data-sektion="' + esc(sektionKey) + '">Alle anzeigen (' + eindeutig.length + ')</button>';
+  h += '</div>';
+  return h;
+}
+function bezPlainListeHTML(titel, werte, lvl){
+  const eindeutig = Array.from(new Set(werte)).filter(Boolean).sort((a,b) => a.localeCompare(b, 'de', {numeric:true, sensitivity:'base'}));
+  if(!eindeutig.length) return '';
+  return '<div class="bezebene' + (lvl ? ' lvl-'+lvl : '') + '"><div class="bezlabel">' + esc(titel) + ' &mdash; ' + eindeutig.length + '</div>'
+    + '<div class="bezitems">' + eindeutig.map(w => '<span class="bez-plain">'+esc(w)+'</span>').join('') + '</div></div>';
+}
+
+function zeigeBeziehungen(nr){
+  const istBt = BT.has(nr);
+  const istSch = SCH.has(nr);
+  if(!istBt && !istSch){ zurueck(); return; }
+
+  let h = backHTML();
+  h += '<div class="bezheader"><span class="tag tag-' + (istBt?'bt':(SCH.get(nr).ebene==='Einzelteil'?'ez':'sch')) + '">'
+    + (istBt?'Bauteil':(SCH.get(nr).ebene==='Einzelteil'?'Einzelteil':'Schablone')) + '</span> <b class="beznr">' + esc(nr) + '</b></div>';
+  h += '<div class="beztree">';
+
+  if(istBt){
+    const b = BT.get(nr);
+    const bz = bauteilBeziehungen(b);
+    const topassyBekannt = bz.topassy.filter(t => BT.has(t) && t !== nr);
+    const topassySonst = bz.topassy.filter(t => !BT.has(t) || t === nr);
+    if(bz.topassy.length){
+      h += bezListeHTML(nr+':topassy', 'Top Assy', topassyBekannt, 'bt', 0);
+      if(topassySonst.length) h += bezPlainListeHTML('Top Assy (ohne eigenen Datensatz)', topassySonst, 0);
+    }
+    h += '<div class="bezebene lvl-1"><div class="bezlabel">Bauteil' + (bz.projekt ? ' · '+esc(bz.projekt) : '') + '</div>'
+      + '<div class="bezitems"><span class="bez-current">' + esc(nr) + '</span></div></div>';
+    h += bezListeHTML(nr+':sch', 'Zugeordnete Schablonen', bz.schablonen, 'sch', 2);
+    h += bezListeHTML(nr+':ez', 'Enthaltene Einzelteile', bz.einzelteile, 'sch', 3);
+    if(!bz.schablonen.length && !bz.einzelteile.length && !bz.topassy.length){
+      h += '<p class="bez-leer">Für diesen Datensatz wurden keine weiteren Beziehungen in der Excel-Datei gefunden.</p>';
+    }
+  } else {
+    const s = SCH.get(nr);
+    if(s.ebene === 'Einzelteil'){
+      const bz = einzelteilBeziehungen(s);
+      if(bz.eltern) h += bezListeHTML(nr+':eltern', 'Übergeordnete Schablone', [bz.eltern], 'sch', 0);
+      h += bezListeHTML(nr+':geschw', 'Weitere Einzelteile derselben Schablone', bz.geschwister, 'sch', 1);
+      if(bz.eltern && (bz.bauteile.length || bz.projekte.length)){
+        h += '<div class="bez-hinweis">Bauteile, Projekte und Top Assys unten sind über die übergeordnete Schablone '
+          + esc(bz.eltern) + ' abgeleitet, nicht direkt diesem Einzelteil zugeordnet.</div>';
+      }
+      h += bezListeHTML(nr+':bt', 'Bauteile (über übergeordnete Schablone)', bz.bauteile, 'bt', 1);
+      h += bezPlainListeHTML('Betroffene Projekte', bz.projekte, 1);
+      h += bezListeHTML(nr+':ta', 'Betroffene Top Assys', bz.topassys.filter(t => BT.has(t)), 'bt', 1);
+      if(!bz.eltern && !bz.geschwister.length && !bz.bauteile.length){
+        h += '<p class="bez-leer">Für diesen Datensatz wurden keine weiteren Beziehungen in der Excel-Datei gefunden.</p>';
+      }
+    } else {
+      const bz = schabloneBeziehungen(s);
+      if(bz.eltern) h += bezListeHTML(nr+':eltern', 'Übergeordnete Schablone', [bz.eltern], 'sch', 0);
+      h += bezListeHTML(nr+':kinder', 'Enthaltene Einzelteile', bz.kinder, 'sch', 1);
+      h += bezListeHTML(nr+':bt', 'Verwendende Bauteile', bz.bauteile, 'bt', 1);
+      h += bezPlainListeHTML('Betroffene Projekte', bz.projekte, 1);
+      h += bezListeHTML(nr+':ta', 'Betroffene Top Assys', bz.topassys.filter(t => BT.has(t)), 'bt', 1);
+      if(!bz.eltern && !bz.kinder.length && !bz.bauteile.length){
+        h += '<p class="bez-leer">Für diesen Datensatz wurden keine weiteren Beziehungen in der Excel-Datei gefunden.</p>';
+      }
+    }
+  }
+  h += '</div>';
+
+  main.innerHTML = h;
+  bind();
+  main.querySelectorAll('[data-sektion]').forEach(btn => btn.addEventListener('click', () => {
+    bezOffenSektionen.add(btn.dataset.sektion);
+    zeigeBeziehungen(nr);
+  }));
+  window.scrollTo(0,0);
+}
+
 const PROALPHA_MUSTER = /^(.+)-(\d+[.,]\d+)$/;
 function feldHT(rohWert){
   if(!rohWert) return '';
@@ -1369,6 +1544,8 @@ function zeigeBauteil(nr){
             + feld('Spalte G', b.g, 1) + feld('Spalte P', b.spalteP, 1);
   if(roh) h += '<div class="block"><h2>Weitere Spalten der Übersichtsliste</h2><div class="fields">'+roh+'</div></div>';
 
+  h += bezSummaryBlockHTML('bt', nr, bauteilBeziehungen(b));
+
   h += '<div class="block"><h2>Herkunft</h2><div class="prov">';
   if(b.z && b.z.length) h += '<span>Übersichtsliste Zeile <b>'+b.z.join(', ')+'</b></span>';
   h += '<span>Zuordnung aus Blatt <b>Schablnr - Bauteilnr.</b></span></div></div>';
@@ -1412,6 +1589,8 @@ function zeigeSchablone(nr){
   const f = feld('Bezeichnung', s.bez) + feld('Beschreibung', s.beschr)
           + feld('Material / Hinweis', s.material) + feld('Vorlage', s.pdf);
   if(f) h += '<div class="block"><h2>Registerdaten</h2><div class="fields">'+f+'</div></div>';
+
+  h += bezSummaryBlockHTML(s.ebene==='Einzelteil' ? 'ez' : 'sch', nr, s.ebene==='Einzelteil' ? einzelteilBeziehungen(s) : schabloneBeziehungen(s));
 
   h += '<div class="block"><h2>Herkunft</h2><div class="prov">';
   if(s.zeile) h += '<span>Blatt Schablonen Zeile <b>'+s.zeile+'</b></span>';
@@ -1457,6 +1636,9 @@ function render(){
     if(filterbarEl && !filterbarEl.hidden) renderFilterleiste();
   }
   if(current === '__VERGLEICH__') return zeigeVergleich();
+  if(typeof current === 'string' && current.indexOf('__BEZIEHUNG__:') === 0){
+    return zeigeBeziehungen(current.slice('__BEZIEHUNG__:'.length));
+  }
   if(current && BT.has(current))  return zeigeBauteil(current);
   if(current && SCH.has(current)) return zeigeSchablone(current);
   current = null;
@@ -1553,6 +1735,9 @@ function bind(){
       e.stopPropagation();
       toggleVergleich(el.dataset.cmptyp, el.dataset.cmp);
     });
+  });
+  main.querySelectorAll('[data-bez]').forEach(el => {
+    el.addEventListener('click', () => geheBeziehungen(el.dataset.bez));
   });
   const bk = document.getElementById('bk');
   if(bk) bk.addEventListener('click', zurueck);
