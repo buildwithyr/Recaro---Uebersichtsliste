@@ -165,7 +165,10 @@ body{
 .row.t-sch{border-left-color:var(--teal)}
 .row.t-ez{border-left-color:var(--amber)}
 .row .n{font-family:var(--mono);font-weight:600;font-size:15px;white-space:nowrap}
-.row .d{color:var(--ink-3);font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.row .d{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1;overflow:hidden}
+.row .dtxt{color:var(--ink-3);font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .mgrund{color:var(--ink-3);font-size:12px;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .mgrund b{font-weight:600;color:var(--ink-2)}
 .row .tag{
   font-family:var(--cond);font-size:12px;letter-spacing:.09em;text-transform:uppercase;
   font-weight:600;padding:2px 7px;border-radius:2px;white-space:nowrap;
@@ -663,44 +666,70 @@ function indexAufbauen(){
   DATA.bauteile.forEach(b => IDX.push({
     typ:'bt', nr:b.nr, n:norm(b.nr), n2:normOhneTrenner(b.nr),
     txt: norm([b.bez,b.projekt,b.extern,b.ht,b.topassy,b.bemerkung].join(' ')),
-    roh: [b.bez,b.projekt].filter(Boolean).join(' · ')
+    roh: [b.bez,b.projekt].filter(Boolean).join(' · '),
+    felder: [
+      {l:'Bezeichnung', v:b.bez}, {l:'Projekt', v:b.projekt}, {l:'Externe Nummer', v:b.extern},
+      {l:'HT-Nummer', v:b.ht}, {l:'Top Assy', v:b.topassy}, {l:'Bemerkung', v:b.bemerkung}
+    ]
   }));
   DATA.schablonen.forEach(s => IDX.push({
     typ: s.ebene==='Einzelteil' ? 'ez' : 'sch', nr:s.nr, n:norm(s.nr),
     txt: norm([s.bez,s.beschr,s.material].join(' ')),
-    roh: [s.bez,s.beschr,s.material].filter(Boolean).join(' · ')
+    roh: [s.bez,s.beschr,s.material].filter(Boolean).join(' · '),
+    felder: [
+      {l:'Bezeichnung', v:s.bez}, {l:'Beschreibung', v:s.beschr}, {l:'Material', v:s.material}
+    ]
   }));
 }
 
+/* Ein Treffer über "text" kommt nicht aus der Nummer, sondern aus einem
+   Nebenfeld (Bezeichnung/Projekt/HT-Nummer/...) - die Trefferzeile markiert
+   diesen Fall mit art:'text', damit die Liste anzeigen kann, worüber genau
+   getroffen wurde (sonst wirkt der Treffer wie ein falscher/zufälliger Match). */
 function suche(qr){
   const n = norm(qr);
   if(n.length < 2) return [];
   const exakt=[], anfang=[], drin=[], text=[];
   for(const it of IDX){
-    if(it.n === n || it.n2 === n) exakt.push(it);
-    else if(it.n.startsWith(n) || (it.n2 && it.n2.startsWith(n))) anfang.push(it);
-    else if(it.n.indexOf(n) >= 0 || (it.n2 && it.n2.indexOf(n) >= 0)) drin.push(it);
-    else if(n.length >= 3 && it.txt.indexOf(n) >= 0) text.push(it);
+    if(it.n === n || it.n2 === n) exakt.push({...it, art:'nr'});
+    else if(it.n.startsWith(n) || (it.n2 && it.n2.startsWith(n))) anfang.push({...it, art:'nr'});
+    else if(it.n.indexOf(n) >= 0 || (it.n2 && it.n2.indexOf(n) >= 0)) drin.push({...it, art:'nr'});
+    else if(n.length >= 3 && it.txt.indexOf(n) >= 0) text.push({...it, art:'text'});
   }
   return exakt.concat(anfang, drin, text);
 }
 
 /* ---------- Hilfen ---------- */
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function hl(s, qr){
+/* radius (optional): statt des ganzen Strings nur ein Fenster um den Treffer
+   ausgeben (für lange Nebenfelder wie Bemerkung, siehe matchGrund()). */
+function hl(s, qr, radius){
   const n = norm(qr); if(n.length<2) return esc(s);
-  const raw = String(s); let out='', buf='', j=0, start=-1;
+  const raw = String(s); let j=0, start=-1;
   // Position im Rohstring finden, Trennzeichen überspringend
   for(let i=0;i<raw.length;i++){
     const c = raw[i].toUpperCase();
     if(/[A-Z0-9]/.test(c)){
-      if(c === n[j]){ if(j===0) start=i; j++; if(j===n.length){ 
-        out = esc(raw.slice(0,start)) + '<mark>' + esc(raw.slice(start,i+1)) + '</mark>' + esc(raw.slice(i+1));
-        return out; } }
+      if(c === n[j]){ if(j===0) start=i; j++; if(j===n.length){
+        if(radius == null) return esc(raw.slice(0,start)) + '<mark>' + esc(raw.slice(start,i+1)) + '</mark>' + esc(raw.slice(i+1));
+        const von = Math.max(0, start-radius), bis = Math.min(raw.length, i+1+radius);
+        return (von>0?'…':'') + esc(raw.slice(von,start)) + '<mark>' + esc(raw.slice(start,i+1)) + '</mark>' + esc(raw.slice(i+1,bis)) + (bis<raw.length?'…':'');
+      } }
       else { j = (c===n[0])?1:0; start = (c===n[0])?i:-1; }
     }
   }
   return esc(raw);
+}
+/* Liefert das erste Nebenfeld (Bezeichnung/Projekt/HT-Nummer/...), in dem qr
+   steckt - nur relevant für art:'text'-Treffer, bei denen die Nummer selbst
+   nicht getroffen hat. */
+function matchGrund(t, qr){
+  if(t.art !== 'text' || !t.felder) return null;
+  const n = norm(qr);
+  for(const f of t.felder){
+    if(f.v && norm(f.v).indexOf(n) >= 0) return f;
+  }
+  return null;
 }
 const teile = v => String(v).split(' | ').filter(Boolean);
 
@@ -1205,10 +1234,13 @@ function liste(){
   treffer.forEach((t,i) => {
     const tag = t.typ==='bt'?'Bauteil':(t.typ==='ez'?'Einzelteil':'Schablone');
     const cmpAktiv = istImVergleich(t.nr);
+    const grund = matchGrund(t, qr);
     h += '<div class="row t-'+t.typ+'" data-go="'+esc(t.nr)+'" data-i="'+i+'" role="button" tabindex="0">'
       +  '<span class="n">'+hl(t.nr,qr)+'</span>'
       +  '<span class="tag tag-'+t.typ+'">'+tag+'</span>'
-      +  '<span class="d">'+esc(t.roh)+'</span>'
+      +  '<span class="d"><span class="dtxt">'+esc(t.roh)+'</span>'
+      +  (grund ? '<span class="mgrund"><b>Treffer über '+esc(grund.l)+':</b> '+hl(grund.v,qr,18)+'</span>' : '')
+      +  '</span>'
       +  '<button class="cmpmini'+(cmpAktiv?' active':'')+'" data-cmp="'+esc(t.nr)+'" data-cmptyp="'+t.typ+'" aria-pressed="'+(cmpAktiv?'true':'false')+'">'
       +  (cmpAktiv?'✓ Vergleich':'Vergleichen')+'</button></div>';
   });
