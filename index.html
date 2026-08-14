@@ -287,6 +287,7 @@ footer{
   font-family:var(--cond);font-size:12.5px;letter-spacing:.07em;text-transform:uppercase;
   color:var(--ink-3);
 }
+.footversion{margin-top:6px;opacity:.6}
 
 @media (max-width:620px){
   .fields{grid-template-columns:1fr}
@@ -480,7 +481,10 @@ body.has-selbar.has-cmpbar{padding-bottom:180px}
   <div class="scanfoot" id="scanfoot"></div>
 </div>
 
-<footer class="wrap" id="foot"></footer>
+<footer class="wrap" id="foot">
+  <div id="footstats"></div>
+  <div class="footversion" id="footversion"></div>
+</footer>
 
 <div class="cmpbar" id="cmpbar" hidden></div>
 <div class="selbar" id="selbar" hidden></div>
@@ -1501,8 +1505,13 @@ window.addEventListener('keydown', e => {
 /* ==================== Excel laden ==================== */
 const quelleEl = document.getElementById('quelle');
 const qnameEl  = document.getElementById('qname');
-const footEl   = document.getElementById('foot');
+const footEl   = document.getElementById('footstats');
 let dateiHandle = null, dateiName = '';
+
+/* Datum des letzten Pushs - bei jeder Änderung an dieser Datei von Hand
+   nachziehen, da es keinen Build-Schritt gibt, der das automatisch könnte. */
+const APP_VERSION = '2026-08-14';
+document.getElementById('footversion').textContent = 'Stand: ' + APP_VERSION;
 
 function dropzone(msg){
   main.innerHTML = '<div class="drop" id="dz">'
