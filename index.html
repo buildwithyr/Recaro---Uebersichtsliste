@@ -3,28 +3,27 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#171C22">
 <title>RECARO – Übersichtsliste</title>
-<link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#171C22;
-  --ink-2:#3D464F;
-  --ink-3:#6B757F;
-  --paper:#E7E9E4;
-  --card:#FCFCFB;
-  --rule:#C9CDC6;
-  --rule-soft:#DFE2DC;
-  --teal:#0C6B7D;
-  --teal-bg:#E2EEF1;
-  --amber:#9C6A12;
-  --amber-bg:#F6EBD6;
+  /* F/LIST Corporate Colors: Wood, Cognac, Off White, Apprentice */
+  --ink:#3C2C27;
+  --ink-2:#5B463C;
+  --ink-3:#8A7568;
+  --paper:#DFD4CD;
+  --card:#FBF8F5;
+  --rule:#CBBFB4;
+  --rule-soft:#E3DAD1;
+  --teal:#EA5B0C;
+  --teal-bg:#FBE3D3;
+  --amber:#8A6F3E;
+  --amber-bg:#F3EBDD;
   --red:#8E3B22;
   --red-bg:#F5E4DE;
-  --focus:#0C6B7D;
+  --focus:#EA5B0C;
   --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
   --cond:'Barlow Condensed',system-ui,-apple-system,'Segoe UI',sans-serif;
   --sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
@@ -52,7 +51,7 @@ body{
 }
 .brand .sub{
   font-family:var(--cond);font-size:14px;letter-spacing:.1em;text-transform:uppercase;
-  color:#8FA3AC;font-weight:500;
+  color:#C9B7A8;font-weight:500;
 }
 .searchwrap{position:relative}
 #q{
@@ -60,32 +59,32 @@ body{
   padding:13px 42px 13px 14px;border:0;border-radius:3px;
   background:#fff;color:var(--ink);
 }
-#q::placeholder{color:#9AA4AD;font-weight:400}
+#q::placeholder{color:#A89A8C;font-weight:400}
 #q:focus{outline:3px solid var(--teal);outline-offset:2px}
 .clear{
   position:absolute;right:44px;top:50%;transform:translateY(-50%);
-  border:0;background:none;font-size:22px;color:#9AA4AD;cursor:pointer;
+  border:0;background:none;font-size:22px;color:#A89A8C;cursor:pointer;
   width:34px;height:34px;line-height:1;border-radius:3px;
 }
 .clear:hover{color:var(--ink)}
 .scanbtn{
   position:absolute;right:6px;top:50%;transform:translateY(-50%);
-  border:0;background:none;color:#6B757F;cursor:pointer;
+  border:0;background:none;color:var(--ink-3);cursor:pointer;
   width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:3px;
 }
 .scanbtn:hover:not(:disabled){color:var(--teal);background:var(--teal-bg)}
 .scanbtn:disabled{opacity:.35;cursor:default}
 .quelle{
   display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px;
-  font-family:var(--cond);font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:#8FA3AC;
+  font-family:var(--cond);font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:#C9B7A8;
 }
 .quelle[hidden]{display:none}
-.quelle #qname{font-family:var(--mono);font-size:12px;letter-spacing:0;text-transform:none;color:#B8C6CD}
+.quelle #qname{font-family:var(--mono);font-size:12px;letter-spacing:0;text-transform:none;color:#D8C9BC}
 .reload{
   font-family:var(--cond);font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;
   background:var(--teal);color:#fff;border:0;border-radius:2px;padding:5px 11px;cursor:pointer;
 }
-.reload.alt{background:none;color:#8FA3AC;border:1px solid #39434C}
+.reload.alt{background:none;color:#C9B7A8;border:1px solid #5A473C}
 .reload:hover{filter:brightness(1.12)}
 .drop{
   border:2px dashed var(--rule);border-radius:4px;background:var(--card);
@@ -102,15 +101,35 @@ body{
 .lade{font-family:var(--cond);font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);padding:34px 4px}
 .hint{
   margin-top:8px;font-family:var(--cond);font-size:13px;letter-spacing:.07em;
-  text-transform:uppercase;color:#7E919B;
+  text-transform:uppercase;color:#B7A493;
 }
-.datacard{margin:14px 0;background:var(--card);border:1px solid var(--rule-soft);border-radius:3px;padding:12px 14px;font-size:13px;color:var(--ink-2)}
-.datacard b{font-family:var(--mono);word-break:break-all}.dataactions,.filters,.recent{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:9px}
-.smallbtn,.filter{border:1px solid var(--rule);background:#fff;color:var(--ink-2);border-radius:3px;padding:6px 10px;cursor:pointer;font:600 13px var(--cond);letter-spacing:.04em}
-.smallbtn:hover,.filter:hover,.filter.active{border-color:var(--teal);color:var(--teal);background:var(--teal-bg)}
-.agewarn{margin-top:8px;color:var(--amber)}.validation{margin:12px 0;padding:10px 13px;border-left:4px solid var(--amber);background:var(--amber-bg)}
-.copy{margin-left:7px;border:0;background:transparent;color:inherit;cursor:pointer;opacity:.65;font-size:13px}.copy:hover{opacity:1;color:var(--teal)}
-.toast{position:fixed;z-index:300;bottom:calc(18px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 14px;border-radius:3px}
+
+/* ---------- Typ-Filter-Chips ---------- */
+/* Einzeilig, horizontal scrollbar statt umbrechend - sonst nehmen die Chips auf
+   dem Handy mehrere Zeilen und damit einen Großteil des Bildschirms ein. */
+.typfilter{
+  display:flex;flex-wrap:nowrap;gap:6px;margin:0 -16px 9px;padding:0 16px 4px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.typfilter::-webkit-scrollbar{display:none}
+.fchip{
+  display:inline-flex;align-items:center;gap:6px;min-height:40px;flex-shrink:0;white-space:nowrap;
+  font-family:var(--cond);font-size:13px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+  background:none;border:1px solid #5A473C;color:#C9B7A8;
+  padding:8px 13px;border-radius:20px;cursor:pointer;
+  transition:background-color .18s ease,color .18s ease,border-color .18s ease;
+}
+.fchip:hover:not(:disabled){border-color:#E8C990;color:#fff}
+.fchip:disabled{opacity:.4;cursor:default}
+.fchip:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.fchip .fc{font-family:var(--mono);font-size:12px;letter-spacing:0;opacity:.75}
+.fchip.active{color:#fff;border-color:transparent}
+.fchip.active .fc{opacity:1}
+.fchip.active[data-typ="alle"]{background:var(--teal)}
+.fchip.active[data-typ="bt"]{background:#6B5D52}
+.fchip.active[data-typ="sch"]{background:var(--teal)}
+.fchip.active[data-typ="ez"]{background:var(--amber)}
+.fchip.active[data-typ="ht"]{background:var(--red)}
 
 /* ---------- Kamera-Overlay ---------- */
 .scanoverlay{position:fixed;inset:0;z-index:200;background:#0B0E11;display:flex;flex-direction:column}
@@ -153,15 +172,18 @@ body{
 .row.t-sch{border-left-color:var(--teal)}
 .row.t-ez{border-left-color:var(--amber)}
 .row .n{font-family:var(--mono);font-weight:600;font-size:15px;white-space:nowrap}
-.row .d{color:var(--ink-3);font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.row .d{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1;overflow:hidden}
+.row .dtxt{color:var(--ink-3);font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .mgrund{color:var(--ink-3);font-size:12px;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .mgrund b{font-weight:600;color:var(--ink-2)}
 .row .tag{
   font-family:var(--cond);font-size:12px;letter-spacing:.09em;text-transform:uppercase;
   font-weight:600;padding:2px 7px;border-radius:2px;white-space:nowrap;
 }
-.tag-bt{background:#E3E6E2;color:var(--ink-2)}
+.tag-bt{background:#EFE9E2;color:var(--ink-2)}
 .tag-sch{background:var(--teal-bg);color:var(--teal)}
 .tag-ez{background:var(--amber-bg);color:var(--amber)}
-mark{background:#FCE9A8;color:inherit;border-radius:2px;padding:0 1px}
+mark{background:#F0D49E;color:inherit;border-radius:2px;padding:0 1px}
 
 /* ---------- Detail ---------- */
 .back{
@@ -178,10 +200,10 @@ mark{background:#FCE9A8;color:inherit;border-radius:2px;padding:0 1px}
 }
 .numband .kind{
   font-family:var(--cond);font-size:13px;letter-spacing:.16em;text-transform:uppercase;
-  color:#8FA3AC;font-weight:600;margin-bottom:12px;
+  color:#C9B7A8;font-weight:600;margin-bottom:12px;
 }
 .segs{display:flex;align-items:flex-end;gap:0;min-width:max-content}
-.seg{padding:0 10px;border-left:1px solid #39434C;position:relative}
+.seg{padding:0 10px;border-left:1px solid #5A473C;position:relative}
 .seg:first-child{border-left:0;padding-left:0}
 .seg .v{
   font-family:var(--mono);font-weight:600;font-size:30px;line-height:1;
@@ -189,16 +211,16 @@ mark{background:#FCE9A8;color:inherit;border-radius:2px;padding:0 1px}
 }
 .seg .l{
   font-family:var(--cond);font-size:11px;letter-spacing:.13em;text-transform:uppercase;
-  color:#7E919B;margin-top:8px;display:block;white-space:nowrap;
+  color:#B7A493;margin-top:8px;display:block;white-space:nowrap;
 }
-.seg.hl .v{color:#5FC8DE}
-.seg.hl .l{color:#5FC8DE}
+.seg.hl .v{color:#E8C990}
+.seg.hl .l{color:#E8C990}
 .derive{
-  margin-top:14px;padding-top:12px;border-top:1px solid #2B343C;
+  margin-top:14px;padding-top:12px;border-top:1px solid #52413A;
   font-family:var(--cond);font-size:14px;letter-spacing:.06em;text-transform:uppercase;
-  color:#8FA3AC;display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  color:#C9B7A8;display:flex;align-items:center;gap:9px;flex-wrap:wrap;
 }
-.derive b{font-family:var(--mono);font-size:14px;color:#5FC8DE;font-weight:600;letter-spacing:0}
+.derive b{font-family:var(--mono);font-size:14px;color:#E8C990;font-weight:600;letter-spacing:0}
 
 /* Feldtabelle */
 .block{background:var(--card);border:1px solid var(--rule-soft);border-radius:3px;margin-bottom:12px}
@@ -211,7 +233,7 @@ mark{background:#FCE9A8;color:inherit;border-radius:2px;padding:0 1px}
 .fields>div:nth-last-child(-n+2){border-bottom:0}
 .fields .k{
   font-family:var(--cond);font-size:13.5px;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--ink-3);font-weight:600;background:#F4F5F2;
+  color:var(--ink-3);font-weight:600;background:#F4EFE8;
 }
 .fields .v{word-break:break-word;font-size:14.5px}
 .fields .v.num{font-family:var(--mono);font-size:14px}
@@ -254,7 +276,7 @@ mark{background:#FCE9A8;color:inherit;border-radius:2px;padding:0 1px}
 .empty{padding:34px 4px;color:var(--ink-3)}
 .empty h3{font-family:var(--cond);font-size:22px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin-bottom:10px}
 .empty p{margin-bottom:7px;max-width:52ch}
-.empty code{font-family:var(--mono);font-size:13.5px;background:#DDE0DB;padding:2px 5px;border-radius:2px}
+.empty code{font-family:var(--mono);font-size:13.5px;background:#EDE4DA;padding:2px 5px;border-radius:2px}
 .stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
 .stat{background:var(--card);border:1px solid var(--rule-soft);border-radius:3px;padding:10px 13px}
 .stat b{font-family:var(--mono);font-size:19px;font-weight:600;display:block;line-height:1.2}
@@ -265,62 +287,144 @@ footer{
   font-family:var(--cond);font-size:12.5px;letter-spacing:.07em;text-transform:uppercase;
   color:var(--ink-3);
 }
+.footversion{margin-top:6px;opacity:.6}
 
-/* Vergleich */
-.comparebar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0 14px;padding:10px 12px;background:var(--teal-bg);border:1px solid #BCD5DB;border-radius:3px}
-.comparepick{border:1px solid var(--rule);background:#fff;color:var(--ink-2);padding:5px 9px;border-radius:3px;cursor:pointer;font:600 12px var(--cond);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
-.comparepick.chosen{border-color:var(--teal);color:var(--teal);background:var(--teal-bg)}
-.row .comparepick{margin-left:auto}.comparehead{display:grid;grid-template-columns:minmax(130px,.7fr) 1fr 1fr;gap:1px;background:var(--rule-soft);border:1px solid var(--rule-soft);margin-bottom:1px}
-.comparehead>div,.comparecell{background:var(--card);padding:11px 13px;min-width:0}.comparehead .side{font-family:var(--mono);font-weight:600}.comparegrid{display:grid;grid-template-columns:minmax(130px,.7fr) 1fr 1fr;gap:1px;background:var(--rule-soft);border:1px solid var(--rule-soft)}
-.comparelabel{background:#F4F5F2;padding:10px 12px;font:600 13px var(--cond);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3)}
-.comparecell{word-break:break-word}.comparegrid .different{background:#FFF4D9}.missing{color:var(--ink-3);font-style:italic}.setitem{display:inline-block;margin:2px;padding:2px 6px;border-radius:2px;background:#E3E6E2;font:12px var(--mono)}.setitem.only{background:var(--amber-bg);color:#6B480C}
-.comparetools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0}.comparetools label{display:flex;align-items:center;gap:6px}.compare-mobile-side{display:none;font:600 11px var(--cond);text-transform:uppercase;color:var(--ink-3);margin-bottom:3px}
-@media print{.top,.back,.comparetools,.comparepick,footer{display:none!important}.wrap{max-width:none}.comparegrid,.comparehead{break-inside:avoid}.comparecell.different{background:#eee!important}}
 @media (max-width:620px){
   .fields{grid-template-columns:1fr}
-  .fields .k{background:#F4F5F2;border-bottom:0;padding-bottom:2px}
+  .fields .k{background:#F4EFE8;border-bottom:0;padding-bottom:2px}
   .fields .v{padding-top:3px}
   .seg .v{font-size:24px}
   .row{flex-wrap:wrap;gap:6px 10px}
   .row .d{flex-basis:100%;white-space:normal}
-  .comparehead{grid-template-columns:1fr 1fr}.comparehead>div:first-child{display:none}
-  .comparegrid{display:block;background:transparent;border:0}.comparelabel{margin-top:8px;border:1px solid var(--rule-soft)}
-  .comparecell{border:1px solid var(--rule-soft);border-top:0;min-height:48px}.compare-mobile-side{display:block}
-  .comparepick{min-height:38px}.row .comparepick{margin-left:0}
 }
 @media (prefers-reduced-motion:no-preference){
   .row,.chip{transition:border-color .12s,background .12s,color .12s}
+}
+
+/* ---------- Vergleichsfunktion ---------- */
+.row{cursor:pointer}
+.cmpmini{
+  font-family:var(--cond);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  border:1px solid var(--rule);background:#fff;color:var(--ink-2);border-radius:3px;padding:7px 10px;
+  cursor:pointer;white-space:nowrap;flex-shrink:0;min-height:30px;
+}
+.cmpmini:hover{border-color:var(--teal);color:var(--teal)}
+.cmpmini.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.cmpmini.detail{font-size:13px;padding:9px 14px;min-height:38px}
+
+.dkopf{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+
+.cmpbar{
+  position:fixed;left:0;right:0;bottom:0;z-index:80;background:var(--ink);color:#fff;
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+  box-shadow:0 -2px 10px rgba(0,0,0,.22);
+}
+.cmpbar[hidden]{display:none}
+.cmpbar-inner{max-width:940px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.cmpchips{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0}
+.cmpchip{
+  display:inline-flex;align-items:center;gap:4px;background:#4A3B32;border-radius:3px;
+  padding:5px 4px 5px 10px;font-family:var(--mono);font-size:12.5px;color:#fff;
+}
+.cmpchip button{background:none;border:0;color:#C9B7A8;font-size:17px;line-height:1;cursor:pointer;padding:4px 7px}
+.cmpchip button:hover{color:#fff}
+.cmpcount{font-family:var(--cond);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:#C9B7A8;white-space:nowrap}
+.cmpactions{display:flex;gap:8px;flex-shrink:0;margin-left:auto}
+.cmpbtn2{
+  font-family:var(--cond);font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;
+  border:0;border-radius:3px;padding:10px 14px;cursor:pointer;background:var(--teal);color:#fff;min-height:38px;
+}
+.cmpbtn2:disabled{opacity:.4;cursor:default}
+.cmpbtn2.alt{background:none;border:1px solid #5A473C;color:#D8C9BC}
+
+body.has-cmpbar{padding-bottom:104px}
+@media (max-width:620px){ body.has-cmpbar{padding-bottom:132px} }
+
+.toast{
+  position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:#fff;font-size:13.5px;padding:11px 16px;border-radius:4px;
+  opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:300;max-width:88vw;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+body.has-cmpbar .toast{bottom:calc(84px + env(safe-area-inset-bottom))}
+
+.cmphead{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin:6px 0 12px}
+.cmphead h2{font-family:var(--cond);font-size:18px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.cmptoggle{display:flex;gap:0;border:1px solid var(--rule);border-radius:3px;overflow:hidden}
+.cmptoggle button{
+  font-family:var(--cond);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  border:0;background:var(--card);color:var(--ink-3);padding:9px 13px;cursor:pointer;
+}
+.cmptoggle button.active{background:var(--teal);color:#fff}
+.cmpwrap{overflow-x:auto;border:1px solid var(--rule-soft);border-radius:3px;background:var(--card);margin-bottom:16px;-webkit-overflow-scrolling:touch}
+table.cmptable{border-collapse:collapse;width:100%;min-width:560px}
+table.cmptable th,table.cmptable td{
+  padding:11px 14px;border-bottom:1px solid var(--rule-soft);text-align:left;vertical-align:top;font-size:14px;line-height:1.4;
+}
+table.cmptable th:first-child,table.cmptable td:first-child{
+  position:sticky;left:0;background:#F4EFE8;z-index:2;font-family:var(--cond);font-size:13px;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600;min-width:160px;
+}
+table.cmptable thead th{
+  background:var(--ink);color:#fff;font-family:var(--mono);font-size:14.5px;font-weight:600;position:sticky;top:0;z-index:3;
+}
+table.cmptable thead th:first-child{background:var(--ink);z-index:4}
+table.cmptable tr.diff td{background:var(--amber-bg)}
+table.cmptable tr.diff td:first-child{background:#F0E4C8}
+.cmpcol-head{display:flex;flex-direction:column;gap:7px}
+.cmpcol-actions{display:flex;gap:6px}
+.cmpcol-actions button{
+  font-family:var(--cond);font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+  border:1px solid #5A473C;background:none;color:#D8C9BC;border-radius:2px;padding:6px 8px;cursor:pointer;min-height:28px;
+}
+.cmpcol-actions button:hover{color:#fff;border-color:#E8C990}
+.dash{color:var(--ink-3)}
+.cmpfoot{display:flex;justify-content:flex-end;margin-bottom:24px}
+@media (max-width:620px){
+  table.cmptable th,table.cmptable td{padding:9px 11px;font-size:13.5px}
+  table.cmptable th:first-child,table.cmptable td:first-child{min-width:128px}
+  .cmpactions{margin-left:0;width:100%}
+  .cmpbtn2{flex:1}
 }
 
 /* ---------- Auswahl & CSV-Export ---------- */
 .rescount{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .rowselect{display:flex;align-items:center;padding:2px;flex:0 0 auto}
 .rowcheck{width:19px;height:19px;accent-color:var(--teal);cursor:pointer;margin:0}
-body.has-selection{padding-bottom:74px}
-.selectionpanel{
-  position:fixed;left:0;right:0;bottom:0;z-index:120;background:var(--card);
-  border-top:2px solid var(--teal);box-shadow:0 -2px 12px rgba(0,0,0,.1);
+.selallbtn{
+  font-family:var(--cond);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  background:var(--card);color:var(--ink-2);border:1px solid var(--rule);border-radius:3px;
+  padding:6px 12px;cursor:pointer;
+}
+.selallbtn:hover{border-color:var(--teal);color:var(--teal)}
+.selbar{
+  position:fixed;left:0;right:0;bottom:0;z-index:81;background:var(--ink);color:#fff;
   padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+  box-shadow:0 -2px 10px rgba(0,0,0,.22);
 }
-.selectionpanel[hidden]{display:none}
-.selectionbar{max-width:940px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:10px}
-.selectioncount{
-  font-family:var(--cond);font-size:13px;letter-spacing:.08em;text-transform:uppercase;
-  color:var(--ink-3);white-space:nowrap;
+.selbar[hidden]{display:none}
+.selbar-inner{max-width:940px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.selchips{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0;max-height:88px;overflow-y:auto}
+.selchip{
+  display:inline-flex;align-items:center;gap:4px;background:#4A3B32;border-radius:3px;
+  padding:5px 4px 5px 10px;font-family:var(--mono);font-size:12.5px;color:#fff;
 }
-.selectionchips{display:flex;flex-wrap:wrap;gap:6px;flex:1 1 220px;max-height:88px;overflow-y:auto;min-width:180px}
-.selectionchips .chip{
-  padding:5px 6px 5px 10px;font-size:12.5px;display:inline-flex;align-items:center;gap:6px;cursor:default;
+.selchip button{background:none;border:0;color:#C9B7A8;font-size:17px;line-height:1;cursor:pointer;padding:4px 7px}
+.selchip button:hover{color:#fff}
+.selcount{font-family:var(--cond);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:#C9B7A8;white-space:nowrap}
+.selactions{display:flex;gap:8px;flex-shrink:0;margin-left:auto}
+.selbtn2{
+  font-family:var(--cond);font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;
+  border:0;border-radius:3px;padding:10px 14px;cursor:pointer;background:var(--teal);color:#fff;min-height:38px;
 }
-.selectionchips .chip button{
-  border:0;background:none;color:var(--ink-3);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;font-family:var(--sans);
-}
-.selectionchips .chip button:hover{color:var(--red)}
-.selectionactions{display:flex;gap:8px;align-items:center;margin-left:auto}
+.selbtn2.alt{background:none;border:1px solid #5A473C;color:#D8C9BC}
+body.has-selbar{padding-bottom:104px}
+body.has-selbar.has-cmpbar{padding-bottom:180px}
 @media (max-width:620px){
-  .selectionbar{gap:8px}
-  .selectionactions{margin-left:0;width:100%}
-  .selectionactions .reload{flex:1}
+  body.has-selbar{padding-bottom:132px}
+  body.has-selbar.has-cmpbar{padding-bottom:236px}
+  .selactions{margin-left:0;width:100%}
+  .selbtn2{flex:1}
 }
 </style>
 <link rel="apple-touch-icon" href="icon.png">
@@ -335,6 +439,13 @@ body.has-selection{padding-bottom:74px}
     <div class="brand">
       <h1>RECARO – Übersichtsliste</h1>
       <span class="sub">F-LIST · LIVE</span>
+    </div>
+    <div class="typfilter" id="typfilter" role="group" aria-label="Ergebnisse nach Typ filtern">
+      <button class="fchip active" type="button" data-typ="alle" aria-pressed="true" disabled>Alle <span class="fc" id="fc-alle">(0)</span></button>
+      <button class="fchip" type="button" data-typ="bt" aria-pressed="false" disabled>Bauteile <span class="fc" id="fc-bt">(0)</span></button>
+      <button class="fchip" type="button" data-typ="sch" aria-pressed="false" disabled>Schablonen <span class="fc" id="fc-sch">(0)</span></button>
+      <button class="fchip" type="button" data-typ="ez" aria-pressed="false" disabled>Einzelteile <span class="fc" id="fc-ez">(0)</span></button>
+      <button class="fchip" type="button" data-typ="ht" aria-pressed="false" disabled>HT-Nummern <span class="fc" id="fc-ht">(0)</span></button>
     </div>
     <div class="searchwrap">
       <input id="q" type="search" autocomplete="off" autocapitalize="off" spellcheck="false"
@@ -353,7 +464,6 @@ body.has-selection{padding-bottom:74px}
       <button class="reload" id="reload">Aktualisieren</button>
       <button class="reload alt" id="wechseln">Andere Datei</button>
     </div>
-    <div id="datainfo"></div>
   </div>
 </header>
 
@@ -371,18 +481,14 @@ body.has-selection{padding-bottom:74px}
   <div class="scanfoot" id="scanfoot"></div>
 </div>
 
-<div class="selectionpanel" id="selectionpanel" hidden>
-  <div class="selectionbar">
-    <span class="selectioncount" id="selectioncount">0 Bauteile ausgewählt</span>
-    <div class="selectionchips" id="selectionchips"></div>
-    <div class="selectionactions">
-      <button class="smallbtn" id="selectionclear">Auswahl leeren</button>
-      <button class="reload" id="selectionexport">CSV exportieren</button>
-    </div>
-  </div>
-</div>
+<footer class="wrap" id="foot">
+  <div id="footstats"></div>
+  <div class="footversion" id="footversion"></div>
+</footer>
 
-<footer class="wrap" id="foot"></footer>
+<div class="cmpbar" id="cmpbar" hidden></div>
+<div class="selbar" id="selbar" hidden></div>
+<div class="toast" id="toast" hidden></div>
 
 <!-- SheetJS 0.18.5 (Apache-2.0) - liest die Excel-Datei direkt im Browser -->
 <script>
@@ -612,31 +718,44 @@ function indexAufbauen(){
   DATA.bauteile.forEach(b => IDX.push({
     typ:'bt', nr:b.nr, n:norm(b.nr), n2:normOhneTrenner(b.nr),
     txt: norm([b.bez,b.projekt,b.extern,b.ht,b.topassy,b.bemerkung].join(' ')),
-    roh: [b.bez,b.projekt].filter(Boolean).join(' · ')
+    roh: [b.bez,b.projekt].filter(Boolean).join(' · '),
+    felder: [
+      {l:'Bezeichnung', v:b.bez}, {l:'Projekt', v:b.projekt}, {l:'Externe Nummer', v:b.extern},
+      {l:'HT-Nummer', v:b.ht}, {l:'Top Assy', v:b.topassy}, {l:'Bemerkung', v:b.bemerkung}
+    ]
   }));
   DATA.schablonen.forEach(s => IDX.push({
     typ: s.ebene==='Einzelteil' ? 'ez' : 'sch', nr:s.nr, n:norm(s.nr),
     txt: norm([s.bez,s.beschr,s.material].join(' ')),
-    roh: [s.bez,s.beschr,s.material].filter(Boolean).join(' · ')
+    roh: [s.bez,s.beschr,s.material].filter(Boolean).join(' · '),
+    felder: [
+      {l:'Bezeichnung', v:s.bez}, {l:'Beschreibung', v:s.beschr}, {l:'Material', v:s.material}
+    ]
   }));
 }
 
+/* Ein Treffer über "text" kommt nicht aus der Nummer, sondern aus einem
+   Nebenfeld (Bezeichnung/Projekt/HT-Nummer/...) - die Trefferzeile markiert
+   diesen Fall mit art:'text', damit die Liste anzeigen kann, worüber genau
+   getroffen wurde (sonst wirkt der Treffer wie ein falscher/zufälliger Match). */
 function suche(qr){
   const n = norm(qr);
   if(n.length < 2) return [];
   const exakt=[], anfang=[], drin=[], text=[];
   for(const it of IDX){
-    if(it.n === n || it.n2 === n) exakt.push(it);
-    else if(it.n.startsWith(n) || (it.n2 && it.n2.startsWith(n))) anfang.push(it);
-    else if(it.n.indexOf(n) >= 0 || (it.n2 && it.n2.indexOf(n) >= 0)) drin.push(it);
-    else if(n.length >= 3 && it.txt.indexOf(n) >= 0) text.push(it);
+    if(it.n === n || it.n2 === n) exakt.push({...it, art:'nr'});
+    else if(it.n.startsWith(n) || (it.n2 && it.n2.startsWith(n))) anfang.push({...it, art:'nr'});
+    else if(it.n.indexOf(n) >= 0 || (it.n2 && it.n2.indexOf(n) >= 0)) drin.push({...it, art:'nr'});
+    else if(n.length >= 3 && it.txt.indexOf(n) >= 0) text.push({...it, art:'text'});
   }
-  return exakt.concat(anfang, drin, text).slice(0, 60);
+  return exakt.concat(anfang, drin, text);
 }
 
 /* ---------- Hilfen ---------- */
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function hl(s, qr){
+/* radius (optional): statt des ganzen Strings nur ein Fenster um den Treffer
+   ausgeben (für lange Nebenfelder wie Bemerkung, siehe matchGrund()). */
+function hl(s, qr, radius){
   const n = norm(qr); if(n.length<2) return esc(s);
   const raw = String(s); let j=0, start=-1;
   // Position im Rohstring finden, Trennzeichen überspringend
@@ -644,12 +763,25 @@ function hl(s, qr){
     const c = raw[i].toUpperCase();
     if(/[A-Z0-9]/.test(c)){
       if(c === n[j]){ if(j===0) start=i; j++; if(j===n.length){
-        return esc(raw.slice(0,start)) + '<mark>' + esc(raw.slice(start,i+1)) + '</mark>' + esc(raw.slice(i+1));
+        if(radius == null) return esc(raw.slice(0,start)) + '<mark>' + esc(raw.slice(start,i+1)) + '</mark>' + esc(raw.slice(i+1));
+        const von = Math.max(0, start-radius), bis = Math.min(raw.length, i+1+radius);
+        return (von>0?'…':'') + esc(raw.slice(von,start)) + '<mark>' + esc(raw.slice(start,i+1)) + '</mark>' + esc(raw.slice(i+1,bis)) + (bis<raw.length?'…':'');
       } }
       else { j = (c===n[0])?1:0; start = (c===n[0])?i:-1; }
     }
   }
   return esc(raw);
+}
+/* Liefert das erste Nebenfeld (Bezeichnung/Projekt/HT-Nummer/...), in dem qr
+   steckt - nur relevant für art:'text'-Treffer, bei denen die Nummer selbst
+   nicht getroffen hat. */
+function matchGrund(t, qr){
+  if(t.art !== 'text' || !t.felder) return null;
+  const n = norm(qr);
+  for(const f of t.felder){
+    if(f.v && norm(f.v).indexOf(n) >= 0) return f;
+  }
+  return null;
 }
 const teile = v => String(v).split(' | ').filter(Boolean);
 
@@ -694,54 +826,114 @@ const main = document.getElementById('main');
 const qEl  = document.getElementById('q');
 const clrEl= document.getElementById('clr');
 let treffer = [], sel = -1, stack = [], current = null;
-const COMPARE_KEY='recaro-compare-session-v1';
-let compareOnlyDiff=false;
+let typFilter = 'alle';
 
-/* ==========================================================
-   Vergleichsmodell und -darstellung
-   ========================================================== */
-function entryType(nr){ const s=SCH.get(nr); return BT.has(nr)?'bt':(s&&s.ebene==='Einzelteil'?'ez':s?'sch':null); }
-function typeLabel(t){return t==='bt'?'Bauteil':t==='ez'?'Einzelteil':'Schablone';}
-function loadCompareSelection(){try{return JSON.parse(sessionStorage.getItem(COMPARE_KEY)||'{"A":null,"B":null}');}catch(e){return {A:null,B:null};}}
-function saveCompareSelection(){try{sessionStorage.setItem(COMPARE_KEY,JSON.stringify(compareSelection));}catch(e){}}
-let compareSelection=loadCompareSelection();
-function compareButtonHTML(nr){if(!entryType(nr))return '';const slot=compareSelection.A===nr?'A':compareSelection.B===nr?'B':'';return '<button class="comparepick'+(slot?' chosen':'')+'" data-compare="'+esc(nr)+'" aria-label="'+esc(nr)+' vergleichen">'+(slot?'Vergleich '+slot:'Vergleichen')+'</button>';}
-function compareActionHTML(nr){return '<div class="comparebar"><span>Zum Vergleich auswählen:</span>'+compareButtonHTML(nr)+(compareSelection.A?'<span>A: <b>'+esc(compareSelection.A)+'</b></span>':'')+(compareSelection.B?'<span>B: <b>'+esc(compareSelection.B)+'</b></span>':'')+(compareSelection.A||compareSelection.B?'<button class="comparepick" data-compare-clear="all">Zurücksetzen</button>':'')+'</div>';}
-function waehleVergleich(nr){
-  const typ=entryType(nr);if(!typ)return;
-  if(compareSelection.A===nr||compareSelection.B===nr)return;
-  if(compareSelection.A&&entryType(compareSelection.A)!==typ){
-    if(!confirm('Es können nur Einträge desselben Typs verglichen werden. Vergleich A durch „'+nr+'“ ersetzen?'))return;
-    compareSelection={A:nr,B:null};
-  }else if(!compareSelection.A)compareSelection.A=nr;else compareSelection.B=nr;
-  saveCompareSelection();
-  if(compareSelection.A&&compareSelection.B){zeigeVergleich();}else render();
+/* ---------- Vergleichsfunktion ---------- */
+const cmpbarEl = document.getElementById('cmpbar');
+const toastEl  = document.getElementById('toast');
+let vergleich = [];        // [{typ:'bt'|'sch'|'ez', nr:string}]
+let vergleichModus = 'alle'; // 'alle' | 'diff'
+let toastTimer = null;
+
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.hidden = false;
+  requestAnimationFrame(() => toastEl.classList.add('show'));
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3200);
 }
-function resetVergleich(slot){if(slot==='A'){compareSelection.A=compareSelection.B;compareSelection.B=null;}else if(slot==='B')compareSelection.B=null;else compareSelection={A:null,B:null};saveCompareSelection();render();}
-function htParts(v){const out={roh:'',proalpha:'',staerke:''};teile(v||'').forEach(x=>{if(/^HT\d/i.test(x))out.roh+=(out.roh?' | ':'')+x;else{const m=PROALPHA_MUSTER.exec(x.trim());if(m){out.proalpha+=(out.proalpha?' | ':'')+m[1];out.staerke+=(out.staerke?' | ':'')+m[2].replace(',','.')+' mm';}}});return out;}
-function entryWarnings(nr){if(BT.has(nr)){const b=BT.get(nr),w=[];if(b.nurMatrix)w.push('Nicht in Übersichtsliste');if(!b.nurMatrix&&(b.sch||[]).length&&(b.spalteR||'').includes('keine Schablone'))w.push('Abweichende Schablonenzuordnung');return w;}const s=SCH.get(nr),w=[];if(s.ohneReg)w.push('Kein Registereintrag');if(s.regAls)w.push('Abweichende Schreibweise: '+s.regAls);return w;}
-function comparisonFields(nr){
- const typ=entryType(nr);
- if(typ==='bt'){const b=BT.get(nr),h=htParts(b.ht);return [['Bauteilnummer',nr],['Externe Nummer',b.extern],['Interne Bezeichnung',b.bez],['Projekt',b.projekt],['HT-Rohteilnummer',h.roh],['ProAlpha-Nummer',h.proalpha],['Bauteilstärke',h.staerke],['Top-Assy',b.topassy],['Mastermodell',b.mastermodell],['Wabenkernnummer',b.wabenkern],['Pottingschablonen',b.potting],['FAI',b.fai],['Programminformationen',b.prog],['Bemerkungen',b.bemerkung],['Zugeordnete Schablonen',b.sch||[],true],['Warnungen / Abweichungen',entryWarnings(nr),true]];}
- const x=SCH.get(nr),children=kinderVon.get(basis(nr))||[],parts=btVonSch.get(nr)||[];return [['Nummer',nr],['Art',typeLabel(typ)],['Bezeichnung',x.bez],['Beschreibung',x.beschr],['Material / Hinweis',x.material],['Vorlage',x.pdf],['Übergeordnete Schablone',x.eltern],['Enthaltene Einzelteile',children,true],['Zugeordnete Bauteile',parts,true],['Registerstatus',x.ohneReg?'Kein Registereintrag':x.regAls?'Register als '+x.regAls:'Registereintrag vorhanden'],['Warnungen / Abweichungen',entryWarnings(nr),true]];
+
+function vergleichKategorie(typ){ return typ === 'bt' ? 'bt' : 'sch'; }
+function istImVergleich(nr){ return vergleich.some(v => v.nr === nr); }
+
+function vergleichZuruecksetzen(){
+  vergleich = [];
+  vergleichModus = 'alle';
+  vergleichLeisteRender();
 }
-function normalizedSet(v){return Array.from(new Set((Array.isArray(v)?v:teile(v||'')).map(x=>norm(x)))).sort();}
-function sameValue(a,b,set){return set?JSON.stringify(normalizedSet(a))===JSON.stringify(normalizedSet(b)):clean(a)===clean(b);}
-function valueHTML(v,set,other){if(set){const vals=Array.isArray(v)?v:teile(v||''),common=new Set(normalizedSet(other));if(!vals.length)return '<span class="missing">Nicht vorhanden</span>';return vals.map(x=>'<span class="setitem '+(common.has(norm(x))?'':'only')+'">'+esc(x)+'</span>').join('');}return clean(v)?esc(v):'<span class="missing">Nicht vorhanden</span>';}
-function zeigeVergleich(){
- const a=compareSelection.A,b=compareSelection.B;if(!a||!b||!entryType(a)||entryType(a)!==entryType(b)){render();return;}
- const af=comparisonFields(a),bf=comparisonFields(b),rows=[];let differences=0;
- af.forEach((f,i)=>{const g=bf[i],different=!sameValue(f[1],g[1],f[2]);if(different)differences++;if(!compareOnlyDiff||different)rows.push({label:f[0],a:f[1],b:g[1],set:f[2],different});});
- let h=backHTML()+'<div class="comparetools"><strong>'+differences+' unterschiedliche Felder</strong><label><input type="checkbox" id="onlyDiff" '+(compareOnlyDiff?'checked':'')+'> Nur Unterschiede anzeigen</label><button class="smallbtn" id="printCompare">Drucken / PDF</button><button class="smallbtn" data-compare-clear="all">Vergleich zurücksetzen</button></div>';
- h+='<div class="comparehead"><div>Feld</div><div class="side">A · '+esc(a)+' '+compareButtonHTML(a)+' <button class="copy" data-copy="'+esc(a)+'">Kopieren</button> <button class="smallbtn" data-go="'+esc(a)+'">Detail</button> <button class="smallbtn" data-compare-clear="A">Ersetzen</button></div><div class="side">B · '+esc(b)+' '+compareButtonHTML(b)+' <button class="copy" data-copy="'+esc(b)+'">Kopieren</button> <button class="smallbtn" data-go="'+esc(b)+'">Detail</button> <button class="smallbtn" data-compare-clear="B">Ersetzen</button></div></div><div class="comparegrid">';
- rows.forEach(r=>{h+='<div class="comparelabel">'+esc(r.label)+'</div><div class="comparecell '+(r.different?'different':'')+'"><span class="compare-mobile-side">A · '+esc(a)+'</span>'+valueHTML(r.a,r.set,r.b)+'</div><div class="comparecell '+(r.different?'different':'')+'"><span class="compare-mobile-side">B · '+esc(b)+'</span>'+valueHTML(r.b,r.set,r.a)+'</div>';});
- main.innerHTML=h+'</div>';bind();window.scrollTo(0,0);
+
+function toggleVergleich(typ, nr){
+  const idx = vergleich.findIndex(v => v.nr === nr);
+  if(idx >= 0){
+    vergleich.splice(idx, 1);
+  } else {
+    if(vergleich.length >= 4){
+      toast('Es können höchstens 4 Einträge gleichzeitig verglichen werden.');
+      return;
+    }
+    if(vergleich.length && vergleichKategorie(vergleich[0].typ) !== vergleichKategorie(typ)){
+      toast('Bitte nur Bauteile miteinander oder Schablonen miteinander vergleichen.');
+      return;
+    }
+    vergleich.push({typ:typ, nr:nr});
+  }
+  vergleichButtonsAktualisieren();
+  vergleichLeisteRender();
+}
+
+function entferneVergleich(nr){
+  const idx = vergleich.findIndex(v => v.nr === nr);
+  if(idx >= 0) vergleich.splice(idx, 1);
+  vergleichButtonsAktualisieren();
+  vergleichLeisteRender();
+  if(current === '__VERGLEICH__'){
+    if(vergleich.length < 2) zurueck();
+    else zeigeVergleich();
+  }
+}
+
+function vergleichButtonsAktualisieren(){
+  main.querySelectorAll('[data-cmp]').forEach(el => {
+    const aktiv = istImVergleich(el.dataset.cmp);
+    el.classList.toggle('active', aktiv);
+    el.setAttribute('aria-pressed', aktiv ? 'true' : 'false');
+    el.textContent = aktiv
+      ? (el.classList.contains('detail') ? '✓ Im Vergleich' : '✓ Vergleich')
+      : (el.classList.contains('detail') ? 'Zum Vergleich' : 'Vergleichen');
+  });
+}
+
+function vergleichLeisteRender(){
+  if(!vergleich.length){
+    cmpbarEl.hidden = true;
+    cmpbarEl.innerHTML = '';
+    document.body.classList.remove('has-cmpbar');
+    if(typeof positioniereLeisten === 'function') positioniereLeisten();
+    return;
+  }
+  document.body.classList.add('has-cmpbar');
+  cmpbarEl.hidden = false;
+  let h = '<div class="cmpbar-inner">';
+  h += '<div class="cmpchips">' + vergleich.map(v =>
+    '<span class="cmpchip">' + esc(v.nr) + '<button data-rm="' + esc(v.nr) + '" aria-label="' + esc(v.nr) + ' entfernen">&times;</button></span>'
+  ).join('') + '</div>';
+  h += '<div class="cmpcount">' + vergleich.length + ' ausgewählt</div>';
+  h += '<div class="cmpactions">';
+  h += '<button class="cmpbtn2 alt" id="cmpclear">Auswahl löschen</button>';
+  h += '<button class="cmpbtn2" id="cmpopen"' + (vergleich.length < 2 ? ' disabled' : '') + '>Vergleich öffnen</button>';
+  h += '</div></div>';
+  cmpbarEl.innerHTML = h;
+  cmpbarEl.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => entferneVergleich(b.dataset.rm)));
+  document.getElementById('cmpclear').addEventListener('click', vergleichZuruecksetzen);
+  document.getElementById('cmpopen').addEventListener('click', () => {
+    if(vergleich.length < 2){ toast('Bitte mindestens zwei Einträge auswählen.'); return; }
+    geheVergleich();
+  });
+  if(typeof positioniereLeisten === 'function') positioniereLeisten();
+}
+
+function geheVergleich(){
+  if(vergleich.length < 2){ toast('Bitte mindestens zwei Einträge auswählen.'); return; }
+  if(current) stack.push(current);
+  current = '__VERGLEICH__';
+  render();
 }
 
 /* ==========================================================
    Auswahl & CSV-Export
    ========================================================== */
 const SELECTION_KEY='recaro-selection-session-v1';
+const selbarEl = document.getElementById('selbar');
 function loadSelection(){try{return new Set(JSON.parse(sessionStorage.getItem(SELECTION_KEY)||'[]'));}catch(e){return new Set();}}
 function saveSelection(){try{sessionStorage.setItem(SELECTION_KEY,JSON.stringify(Array.from(selectedItems)));}catch(e){}}
 let selectedItems=loadSelection();
@@ -766,22 +958,22 @@ function csvZelle(v){
 function toggleSelect(nr, gewaehlt){
   if(gewaehlt) selectedItems.add(nr); else selectedItems.delete(nr);
   saveSelection();
-  renderSelectionPanel();
+  selektionLeisteRender();
 }
 
 function leereAuswahl(){
   selectedItems.clear();
   saveSelection();
   syncCheckboxes();
-  renderSelectionPanel();
+  selektionLeisteRender();
 }
 
 function syncCheckboxes(){
   main.querySelectorAll('.rowcheck').forEach(cb => { cb.checked = selectedItems.has(cb.dataset.sel); });
-  updateSelectAllBtn();
+  selectAllAktualisieren();
 }
 
-function updateSelectAllBtn(){
+function selectAllAktualisieren(){
   const btn = main.querySelector('[data-selectall]');
   if(!btn) return;
   const alleAusgewaehlt = treffer.length>0 && treffer.every(t => selectedItems.has(t.nr));
@@ -793,28 +985,43 @@ function selectAllToggle(){
   treffer.forEach(t => { if(alleAusgewaehlt) selectedItems.delete(t.nr); else selectedItems.add(t.nr); });
   saveSelection();
   syncCheckboxes();
-  renderSelectionPanel();
+  selektionLeisteRender();
 }
 
-function renderSelectionPanel(){
-  const panel = document.getElementById('selectionpanel');
-  const countEl = document.getElementById('selectioncount');
-  const chipsEl = document.getElementById('selectionchips');
-  if(!panel) return;
+function selektionLeisteRender(){
   const n = selectedItems.size;
-  panel.hidden = n===0;
-  document.body.classList.toggle('has-selection', n>0);
-  if(n===0) return;
-  countEl.textContent = n + (n===1 ? ' Bauteil ausgewählt' : ' Bauteile ausgewählt');
-  chipsEl.innerHTML = Array.from(selectedItems).sort().map(nr =>
-    '<span class="chip" data-selchip="'+esc(nr)+'">'+esc(nr)+'<button type="button" data-selremove="'+esc(nr)+'" aria-label="'+esc(nr)+' entfernen">&times;</button></span>'
-  ).join('');
-  chipsEl.querySelectorAll('[data-selremove]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      toggleSelect(btn.dataset.selremove, false);
-      syncCheckboxes();
-    });
-  });
+  if(!n){
+    selbarEl.hidden = true;
+    selbarEl.innerHTML = '';
+    document.body.classList.remove('has-selbar');
+    positioniereLeisten();
+    return;
+  }
+  document.body.classList.add('has-selbar');
+  selbarEl.hidden = false;
+  let h = '<div class="selbar-inner">';
+  h += '<div class="selchips">' + Array.from(selectedItems).sort().map(nr =>
+    '<span class="selchip">' + esc(nr) + '<button data-rm="' + esc(nr) + '" aria-label="' + esc(nr) + ' entfernen">&times;</button></span>'
+  ).join('') + '</div>';
+  h += '<div class="selcount">' + n + (n===1 ? ' Bauteil ausgewählt' : ' Bauteile ausgewählt') + '</div>';
+  h += '<div class="selactions">';
+  h += '<button class="selbtn2 alt" id="selclear">Auswahl leeren</button>';
+  h += '<button class="selbtn2" id="selexport">CSV exportieren</button>';
+  h += '</div></div>';
+  selbarEl.innerHTML = h;
+  selbarEl.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => {
+    toggleSelect(b.dataset.rm, false);
+    syncCheckboxes();
+  }));
+  document.getElementById('selclear').addEventListener('click', leereAuswahl);
+  document.getElementById('selexport').addEventListener('click', exportiereAuswahl);
+  positioniereLeisten();
+}
+
+/* Vergleichs- und Auswahl-Leiste können gleichzeitig sichtbar sein - die
+   Auswahl-Leiste stapelt sich dann oberhalb der Vergleichs-Leiste. */
+function positioniereLeisten(){
+  selbarEl.style.bottom = (!cmpbarEl.hidden ? cmpbarEl.offsetHeight : 0) + 'px';
 }
 
 function exportiereAuswahl(){
@@ -834,9 +1041,128 @@ function exportiereAuswahl(){
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-document.getElementById('selectionclear').addEventListener('click', leereAuswahl);
-document.getElementById('selectionexport').addEventListener('click', exportiereAuswahl);
-renderSelectionPanel();
+/* Spalte H wie in feldHT() aufteilen, aber je Kategorie getrennt für die Vergleichstabelle */
+function htTeile(rohWert){
+  const out = {ht:[], proalpha:[], staerke:[]};
+  teile(rohWert || '').forEach(v => {
+    const t = v.trim();
+    if(/^HT\d/i.test(t)) out.ht.push(t);
+    else {
+      const m = PROALPHA_MUSTER.exec(t);
+      if(m){ out.proalpha.push(m[1]); out.staerke.push(m[2].replace(',','.') + ' mm'); }
+    }
+  });
+  return out;
+}
+
+const BT_FELDER = [
+  {key:'nr',        label:'Bauteilnummer',            get:b => b.nr},
+  {key:'extern',     label:'Externe Nummer',            get:b => b.extern},
+  {key:'bez',        label:'Interne Bezeichnung',       get:b => b.bez},
+  {key:'projekt',    label:'Projekt',                   get:b => b.projekt},
+  {key:'htroh',      label:'HT-Rohteilnummer',          get:b => htTeile(b.ht).ht.join(' | ')},
+  {key:'proalpha',   label:'ProAlpha-Nummer',           get:b => htTeile(b.ht).proalpha.join(' | ')},
+  {key:'staerke',    label:'Bauteilstärke',             get:b => htTeile(b.ht).staerke.join(' | ')},
+  {key:'topassy',    label:'Top Assy',                  get:b => b.topassy},
+  {key:'mastermodell',label:'Mastermodell',             get:b => b.mastermodell},
+  {key:'wabenkern',  label:'Wabenkernnummer',           get:b => b.wabenkern},
+  {key:'potting',    label:'Pottingschablonen',         get:b => b.potting},
+  {key:'fai',        label:'FAI',                       get:b => b.fai},
+  {key:'prog',       label:'Programminformationen',     get:b => b.prog},
+  {key:'bemerkung',  label:'Bemerkungen',               get:b => b.bemerkung},
+  {key:'sch',        label:'Zugeordnete Schablonen',    get:b => (b.sch||[]).join(', '), list:true},
+  {key:'spalteR',    label:'Spalte R',                  get:b => b.spalteR},
+  {key:'spalteN',    label:'Spalte N',                  get:b => b.spalteN},
+  {key:'z',          label:'Herkunft (Excel-Zeile)',    get:b => (b.z||[]).join(', '), list:true}
+];
+
+const SCH_FELDER = [
+  {key:'nr',      label:'Schablonennummer',            get:s => s.nr},
+  {key:'ebene',   label:'Typ / Ebene',                 get:s => s.ebene},
+  {key:'bez',     label:'Bezeichnung',                 get:s => s.bez},
+  {key:'beschr',  label:'Beschreibung',                get:s => s.beschr},
+  {key:'material',label:'Material / Hinweis',          get:s => s.material},
+  {key:'pdf',     label:'Vorlage',                     get:s => s.pdf},
+  {key:'eltern',  label:'Übergeordnete Schablone',     get:s => s.eltern},
+  {key:'kinder',  label:'Enthaltene Einzelteile',      get:s => (kinderVon.get(basis(s.nr))||[]).join(', '), list:true},
+  {key:'bts',     label:'Verwendende Bauteile',        get:s => (btVonSch.get(s.nr)||[]).join(', '), list:true},
+  {key:'reg',     label:'Registereintrag',             get:s => s.ohneReg ? 'nicht vorhanden' : 'vorhanden'},
+  {key:'regAls',  label:'Abweichende Schreibweise',    get:s => s.regAls},
+  {key:'herkunft',label:'Herkunft (Excel-Zeile)',      get:s => [s.zeile?('Schablonen Zeile '+s.zeile):'', s.msp?('Matrix Spalte '+s.msp):''].filter(Boolean).join(' · ')}
+];
+
+function normVergleich(v, isList){
+  const s = (v==null ? '' : String(v)).trim();
+  if(!s) return '';
+  if(isList) return s.split(/\s*[,|]\s*/).filter(Boolean).map(x => x.trim().toLowerCase()).sort().join(',');
+  return s.toLowerCase().replace(/\s+/g,' ');
+}
+
+function zeigeVergleich(){
+  vergleich = vergleich.filter(v => v.typ === 'bt' ? BT.has(v.nr) : SCH.has(v.nr));
+  if(vergleich.length < 2){
+    main.innerHTML = '<button class="back" id="bk">&larr; ' + (stack.length ? 'Zurück' : 'Zurück zur Suche') + '</button>'
+      + '<div class="empty"><h3>Vergleich</h3><p>Bitte mindestens zwei Einträge desselben Typs auswählen.</p></div>';
+    document.getElementById('bk').addEventListener('click', zurueck);
+    vergleichLeisteRender();
+    return;
+  }
+  const istBt = vergleich[0].typ === 'bt';
+  const felder = istBt ? BT_FELDER : SCH_FELDER;
+  const eintraege = vergleich.map(v => ({nr:v.nr, d: istBt ? BT.get(v.nr) : SCH.get(v.nr)}));
+
+  let rows = felder.map(f => {
+    const werte = eintraege.map(e => f.get(e.d) || '');
+    const normSet = new Set(werte.map(w => normVergleich(w, !!f.list)));
+    return {f:f, werte:werte, anders: normSet.size > 1};
+  });
+  if(vergleichModus === 'diff') rows = rows.filter(r => r.anders);
+
+  let h = '<button class="back" id="bk">&larr; ' + (stack.length ? 'Zurück' : 'Zurück zur Suche') + '</button>';
+  h += '<div class="cmphead"><h2>Vergleich &mdash; ' + (istBt ? 'Bauteile' : 'Schablonen') + '</h2>';
+  h += '<div class="cmptoggle"><button data-modus="alle" class="' + (vergleichModus==='alle'?'active':'') + '">Alle Felder</button>'
+     + '<button data-modus="diff" class="' + (vergleichModus==='diff'?'active':'') + '">Nur Unterschiede</button></div></div>';
+
+  h += '<div class="cmpwrap"><table class="cmptable"><thead><tr><th>Feld</th>';
+  eintraege.forEach(e => {
+    h += '<th><div class="cmpcol-head"><span>' + esc(e.nr) + '</span><div class="cmpcol-actions">'
+      + '<button data-copy="' + esc(e.nr) + '">Kopieren</button>'
+      + '<button data-rm="' + esc(e.nr) + '">Entfernen</button>'
+      + '</div></div></th>';
+  });
+  h += '</tr></thead><tbody>';
+  if(!rows.length){
+    h += '<tr><td colspan="' + (eintraege.length+1) + '" style="color:var(--ink-3)">Keine Unterschiede in den vorhandenen Feldern.</td></tr>';
+  }
+  rows.forEach(r => {
+    h += '<tr class="' + (r.anders?'diff':'') + '"><td>' + esc(r.f.label) + '</td>';
+    r.werte.forEach(w => {
+      h += '<td>' + (w ? esc(w).split(' | ').join('<br>') : '<span class="dash">&mdash;</span>') + '</td>';
+    });
+    h += '</tr>';
+  });
+  h += '</tbody></table></div>';
+  h += '<div class="cmpfoot"><button class="cmpbtn2 alt" id="cmpclearview">Auswahl löschen</button></div>';
+
+  main.innerHTML = h;
+  document.getElementById('bk').addEventListener('click', zurueck);
+  main.querySelectorAll('[data-modus]').forEach(b => b.addEventListener('click', () => {
+    vergleichModus = b.dataset.modus; zeigeVergleich();
+  }));
+  main.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', () => {
+    const nr = b.dataset.copy;
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(nr).then(() => toast('Kopiert: ' + nr)).catch(() => toast('Kopieren nicht möglich'));
+    } else toast('Kopieren nicht möglich');
+  }));
+  main.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => entferneVergleich(b.dataset.rm)));
+  document.getElementById('cmpclearview').addEventListener('click', () => {
+    vergleichZuruecksetzen();
+    zurueck();
+  });
+  vergleichLeisteRender();
+  window.scrollTo(0,0);
+}
 
 function feld(k, v, mono){
   if(!v) return '';
@@ -885,7 +1211,7 @@ function feldHT(rohWert){
 }
 function zeigeBauteil(nr){
   const b = BT.get(nr); if(!b) return;
-  let h = backHTML() + bandHTML(nr) + compareActionHTML(nr);
+  let h = kopfHTML(nr, 'bt') + bandHTML(nr);
 
   if(b.nurMatrix){
     h += '<div class="note note-red"><span class="nl">Nicht in Übersichtsliste</span>'
@@ -931,7 +1257,7 @@ function zeigeSchablone(nr){
   const s = SCH.get(nr); if(!s) return;
   const einzel = kinderVon.get(basis(nr)) || [];
   const bts = btVonSch.get(nr) || [];
-  let h = backHTML() + bandHTML(nr) + compareActionHTML(nr);
+  let h = kopfHTML(nr, s.ebene==='Einzelteil' ? 'ez' : 'sch') + bandHTML(nr);
 
   if(s.ohneReg){
     h += '<div class="note note-amber"><span class="nl">Kein Registereintrag</span>'
@@ -977,6 +1303,13 @@ function backHTML(){
     + (stack.length ? 'Zurück' : 'Zurück zur Suche') + '</button>';
 }
 
+function kopfHTML(nr, typ){
+  const aktiv = istImVergleich(nr);
+  return '<div class="dkopf">' + backHTML()
+    + '<button class="cmpmini detail' + (aktiv?' active':'') + '" data-cmp="' + esc(nr) + '" data-cmptyp="' + typ + '" aria-pressed="' + (aktiv?'true':'false') + '">'
+    + (aktiv ? '✓ Im Vergleich' : 'Zum Vergleich') + '</button></div>';
+}
+
 function gehe(nr){
   if(current) stack.push(current);
   current = nr;
@@ -991,6 +1324,7 @@ function zurueck(){
 }
 
 function render(){
+  if(current === '__VERGLEICH__') return zeigeVergleich();
   if(current && BT.has(current))  return zeigeBauteil(current);
   if(current && SCH.has(current)) return zeigeSchablone(current);
   current = null;
@@ -1006,30 +1340,81 @@ function ohneRevision(s){
   return String(s).replace(/_(NC|[A-Z])_(ST|BA|CP)\s*$/i, '').trim();
 }
 
+/* HT-Rohteilnummern sind kein eigener Eintragstyp im Index, sondern ein Feld
+   innerhalb von Bauteilen (b.ht) - der Filter "HT-Nummern" ist deshalb ein
+   Unterfilter der Bauteile, kein eigener typ-Wert. */
+function hatHtNummer(nr){
+  const b = BT.get(nr);
+  return !!(b && htTeile(b.ht).ht.length);
+}
+function passtTyp(t, typ){
+  if(typ === 'alle') return true;
+  if(typ === 'ht') return t.typ === 'bt' && hatHtNummer(t.nr);
+  return t.typ === typ;
+}
+const TYP_LABEL = {alle:'Ergebnisse', bt:'Bauteile', sch:'Schablonen', ez:'Einzelteile', ht:'Bauteile mit HT-Nummer'};
+function zaehleTypen(liste){
+  return {
+    alle: liste.length,
+    bt:   liste.filter(t => t.typ === 'bt').length,
+    sch:  liste.filter(t => t.typ === 'sch').length,
+    ez:   liste.filter(t => t.typ === 'ez').length,
+    ht:   liste.filter(t => t.typ === 'bt' && hatHtNummer(t.nr)).length
+  };
+}
+function chipsAktualisieren(counts){
+  ['alle','bt','sch','ez','ht'].forEach(typ => {
+    const cd = document.getElementById('fc-'+typ);
+    if(cd) cd.textContent = '('+counts[typ]+')';
+    const btn = document.querySelector('.fchip[data-typ="'+typ+'"]');
+    if(btn){
+      btn.classList.toggle('active', typFilter === typ);
+      btn.setAttribute('aria-pressed', typFilter === typ ? 'true' : 'false');
+    }
+  });
+}
+
 function liste(){
   const roh = qEl.value.trim();
-  if(!roh){ startseite(); return; }
+  if(!roh){ chipsAktualisieren({alle:0,bt:0,sch:0,ez:0,ht:0}); startseite(); return; }
   const qr = ohneRevision(roh);
-  treffer = suche(qr); sel = -1;
-  if(!treffer.length){
+  const alleTreffer = suche(qr);
+  chipsAktualisieren(zaehleTypen(alleTreffer));
+  const gefiltert = alleTreffer.filter(t => passtTyp(t, typFilter));
+  treffer = gefiltert.slice(0, 60); sel = -1;
+  if(!alleTreffer.length){
     main.innerHTML = '<div class="empty"><h3>Nichts gefunden</h3>'
       + '<p>Kein Bauteil und keine Schablone passt zu <code>'+esc(roh)+'</code>.</p>'
       + '<p>Es lässt sich auch nach Bezeichnung, Projekt oder Material suchen &mdash; zum Beispiel <code>Seatshell</code> oder <code>Kompaktplatte</code>.</p></div>';
     return;
   }
-  let h = '<div class="rescount"><span>'+treffer.length+' Treffer'+(treffer.length===60?' (gekürzt)':'')+'</span>'
-    + '<button type="button" class="smallbtn" data-selectall>Alle auswählen</button></div><div class="results">';
+  if(!gefiltert.length){
+    main.innerHTML = '<div class="empty"><h3>Nichts gefunden</h3>'
+      + '<p>Keine '+esc(TYP_LABEL[typFilter])+' gefunden für <code>'+esc(roh)+'</code>.</p>'
+      + '<p><button class="reload alt" type="button" id="fzeigalle">Alle '+alleTreffer.length+' Treffer anzeigen</button></p></div>';
+    const fz = document.getElementById('fzeigalle');
+    if(fz) fz.addEventListener('click', () => { typFilter = 'alle'; liste(); qEl.focus(); });
+    return;
+  }
+  let h = '<div class="rescount"><span>'+treffer.length+' Treffer'+(gefiltert.length>60?' (gekürzt)':'')+'</span>'
+    + '<button type="button" class="selallbtn" data-selectall>Alle auswählen</button></div><div class="results">';
   treffer.forEach((t,i) => {
     const tag = t.typ==='bt'?'Bauteil':(t.typ==='ez'?'Einzelteil':'Schablone');
-    h += '<div class="row t-'+t.typ+'" role="button" tabindex="0" data-go="'+esc(t.nr)+'" data-i="'+i+'">'
+    const cmpAktiv = istImVergleich(t.nr);
+    const grund = matchGrund(t, qr);
+    h += '<div class="row t-'+t.typ+'" data-go="'+esc(t.nr)+'" data-i="'+i+'" role="button" tabindex="0">'
       +  '<label class="rowselect"><input type="checkbox" class="rowcheck" data-sel="'+esc(t.nr)+'"'+(selectedItems.has(t.nr)?' checked':'')+'></label>'
       +  '<span class="n">'+hl(t.nr,qr)+'</span>'
       +  '<span class="tag tag-'+t.typ+'">'+tag+'</span>'
-      +  '<span class="d">'+esc(t.roh)+'</span>'+compareButtonHTML(t.nr)+'</div>';
+      +  '<span class="d"><span class="dtxt">'+esc(t.roh)+'</span>'
+      +  (grund ? '<span class="mgrund"><b>Treffer über '+esc(grund.l)+':</b> '+hl(grund.v,qr,18)+'</span>' : '')
+      +  '</span>'
+      +  '<button class="cmpmini'+(cmpAktiv?' active':'')+'" data-cmp="'+esc(t.nr)+'" data-cmptyp="'+t.typ+'" aria-pressed="'+(cmpAktiv?'true':'false')+'">'
+      +  (cmpAktiv?'✓ Vergleich':'Vergleichen')+'</button></div>';
   });
   main.innerHTML = h + '</div>';
   bind();
-  updateSelectAllBtn();
+  selectAllAktualisieren();
 }
 
 function startseite(){
@@ -1049,37 +1434,32 @@ function startseite(){
 
 function bind(){
   main.querySelectorAll('[data-go]').forEach(el => {
-    el.addEventListener('click', e => { if(!e.target.closest('.rowselect')&&!e.target.closest('[data-compare]')) gehe(el.dataset.go); });
+    el.addEventListener('click', () => gehe(el.dataset.go));
     el.addEventListener('keydown', e => {
-      if((e.key==='Enter'||e.key===' ') && !e.target.closest('.rowselect') && !e.target.closest('[data-compare]')){ e.preventDefault(); gehe(el.dataset.go); }
+      if(e.key==='Enter' || e.key===' '){ e.preventDefault(); gehe(el.dataset.go); }
     });
   });
+  main.querySelectorAll('[data-cmp]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      toggleVergleich(el.dataset.cmptyp, el.dataset.cmp);
+    });
+  });
+  main.querySelectorAll('.rowselect').forEach(l => l.addEventListener('click', e => e.stopPropagation()));
   main.querySelectorAll('.rowcheck').forEach(cb => {
     cb.addEventListener('click', e => e.stopPropagation());
-    cb.addEventListener('change', () => { toggleSelect(cb.dataset.sel, cb.checked); updateSelectAllBtn(); });
+    cb.addEventListener('change', () => { toggleSelect(cb.dataset.sel, cb.checked); selectAllAktualisieren(); });
   });
   const selAll = main.querySelector('[data-selectall]');
   if(selAll) selAll.addEventListener('click', selectAllToggle);
-  main.querySelectorAll('[data-compare]').forEach(el => el.addEventListener('click', e => { e.stopPropagation(); waehleVergleich(el.dataset.compare); }));
-  main.querySelectorAll('[data-compare-clear]').forEach(el => el.addEventListener('click', () => resetVergleich(el.dataset.compareClear)));
-  const only=document.getElementById('onlyDiff'); if(only) only.addEventListener('change', () => { compareOnlyDiff=only.checked; zeigeVergleich(); });
-  const print=document.getElementById('printCompare'); if(print) print.addEventListener('click', () => window.print());
-  main.querySelectorAll('[data-copy]').forEach(el => el.addEventListener('click', e => { e.stopPropagation(); kopiere(el.dataset.copy); }));
   const bk = document.getElementById('bk');
   if(bk) bk.addEventListener('click', zurueck);
-}
-
-async function kopiere(value){
-  try{
-    if(navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(value);
-    else { const t=document.createElement('textarea');t.value=value;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();document.execCommand('copy');t.remove(); }
-    const toast=document.createElement('div');toast.className='toast';toast.textContent='Kopiert';document.body.appendChild(toast);setTimeout(()=>toast.remove(),1200);
-  }catch(e){}
 }
 
 /* ---------- Ereignisse ---------- */
 qEl.addEventListener('input', () => {
   clrEl.hidden = !qEl.value;
+  if(!qEl.value) typFilter = 'alle';
   current = null; stack = [];
   liste();
 });
@@ -1098,10 +1478,23 @@ qEl.addEventListener('keydown', e => {
     e.preventDefault();
     gehe(treffer[sel >= 0 ? sel : 0].nr);
   }
-  if(e.key==='Escape'){ qEl.value=''; clrEl.hidden=true; liste(); }
+  if(e.key==='Escape'){ qEl.value=''; clrEl.hidden=true; typFilter='alle'; liste(); }
 });
 clrEl.addEventListener('click', () => {
-  qEl.value=''; clrEl.hidden=true; current=null; stack=[]; qEl.focus(); liste();
+  qEl.value=''; clrEl.hidden=true; typFilter='alle'; current=null; stack=[]; qEl.focus(); liste();
+});
+
+/* Typ-Filter-Chips: per Maus darf der Klick den Fokus/die Eingabe im Suchfeld
+   nie verlieren (mousedown wird deshalb unterdrückt), per Tastatur bleiben es
+   normale Buttons (Tab, Enter/Space funktionieren nativ). */
+document.querySelectorAll('.fchip').forEach(btn => {
+  btn.addEventListener('mousedown', e => e.preventDefault());
+  btn.addEventListener('click', () => {
+    if(btn.disabled || btn.dataset.typ === typFilter) return;
+    typFilter = btn.dataset.typ;
+    liste();
+    qEl.focus();
+  });
 });
 
 // Zurück-Taste am Handy: erst durch die Kette, dann raus
@@ -1112,8 +1505,13 @@ window.addEventListener('keydown', e => {
 /* ==================== Excel laden ==================== */
 const quelleEl = document.getElementById('quelle');
 const qnameEl  = document.getElementById('qname');
-const footEl   = document.getElementById('foot');
+const footEl   = document.getElementById('footstats');
 let dateiHandle = null, dateiName = '';
+
+/* Datum des letzten Pushs - bei jeder Änderung an dieser Datei von Hand
+   nachziehen, da es keinen Build-Schritt gibt, der das automatisch könnte. */
+const APP_VERSION = '2026-08-14';
+document.getElementById('footversion').textContent = 'Stand: ' + APP_VERSION;
 
 function dropzone(msg){
   main.innerHTML = '<div class="drop" id="dz">'
@@ -1180,10 +1578,12 @@ function leseDatei(file){
       const wb = XLSX.read(new Uint8Array(fr.result), {type:'array'});
       DATA = baueDaten(wb);
       indexAufbauen();
+      vergleichZuruecksetzen();
       quelleEl.hidden = false;
       qnameEl.textContent = dateiName + ' · ' + new Date().toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
       qEl.disabled = false;
       scanBtn.disabled = false;
+      document.querySelectorAll('.fchip').forEach(b => b.disabled = false);
       footEl.textContent = DATA.meta.bauteile + ' Bauteile · ' + DATA.meta.schablonen
         + ' Schablonen · ' + DATA.meta.paare + ' Zuordnungen · gelesen aus ' + dateiName;
       current = null; stack = [];
