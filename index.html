@@ -103,6 +103,27 @@ body{
   text-transform:uppercase;color:#7E919B;
 }
 
+/* ---------- Typ-Filter-Chips ---------- */
+.typfilter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
+.fchip{
+  display:inline-flex;align-items:center;gap:6px;min-height:40px;
+  font-family:var(--cond);font-size:13px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+  background:none;border:1px solid #39434C;color:#8FA3AC;
+  padding:8px 13px;border-radius:20px;cursor:pointer;
+  transition:background-color .18s ease,color .18s ease,border-color .18s ease;
+}
+.fchip:hover:not(:disabled){border-color:#5FC8DE;color:#fff}
+.fchip:disabled{opacity:.4;cursor:default}
+.fchip:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.fchip .fc{font-family:var(--mono);font-size:12px;letter-spacing:0;opacity:.75}
+.fchip.active{color:#fff;border-color:transparent}
+.fchip.active .fc{opacity:1}
+.fchip.active[data-typ="alle"]{background:var(--teal)}
+.fchip.active[data-typ="bt"]{background:#5B6670}
+.fchip.active[data-typ="sch"]{background:var(--teal)}
+.fchip.active[data-typ="ez"]{background:var(--amber)}
+.fchip.active[data-typ="ht"]{background:var(--red)}
+
 /* ---------- Kamera-Overlay ---------- */
 .scanoverlay{position:fixed;inset:0;z-index:200;background:#0B0E11;display:flex;flex-direction:column}
 .scanoverlay[hidden]{display:none}
@@ -367,6 +388,13 @@ table.cmptable tr.diff td:first-child{background:#F0E4C8}
     <div class="brand">
       <h1>RECARO – Übersichtsliste</h1>
       <span class="sub">F-LIST · LIVE</span>
+    </div>
+    <div class="typfilter" id="typfilter" role="group" aria-label="Ergebnisse nach Typ filtern">
+      <button class="fchip active" type="button" data-typ="alle" aria-pressed="true" disabled>Alle <span class="fc" id="fc-alle">(0)</span></button>
+      <button class="fchip" type="button" data-typ="bt" aria-pressed="false" disabled>Bauteile <span class="fc" id="fc-bt">(0)</span></button>
+      <button class="fchip" type="button" data-typ="sch" aria-pressed="false" disabled>Schablonen <span class="fc" id="fc-sch">(0)</span></button>
+      <button class="fchip" type="button" data-typ="ez" aria-pressed="false" disabled>Einzelteile <span class="fc" id="fc-ez">(0)</span></button>
+      <button class="fchip" type="button" data-typ="ht" aria-pressed="false" disabled>HT-Nummern <span class="fc" id="fc-ht">(0)</span></button>
     </div>
     <div class="searchwrap">
       <input id="q" type="search" autocomplete="off" autocapitalize="off" spellcheck="false"
@@ -654,7 +682,7 @@ function suche(qr){
     else if(it.n.indexOf(n) >= 0 || (it.n2 && it.n2.indexOf(n) >= 0)) drin.push(it);
     else if(n.length >= 3 && it.txt.indexOf(n) >= 0) text.push(it);
   }
-  return exakt.concat(anfang, drin, text).slice(0, 60);
+  return exakt.concat(anfang, drin, text);
 }
 
 /* ---------- Hilfen ---------- */
@@ -717,6 +745,7 @@ const main = document.getElementById('main');
 const qEl  = document.getElementById('q');
 const clrEl= document.getElementById('clr');
 let treffer = [], sel = -1, stack = [], current = null;
+let typFilter = 'alle';
 
 /* ---------- Vergleichsfunktion ---------- */
 const cmpbarEl = document.getElementById('cmpbar');
@@ -1116,18 +1145,63 @@ function ohneRevision(s){
   return String(s).replace(/_(NC|[A-Z])_(ST|BA|CP)\s*$/i, '').trim();
 }
 
+/* HT-Rohteilnummern sind kein eigener Eintragstyp im Index, sondern ein Feld
+   innerhalb von Bauteilen (b.ht) - der Filter "HT-Nummern" ist deshalb ein
+   Unterfilter der Bauteile, kein eigener typ-Wert. */
+function hatHtNummer(nr){
+  const b = BT.get(nr);
+  return !!(b && htTeile(b.ht).ht.length);
+}
+function passtTyp(t, typ){
+  if(typ === 'alle') return true;
+  if(typ === 'ht') return t.typ === 'bt' && hatHtNummer(t.nr);
+  return t.typ === typ;
+}
+const TYP_LABEL = {alle:'Ergebnisse', bt:'Bauteile', sch:'Schablonen', ez:'Einzelteile', ht:'Bauteile mit HT-Nummer'};
+function zaehleTypen(liste){
+  return {
+    alle: liste.length,
+    bt:   liste.filter(t => t.typ === 'bt').length,
+    sch:  liste.filter(t => t.typ === 'sch').length,
+    ez:   liste.filter(t => t.typ === 'ez').length,
+    ht:   liste.filter(t => t.typ === 'bt' && hatHtNummer(t.nr)).length
+  };
+}
+function chipsAktualisieren(counts){
+  ['alle','bt','sch','ez','ht'].forEach(typ => {
+    const cd = document.getElementById('fc-'+typ);
+    if(cd) cd.textContent = '('+counts[typ]+')';
+    const btn = document.querySelector('.fchip[data-typ="'+typ+'"]');
+    if(btn){
+      btn.classList.toggle('active', typFilter === typ);
+      btn.setAttribute('aria-pressed', typFilter === typ ? 'true' : 'false');
+    }
+  });
+}
+
 function liste(){
   const roh = qEl.value.trim();
-  if(!roh){ startseite(); return; }
+  if(!roh){ chipsAktualisieren({alle:0,bt:0,sch:0,ez:0,ht:0}); startseite(); return; }
   const qr = ohneRevision(roh);
-  treffer = suche(qr); sel = -1;
-  if(!treffer.length){
+  const alleTreffer = suche(qr);
+  chipsAktualisieren(zaehleTypen(alleTreffer));
+  const gefiltert = alleTreffer.filter(t => passtTyp(t, typFilter));
+  treffer = gefiltert.slice(0, 60); sel = -1;
+  if(!alleTreffer.length){
     main.innerHTML = '<div class="empty"><h3>Nichts gefunden</h3>'
       + '<p>Kein Bauteil und keine Schablone passt zu <code>'+esc(roh)+'</code>.</p>'
       + '<p>Es lässt sich auch nach Bezeichnung, Projekt oder Material suchen &mdash; zum Beispiel <code>Seatshell</code> oder <code>Kompaktplatte</code>.</p></div>';
     return;
   }
-  let h = '<div class="rescount">'+treffer.length+' Treffer'+(treffer.length===60?' (gekürzt)':'')+'</div><div class="results">';
+  if(!gefiltert.length){
+    main.innerHTML = '<div class="empty"><h3>Nichts gefunden</h3>'
+      + '<p>Keine '+esc(TYP_LABEL[typFilter])+' gefunden für <code>'+esc(roh)+'</code>.</p>'
+      + '<p><button class="reload alt" type="button" id="fzeigalle">Alle '+alleTreffer.length+' Treffer anzeigen</button></p></div>';
+    const fz = document.getElementById('fzeigalle');
+    if(fz) fz.addEventListener('click', () => { typFilter = 'alle'; liste(); qEl.focus(); });
+    return;
+  }
+  let h = '<div class="rescount">'+treffer.length+' Treffer'+(gefiltert.length>60?' (gekürzt)':'')+'</div><div class="results">';
   treffer.forEach((t,i) => {
     const tag = t.typ==='bt'?'Bauteil':(t.typ==='ez'?'Einzelteil':'Schablone');
     const cmpAktiv = istImVergleich(t.nr);
@@ -1177,6 +1251,7 @@ function bind(){
 /* ---------- Ereignisse ---------- */
 qEl.addEventListener('input', () => {
   clrEl.hidden = !qEl.value;
+  if(!qEl.value) typFilter = 'alle';
   current = null; stack = [];
   liste();
 });
@@ -1195,10 +1270,23 @@ qEl.addEventListener('keydown', e => {
     e.preventDefault();
     gehe(treffer[sel >= 0 ? sel : 0].nr);
   }
-  if(e.key==='Escape'){ qEl.value=''; clrEl.hidden=true; liste(); }
+  if(e.key==='Escape'){ qEl.value=''; clrEl.hidden=true; typFilter='alle'; liste(); }
 });
 clrEl.addEventListener('click', () => {
-  qEl.value=''; clrEl.hidden=true; current=null; stack=[]; qEl.focus(); liste();
+  qEl.value=''; clrEl.hidden=true; typFilter='alle'; current=null; stack=[]; qEl.focus(); liste();
+});
+
+/* Typ-Filter-Chips: per Maus darf der Klick den Fokus/die Eingabe im Suchfeld
+   nie verlieren (mousedown wird deshalb unterdrückt), per Tastatur bleiben es
+   normale Buttons (Tab, Enter/Space funktionieren nativ). */
+document.querySelectorAll('.fchip').forEach(btn => {
+  btn.addEventListener('mousedown', e => e.preventDefault());
+  btn.addEventListener('click', () => {
+    if(btn.disabled || btn.dataset.typ === typFilter) return;
+    typFilter = btn.dataset.typ;
+    liste();
+    qEl.focus();
+  });
 });
 
 // Zurück-Taste am Handy: erst durch die Kette, dann raus
@@ -1282,6 +1370,7 @@ function leseDatei(file){
       qnameEl.textContent = dateiName + ' · ' + new Date().toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
       qEl.disabled = false;
       scanBtn.disabled = false;
+      document.querySelectorAll('.fchip').forEach(b => b.disabled = false);
       footEl.textContent = DATA.meta.bauteile + ' Bauteile · ' + DATA.meta.schablonen
         + ' Schablonen · ' + DATA.meta.paare + ' Zuordnungen · gelesen aus ' + dateiName;
       current = null; stack = [];
