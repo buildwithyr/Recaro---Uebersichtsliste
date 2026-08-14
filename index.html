@@ -104,22 +104,16 @@ body{
   text-transform:uppercase;color:#B7A493;
 }
 
-/* ---------- Hero-Bild ---------- */
-.hero{
-  position:relative;margin:0 0 20px;border-radius:6px;overflow:hidden;
-  aspect-ratio:16/9;background:var(--ink);
-}
-.hero img{width:100%;height:100%;object-fit:cover;display:block}
-.hero-fade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(60,44,39,0) 45%,rgba(60,44,39,.88) 100%)}
-.hero-cap{position:absolute;left:16px;right:16px;bottom:14px;color:#fff}
-.hero-brand{font-family:var(--cond);font-weight:700;font-size:20px;letter-spacing:.16em;text-transform:uppercase;display:block}
-.hero-sub{font-family:var(--cond);font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;color:#E7D9C8;display:block;margin-top:2px}
-@media (min-width:700px){.hero{aspect-ratio:21/9}}
-
 /* ---------- Typ-Filter-Chips ---------- */
-.typfilter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
+/* Einzeilig, horizontal scrollbar statt umbrechend - sonst nehmen die Chips auf
+   dem Handy mehrere Zeilen und damit einen Großteil des Bildschirms ein. */
+.typfilter{
+  display:flex;flex-wrap:nowrap;gap:6px;margin:0 -16px 9px;padding:0 16px 4px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.typfilter::-webkit-scrollbar{display:none}
 .fchip{
-  display:inline-flex;align-items:center;gap:6px;min-height:40px;
+  display:inline-flex;align-items:center;gap:6px;min-height:40px;flex-shrink:0;white-space:nowrap;
   font-family:var(--cond);font-size:13px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
   background:none;border:1px solid #5A473C;color:#C9B7A8;
   padding:8px 13px;border-radius:20px;cursor:pointer;
@@ -1261,17 +1255,10 @@ function liste(){
   bind();
 }
 
-function heroHTML(){
-  return '<div class="hero"><img src="assets/hero.jpg" alt="F/LIST Kabineninterieur" loading="eager">'
-    + '<div class="hero-fade"></div>'
-    + '<div class="hero-cap"><span class="hero-brand">F/LIST</span><span class="hero-sub">Interior Craftsmanship</span></div>'
-    + '</div>';
-}
-
 function startseite(){
   if(!DATA){ dropzone(); return; }
   const m = DATA.meta;
-  main.innerHTML = heroHTML() + '<div class="empty"><h3>Nummer eingeben</h3>'
+  main.innerHTML = '<div class="empty"><h3>Nummer eingeben</h3>'
     + '<p>Die Suche greift auf die Übersichtsliste, das Schablonenregister und das Blatt „Schablnr - Bauteilnr.“ gleichzeitig zu. '
     + 'Bauteil eingeben und die Schablonen erscheinen &mdash; Schablone eingeben und die Bauteile erscheinen.</p>'
     + '<p>Bezeichnungen gehen auch: <code>Kompaktplatte</code>, <code>Seatshell Latam</code>, <code>Grundplatte</code>.</p>'
@@ -1353,7 +1340,7 @@ const footEl   = document.getElementById('foot');
 let dateiHandle = null, dateiName = '';
 
 function dropzone(msg){
-  main.innerHTML = heroHTML() + '<div class="drop" id="dz">'
+  main.innerHTML = '<div class="drop" id="dz">'
     + '<h3>Excel-Datei auswählen</h3>'
     + '<p>' + (msg || 'Wähle die Datei RECARO_-_Übersicht.xlsx aus. Sie wird nur hier im Browser gelesen '
       + 'und nirgendwohin gesendet. Die Datei selbst wird nicht verändert.') + '</p>'
