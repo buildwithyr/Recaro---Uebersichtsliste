@@ -4,6 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>RECARO – Übersichtsliste</title>
+<script>
+/* Vor dem ersten Malen ausführen, damit beim Laden kein falsches Theme
+   aufblitzt (FOUC). Ohne gespeicherte Wahl bleibt data-theme weg und
+   prefers-color-scheme in der CSS entscheidet. */
+(function(){
+  try{
+    var t = localStorage.getItem('recaro-theme');
+    if(t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+  }catch(e){}
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -24,9 +35,69 @@
   --red:#8E3B22;
   --red-bg:#F5E4DE;
   --focus:#EA5B0C;
+  /* Feste Marken-Flächen (Kopfleiste, Nummernband, Buttons) - bleiben in
+     beiden Modi dunkel, damit sie als Marken-Elemente erkennbar bleiben
+     und sich nicht mit der Seiten-Hintergrundfarbe im Dark Mode vermischen. */
+  --ink-solid:#3C2C27;
+  --surface-alt:#F4EFE8;
+  --surface-bright:#FFFFFF;
+  --mark-bg:#F0D49E;
+  --mark-text:#3C2C27;
+  /* Warn-/Fehlerboxen bleiben in beiden Modi hell mit dunkler Schrift -
+     das ist bei Alarmfarben besser lesbar als eine gedimmte Dark-Mode-Variante. */
+  --amber-bg-fixed:#F3EBDD;
+  --amber-text-fixed:#5C400B;
+  --red-bg-fixed:#F5E4DE;
+  --red-text-fixed:#5E2716;
   --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
   --cond:'Barlow Condensed',system-ui,-apple-system,'Segoe UI',sans-serif;
   --sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  color-scheme:light;
+}
+/* Dark Mode: greift automatisch, solange keine manuelle Wahl in
+   localStorage hinterlegt ist (siehe [data-theme] weiter unten). Werte
+   bewusst kräftig gewählt (starke Hell/Dunkel-Kontraste, kein reines
+   Pastell-auf-Pastell), damit die Liste auch bei Blendung/hellem
+   Umgebungslicht in der Werkstatt lesbar bleibt. */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ink:#F2EAE2;
+    --ink-2:#D9C9BB;
+    --ink-3:#B5A695;
+    --paper:#171412;
+    --card:#242019;
+    --rule:#4A4038;
+    --rule-soft:#332C26;
+    --teal:#FF7A33;
+    --teal-bg:#3D2716;
+    --amber:#E3B563;
+    --amber-bg:#382B14;
+    --red:#E97558;
+    --red-bg:#3A1D16;
+    --focus:#FF7A33;
+    --surface-alt:#2E2820;
+    --surface-bright:#332C25;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#F2EAE2;
+  --ink-2:#D9C9BB;
+  --ink-3:#B5A695;
+  --paper:#171412;
+  --card:#242019;
+  --rule:#4A4038;
+  --rule-soft:#332C26;
+  --teal:#FF7A33;
+  --teal-bg:#3D2716;
+  --amber:#E3B563;
+  --amber-bg:#382B14;
+  --red:#E97558;
+  --red-bg:#3A1D16;
+  --focus:#FF7A33;
+  --surface-alt:#2E2820;
+  --surface-bright:#332C25;
+  color-scheme:dark;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
@@ -39,7 +110,7 @@ body{
 
 /* ---------- Kopf ---------- */
 .top{
-  position:sticky;top:0;z-index:50;background:var(--ink);
+  position:sticky;top:0;z-index:50;background:var(--ink-solid);
   padding:calc(10px + env(safe-area-inset-top)) 16px 12px;
 }
 .brand{
@@ -53,11 +124,26 @@ body{
   font-family:var(--cond);font-size:14px;letter-spacing:.1em;text-transform:uppercase;
   color:#C9B7A8;font-weight:500;
 }
+.themebtn{
+  margin-left:auto;border:1px solid #5A473C;background:none;color:#C9B7A8;
+  width:36px;height:36px;border-radius:3px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.themebtn:hover{color:#fff;border-color:#E8C990}
+.themebtn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.themebtn svg{width:19px;height:19px}
+.themebtn .i-sun{display:none}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .themebtn .i-sun{display:block}
+  :root:not([data-theme="light"]) .themebtn .i-moon{display:none}
+}
+:root[data-theme="dark"] .themebtn .i-sun{display:block}
+:root[data-theme="dark"] .themebtn .i-moon{display:none}
 .searchwrap{position:relative}
 #q{
   width:100%;font-family:var(--mono);font-size:17px;font-weight:500;
   padding:13px 42px 13px 14px;border:0;border-radius:3px;
-  background:#fff;color:var(--ink);
+  background:var(--surface-bright);color:var(--ink);
 }
 #q::placeholder{color:#A89A8C;font-weight:400}
 #q:focus{outline:3px solid var(--teal);outline-offset:2px}
@@ -95,7 +181,7 @@ body{
 .drop p{color:var(--ink-3);max-width:48ch;margin:0 auto 16px}
 .pick{
   font-family:var(--cond);font-size:15px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;
-  background:var(--ink);color:#fff;border:0;border-radius:3px;padding:12px 22px;cursor:pointer;
+  background:var(--ink-solid);color:#fff;border:0;border-radius:3px;padding:12px 22px;cursor:pointer;
 }
 .pick:hover{background:var(--teal)}
 .lade{font-family:var(--cond);font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);padding:34px 4px}
@@ -149,8 +235,8 @@ body{
 }
 .scanfoot{padding:14px 16px calc(16px + env(safe-area-inset-bottom));font-size:14px;color:#B8C6CD;text-align:center;min-height:20px}
 .scanfoot b{color:#fff;font-family:var(--mono);font-weight:500}
-.scanfoot .err{background:var(--red-bg);color:#5E2716;border-radius:3px;padding:11px 13px;text-align:left;font-size:14px;line-height:1.45}
-.scanfoot .err a{color:#5E2716;font-weight:600}
+.scanfoot .err{background:var(--red-bg-fixed);color:var(--red-text-fixed);border-radius:3px;padding:11px 13px;text-align:left;font-size:14px;line-height:1.45}
+.scanfoot .err a{color:var(--red-text-fixed);font-weight:600}
 .scanfoot .err code{font-family:var(--mono);background:rgba(94,39,22,.12);padding:1px 5px;border-radius:2px;font-size:13px}
 
 /* ---------- Trefferliste ---------- */
@@ -166,7 +252,7 @@ body{
   border-radius:3px;padding:11px 13px;margin-bottom:6px;cursor:pointer;
   font-family:inherit;font-size:inherit;color:inherit;
 }
-.row:hover,.row.sel{border-color:var(--teal);background:#fff}
+.row:hover,.row.sel{border-color:var(--teal);background:var(--surface-bright)}
 .row.sel{outline:2px solid var(--teal);outline-offset:1px}
 .row.t-bt{border-left-color:var(--ink-2)}
 .row.t-sch{border-left-color:var(--teal)}
@@ -180,10 +266,10 @@ body{
   font-family:var(--cond);font-size:12px;letter-spacing:.09em;text-transform:uppercase;
   font-weight:600;padding:2px 7px;border-radius:2px;white-space:nowrap;
 }
-.tag-bt{background:#EFE9E2;color:var(--ink-2)}
+.tag-bt{background:var(--surface-alt);color:var(--ink-2)}
 .tag-sch{background:var(--teal-bg);color:var(--teal)}
 .tag-ez{background:var(--amber-bg);color:var(--amber)}
-mark{background:#F0D49E;color:inherit;border-radius:2px;padding:0 1px}
+mark{background:var(--mark-bg);color:var(--mark-text);border-radius:2px;padding:0 1px}
 
 /* ---------- Detail ---------- */
 .back{
@@ -195,7 +281,7 @@ mark{background:#F0D49E;color:inherit;border-radius:2px;padding:0 1px}
 
 /* Signatur: Nummernzerleger */
 .numband{
-  background:var(--ink);color:#fff;border-radius:3px;padding:20px 18px 14px;
+  background:var(--ink-solid);color:#fff;border-radius:3px;padding:20px 18px 14px;
   margin-bottom:14px;overflow-x:auto;
 }
 .numband .kind{
@@ -233,7 +319,7 @@ mark{background:#F0D49E;color:inherit;border-radius:2px;padding:0 1px}
 .fields>div:nth-last-child(-n+2){border-bottom:0}
 .fields .k{
   font-family:var(--cond);font-size:13.5px;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--ink-3);font-weight:600;background:#F4EFE8;
+  color:var(--ink-3);font-weight:600;background:var(--surface-alt);
 }
 .fields .v{word-break:break-word;font-size:14.5px}
 .fields .v.num{font-family:var(--mono);font-size:14px}
@@ -243,7 +329,7 @@ mark{background:#F0D49E;color:inherit;border-radius:2px;padding:0 1px}
 .chips{display:flex;flex-wrap:wrap;gap:6px;padding:12px 14px}
 .chip{
   font-family:var(--mono);font-size:13.5px;font-weight:500;
-  border:1px solid var(--rule);background:#fff;color:var(--ink);
+  border:1px solid var(--rule);background:var(--surface-bright);color:var(--ink);
   padding:6px 10px;border-radius:3px;cursor:pointer;
 }
 .chip:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-bg)}
@@ -260,10 +346,10 @@ mark{background:#F0D49E;color:inherit;border-radius:2px;padding:0 1px}
   font-family:var(--cond);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
   font-weight:700;white-space:nowrap;padding-top:1px;
 }
-.note-amber{background:var(--amber-bg);color:#5C400B}
-.note-amber .nl{color:var(--amber)}
-.note-red{background:var(--red-bg);color:#5E2716}
-.note-red .nl{color:var(--red)}
+.note-amber{background:var(--amber-bg-fixed);color:var(--amber-text-fixed)}
+.note-amber .nl{color:var(--amber-text-fixed)}
+.note-red{background:var(--red-bg-fixed);color:var(--red-text-fixed)}
+.note-red .nl{color:var(--red-text-fixed)}
 
 /* Herkunft */
 .prov{
@@ -276,7 +362,7 @@ mark{background:#F0D49E;color:inherit;border-radius:2px;padding:0 1px}
 .empty{padding:34px 4px;color:var(--ink-3)}
 .empty h3{font-family:var(--cond);font-size:22px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin-bottom:10px}
 .empty p{margin-bottom:7px;max-width:52ch}
-.empty code{font-family:var(--mono);font-size:13.5px;background:#EDE4DA;padding:2px 5px;border-radius:2px}
+.empty code{font-family:var(--mono);font-size:13.5px;background:var(--surface-alt);padding:2px 5px;border-radius:2px}
 .stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
 .stat{background:var(--card);border:1px solid var(--rule-soft);border-radius:3px;padding:10px 13px}
 .stat b{font-family:var(--mono);font-size:19px;font-weight:600;display:block;line-height:1.2}
@@ -291,7 +377,7 @@ footer{
 
 @media (max-width:620px){
   .fields{grid-template-columns:1fr}
-  .fields .k{background:#F4EFE8;border-bottom:0;padding-bottom:2px}
+  .fields .k{background:var(--surface-alt);border-bottom:0;padding-bottom:2px}
   .fields .v{padding-top:3px}
   .seg .v{font-size:24px}
   .row{flex-wrap:wrap;gap:6px 10px}
@@ -305,7 +391,7 @@ footer{
 .row{cursor:pointer}
 .cmpmini{
   font-family:var(--cond);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
-  border:1px solid var(--rule);background:#fff;color:var(--ink-2);border-radius:3px;padding:7px 10px;
+  border:1px solid var(--rule);background:var(--surface-bright);color:var(--ink-2);border-radius:3px;padding:7px 10px;
   cursor:pointer;white-space:nowrap;flex-shrink:0;min-height:30px;
 }
 .cmpmini:hover{border-color:var(--teal);color:var(--teal)}
@@ -315,7 +401,7 @@ footer{
 .dkopf{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 
 .cmpbar{
-  position:fixed;left:0;right:0;bottom:0;z-index:80;background:var(--ink);color:#fff;
+  position:fixed;left:0;right:0;bottom:0;z-index:80;background:var(--ink-solid);color:#fff;
   padding:10px 16px calc(10px + env(safe-area-inset-bottom));
   box-shadow:0 -2px 10px rgba(0,0,0,.22);
 }
@@ -342,7 +428,7 @@ body.has-cmpbar{padding-bottom:104px}
 
 .toast{
   position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
-  background:var(--ink);color:#fff;font-size:13.5px;padding:11px 16px;border-radius:4px;
+  background:var(--ink-solid);color:#fff;font-size:13.5px;padding:11px 16px;border-radius:4px;
   opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:300;max-width:88vw;text-align:center;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -362,13 +448,13 @@ table.cmptable th,table.cmptable td{
   padding:11px 14px;border-bottom:1px solid var(--rule-soft);text-align:left;vertical-align:top;font-size:14px;line-height:1.4;
 }
 table.cmptable th:first-child,table.cmptable td:first-child{
-  position:sticky;left:0;background:#F4EFE8;z-index:2;font-family:var(--cond);font-size:13px;letter-spacing:.05em;
+  position:sticky;left:0;background:var(--surface-alt);z-index:2;font-family:var(--cond);font-size:13px;letter-spacing:.05em;
   text-transform:uppercase;color:var(--ink-3);font-weight:600;min-width:160px;
 }
 table.cmptable thead th{
-  background:var(--ink);color:#fff;font-family:var(--mono);font-size:14.5px;font-weight:600;position:sticky;top:0;z-index:3;
+  background:var(--ink-solid);color:#fff;font-family:var(--mono);font-size:14.5px;font-weight:600;position:sticky;top:0;z-index:3;
 }
-table.cmptable thead th:first-child{background:var(--ink);z-index:4}
+table.cmptable thead th:first-child{background:var(--ink-solid);z-index:4}
 table.cmptable tr.diff td{background:var(--amber-bg)}
 table.cmptable tr.diff td:first-child{background:#F0E4C8}
 .cmpcol-head{display:flex;flex-direction:column;gap:7px}
@@ -400,6 +486,15 @@ table.cmptable tr.diff td:first-child{background:#F0E4C8}
     <div class="brand">
       <h1>RECARO – Übersichtsliste</h1>
       <span class="sub">F-LIST · LIVE</span>
+      <button class="themebtn" id="themebtn" type="button" aria-label="Hell/Dunkel umschalten">
+        <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+        </svg>
+      </button>
     </div>
     <div class="typfilter" id="typfilter" role="group" aria-label="Ergebnisse nach Typ filtern">
       <button class="fchip active" type="button" data-typ="alle" aria-pressed="true" disabled>Alle <span class="fc" id="fc-alle">(0)</span></button>
@@ -1639,6 +1734,20 @@ window.addEventListener('keydown', e => { if(e.key === 'Escape' && !overlay.hidd
   }
   dropzone();
 })();
+
+/* ==================== Dark Mode ==================== */
+const THEME_KEY = 'recaro-theme';
+const themebtn = document.getElementById('themebtn');
+function aktivesTheme(){
+  const gesetzt = document.documentElement.getAttribute('data-theme');
+  if(gesetzt === 'light' || gesetzt === 'dark') return gesetzt;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+themebtn.addEventListener('click', () => {
+  const naechstes = aktivesTheme() === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', naechstes);
+  try{ localStorage.setItem(THEME_KEY, naechstes); }catch(e){}
+});
 </script>
 </body>
 </html>
