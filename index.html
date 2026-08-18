@@ -626,8 +626,93 @@ body.feat-off-vergleich #cmpbar{display:none!important}
 }
 .infobody h3:first-child{margin-top:12px}
 .infobody p{font-size:14px;line-height:1.5;color:var(--ink);margin-bottom:2px}
+
+/* ---------- Nesting-Teileliste ---------- */
+.nestlay{
+  position:fixed;inset:0;z-index:240;background:rgba(15,11,8,.5);
+  -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;transition:opacity .16s ease-out;
+}
+.nestlay[hidden]{display:none}
+.nestlay.show{opacity:1}
+.nestcard{
+  width:100%;max-width:860px;max-height:calc(100vh - 40px);overflow-y:auto;
+  background:var(--card);border:1px solid var(--rule-soft);border-radius:12px;
+  box-shadow:0 20px 48px rgba(0,0,0,.4);
+  transform:scale(.94);opacity:0;transition:transform .17s ease-out,opacity .17s ease-out;
+}
+.nestlay.show .nestcard{transform:scale(1);opacity:1}
+.nesthead{
+  position:sticky;top:0;background:var(--card);display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border-bottom:1px solid var(--rule-soft);z-index:2;
+}
+.nesthead span{
+  font-family:var(--cond);font-size:15px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--ink);
+}
+.nestclose{border:0;background:none;color:var(--ink-3);font-size:22px;line-height:1;cursor:pointer;padding:3px 6px}
+.nestclose:hover{color:var(--teal)}
+.nestbody{padding:16px}
+.nestdrop{
+  border:2px dashed var(--rule);border-radius:6px;background:var(--surface-alt);
+  padding:34px 20px;text-align:center;
+}
+.nestdrop.over{border-color:var(--teal);background:var(--teal-bg)}
+.nestdrop h3{font-family:var(--cond);font-size:19px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink);margin-bottom:8px}
+.nestdrop p{color:var(--ink-3);font-size:13.5px;max-width:46ch;margin:0 auto 14px;line-height:1.5}
+.nestpick{
+  font-family:var(--cond);font-size:14px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;
+  background:var(--ink-solid);color:#fff;border:0;border-radius:3px;padding:11px 20px;cursor:pointer;
+}
+.nestpick:hover{background:var(--teal)}
+.nesterr{
+  margin-top:14px;background:var(--red-bg-fixed);color:var(--red-text-fixed);
+  border-radius:3px;padding:11px 13px;font-size:13.5px;line-height:1.45;
+}
+.neststats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.neststat{
+  flex:1;min-width:120px;background:var(--surface-alt);border:1px solid var(--rule-soft);
+  border-radius:6px;padding:11px 13px;
+}
+.neststat .nv{font-family:var(--mono);font-size:21px;font-weight:600;color:var(--ink)}
+.neststat .nl{font-family:var(--cond);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-top:2px}
+.nesttoolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.nesttabs{display:flex;gap:4px;background:var(--surface-alt);border-radius:20px;padding:3px}
+.nesttab{
+  font-family:var(--cond);font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+  border:0;background:none;color:var(--ink-3);border-radius:16px;padding:8px 14px;cursor:pointer;white-space:nowrap;
+}
+.nesttab.active{background:var(--teal);color:#fff}
+.nestnew{
+  font-family:var(--cond);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  background:none;color:var(--ink-3);border:1px solid var(--rule);border-radius:20px;padding:8px 14px;cursor:pointer;
+}
+.nestnew:hover{color:var(--teal);border-color:var(--teal)}
+.nesttablewrap{
+  overflow:auto;border:1px solid var(--rule-soft);border-radius:6px;background:var(--card);
+  margin-bottom:16px;-webkit-overflow-scrolling:touch;max-height:340px;
+}
+.nesttable{width:100%;border-collapse:collapse;font-size:13px}
+.nesttable th{
+  position:sticky;top:0;background:var(--surface-alt);text-align:left;padding:8px 11px;
+  font-family:var(--cond);font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);
+  border-bottom:1px solid var(--rule-soft);white-space:nowrap;
+}
+.nesttable td{padding:7px 11px;border-bottom:1px solid var(--rule-soft);color:var(--ink);vertical-align:top}
+.nesttable td.nc-a{font-family:var(--mono);font-weight:600;white-space:nowrap}
+.nesttable td.nc-r{color:var(--ink-2);font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+.nesttable tr:last-child td{border-bottom:0}
+.nestempty{padding:24px;text-align:center;color:var(--ink-3);font-size:13.5px}
+.nestactions{display:flex;gap:10px;flex-wrap:wrap}
+.nestdl{
+  font-family:var(--cond);font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  background:var(--teal);color:#fff;border:0;border-radius:3px;padding:11px 16px;cursor:pointer;
+}
+.nestdl:hover:not(:disabled){filter:brightness(1.12)}
+.nestdl:disabled{opacity:.4;cursor:default}
+
 @media (prefers-reduced-motion:reduce){
-  .menulay .menupanel,.infolay,.infocard{transition:none}
+  .menulay .menupanel,.infolay,.infocard,.nestlay,.nestcard{transition:none}
 }
 
 </style>
@@ -721,6 +806,9 @@ body.feat-off-vergleich #cmpbar{display:none!important}
       </div>
     </div>
     <div class="menusec">
+      <button type="button" class="menuinfo" id="menunestbtn">Nesting-Teileliste</button>
+    </div>
+    <div class="menusec">
       <button type="button" class="menuinfo" id="menuinfobtn">Info &amp; Workflow</button>
     </div>
   </div>
@@ -743,9 +831,21 @@ body.feat-off-vergleich #cmpbar{display:none!important}
       <p>Bis zu vier Bauteile oder Schablonen lassen sich nebeneinander in einer Tabelle vergleichen, um Unterschiede in den Feldern zu sehen. Lässt sich unten deaktivieren, falls nicht gebraucht.</p>
       <h3>Auswahl &amp; CSV-Export</h3>
       <p>Mehrere Treffer per Checkbox markieren und gesammelt als CSV-Datei exportieren. Der Export-Button lässt sich unten ausblenden, die Auswahl per Checkbox bleibt davon unberührt.</p>
+      <h3>Nesting-Teileliste</h3>
+      <p>Über den Menüpunkt &bdquo;Nesting-Teileliste&ldquo; lässt sich eine Nesting-CSV importieren. Die Zeilen werden anhand von Spalte G automatisch in HLT Teile und Nestteile aufgeteilt und lassen sich getrennt wieder als CSV exportieren.</p>
       <h3>Darstellung</h3>
       <p>Hell/Dunkel lässt sich hier im Menü umschalten. Alle Einstellungen (Funktionen und Darstellung) werden nur lokal auf diesem Gerät gespeichert.</p>
     </div>
+  </div>
+</div>
+
+<div class="nestlay" id="nestlay" hidden>
+  <div class="nestcard" id="nestcard" role="dialog" aria-modal="true" aria-label="Nesting-Teileliste">
+    <div class="nesthead">
+      <span>Nesting-Teileliste</span>
+      <button class="nestclose" id="nestclose" aria-label="Schließen" type="button">&times;</button>
+    </div>
+    <div class="nestbody" id="nestbody"></div>
   </div>
 </div>
 
@@ -2182,9 +2282,165 @@ document.getElementById('menuinfobtn').addEventListener('click', () => {
 });
 document.getElementById('infoclose').addEventListener('click', infoSchliessen);
 infolay.addEventListener('click', e => { if(e.target === infolay) infoSchliessen(); });
+
+/* ==================== Nesting-Teileliste ==================== */
+const nestlay  = document.getElementById('nestlay');
+const nestbody = document.getElementById('nestbody');
+let nestState = null;
+let nestActiveTab = 'hlt';
+
+function nestOeffnen(){
+  nestlay.hidden = false;
+  nestRender();
+  requestAnimationFrame(() => nestlay.classList.add('show'));
+}
+function nestSchliessen(){
+  if(nestlay.hidden) return;
+  nestlay.classList.remove('show');
+  setTimeout(() => { nestlay.hidden = true; }, 160);
+}
+document.getElementById('menunestbtn').addEventListener('click', () => {
+  menuSchliessen();
+  nestOeffnen();
+});
+document.getElementById('nestclose').addEventListener('click', nestSchliessen);
+nestlay.addEventListener('click', e => { if(e.target === nestlay) nestSchliessen(); });
+
+function nestDropHtml(fehler){
+  let h = '<div class="nestdrop" id="nestdropzone">'
+    + '<h3>Nesting-CSV importieren</h3>'
+    + '<p>Semikolon-getrennte CSV-Datei ohne Kopfzeile hierher ziehen oder auswählen. Die Zeilen werden anhand von Spalte G automatisch in HLT Teile und Nestteile aufgeteilt.</p>'
+    + '<button type="button" class="nestpick" id="nestpick">Datei auswählen</button>'
+    + '<input type="file" id="nestfileinput" accept=".csv" hidden>'
+    + '</div>';
+  if(fehler) h += '<div class="nesterr">'+esc(fehler)+'</div>';
+  return h;
+}
+
+function nestBindDrop(){
+  const dz  = document.getElementById('nestdropzone');
+  const inp = document.getElementById('nestfileinput');
+  document.getElementById('nestpick').addEventListener('click', () => inp.click());
+  inp.addEventListener('change', () => { if(inp.files[0]) nestLadeDatei(inp.files[0]); });
+  ['dragenter','dragover'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.add('over'); }));
+  ['dragleave','drop'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.remove('over'); }));
+  dz.addEventListener('drop', ev => {
+    const f = ev.dataTransfer.files[0];
+    if(f) nestLadeDatei(f);
+  });
+}
+
+function nestParseCsv(text){
+  const lines = text.split(/\r\n|\r|\n/);
+  const hlt = [], nest = [];
+  let total = 0;
+  lines.forEach(line => {
+    if(line === '') return;
+    total++;
+    const cols = line.split(';');
+    const g = (cols[6] || '').trim();
+    if(g === '') return;
+    if(g === 'HLT-STD') hlt.push({raw:line, cols});
+    else nest.push({raw:line, cols});
+  });
+  return {total, hlt, nest};
+}
+
+function nestLadeDatei(file){
+  const fr = new FileReader();
+  fr.onerror = () => { nestState = {error:'Die Datei konnte nicht gelesen werden.'}; nestRender(); };
+  fr.onload = () => {
+    try{
+      const {total, hlt, nest} = nestParseCsv(fr.result);
+      if(!hlt.length && !nest.length){
+        nestState = {error:'Keine gültigen Zeilen gefunden. Spalte G (Index 6) ist bei allen Zeilen leer, oder die Datei hat ein anderes Format.'};
+      }else{
+        nestState = {total, hlt, nest, fileName:file.name};
+        nestActiveTab = 'hlt';
+      }
+    }catch(err){
+      nestState = {error:'Die Datei konnte nicht ausgewertet werden: ' + (err && err.message ? err.message : err)};
+    }
+    nestRender();
+  };
+  fr.readAsText(file, 'ISO-8859-1');
+}
+
+function nestToIso88591Bytes(str){
+  const bytes = new Uint8Array(str.length);
+  for(let i=0;i<str.length;i++) bytes[i] = str.charCodeAt(i) & 0xFF;
+  return bytes;
+}
+
+function nestDownload(rows, filename){
+  if(!rows.length) return;
+  const text = rows.map(r => r.raw).join('\r\n') + '\r\n';
+  const blob = new Blob([nestToIso88591Bytes(text)], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function nestRender(){
+  if(!nestState){
+    nestbody.innerHTML = nestDropHtml();
+    nestBindDrop();
+    return;
+  }
+  if(nestState.error){
+    nestbody.innerHTML = nestDropHtml(nestState.error);
+    nestBindDrop();
+    return;
+  }
+  const {total, hlt, nest} = nestState;
+  let h = '<div class="neststats">'
+    + '<div class="neststat"><div class="nv">'+total+'</div><div class="nl">Zeilen gesamt</div></div>'
+    + '<div class="neststat"><div class="nv">'+hlt.length+'</div><div class="nl">HLT Teile</div></div>'
+    + '<div class="neststat"><div class="nv">'+nest.length+'</div><div class="nl">Nestteile</div></div>'
+    + '</div>';
+  h += '<div class="nesttoolbar">';
+  h += '<div class="nesttabs" role="group" aria-label="Liste wählen">'
+    + '<button type="button" class="nesttab'+(nestActiveTab==='hlt'?' active':'')+'" data-nesttab="hlt">HLT Teile ('+hlt.length+')</button>'
+    + '<button type="button" class="nesttab'+(nestActiveTab==='nest'?' active':'')+'" data-nesttab="nest">Nestteile ('+nest.length+')</button>'
+    + '</div>';
+  h += '<button type="button" class="nestnew" id="nestneu">Andere Datei laden</button>';
+  h += '</div>';
+  const aktiv = nestActiveTab === 'hlt' ? hlt : nest;
+  h += '<div class="nesttablewrap">';
+  if(!aktiv.length){
+    h += '<div class="nestempty">Keine Zeilen in dieser Liste.</div>';
+  }else{
+    h += '<table class="nesttable"><thead><tr><th>Spalte A</th><th>Rest der Zeile</th></tr></thead><tbody>';
+    aktiv.forEach(r => {
+      h += '<tr><td class="nc-a">'+esc(r.cols[0]||'')+'</td><td class="nc-r">'+esc(r.cols.slice(1).join(';'))+'</td></tr>';
+    });
+    h += '</tbody></table>';
+  }
+  h += '</div>';
+  h += '<div class="nestactions">'
+    + '<button type="button" class="nestdl" id="nestdlhlt"'+(hlt.length?'':' disabled')+'>HLT Teile.csv herunterladen</button>'
+    + '<button type="button" class="nestdl" id="nestdlnest"'+(nest.length?'':' disabled')+'>Nestteile.csv herunterladen</button>'
+    + '</div>';
+  nestbody.innerHTML = h;
+  nestbody.querySelectorAll('[data-nesttab]').forEach(b => b.addEventListener('click', () => {
+    nestActiveTab = b.dataset.nesttab;
+    nestRender();
+  }));
+  document.getElementById('nestneu').addEventListener('click', () => {
+    nestState = null;
+    nestActiveTab = 'hlt';
+    nestRender();
+  });
+  document.getElementById('nestdlhlt').addEventListener('click', () => nestDownload(hlt, 'HLT Teile.csv'));
+  document.getElementById('nestdlnest').addEventListener('click', () => nestDownload(nest, 'Nestteile.csv'));
+}
+
 document.addEventListener('keydown', e => {
   if(e.key !== 'Escape') return;
-  if(!infolay.hidden) infoSchliessen();
+  if(!nestlay.hidden) nestSchliessen();
+  else if(!infolay.hidden) infoSchliessen();
   else if(!menulay.hidden) menuSchliessen();
 });
 
