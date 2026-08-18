@@ -685,7 +685,8 @@ body.feat-off-vergleich #cmpbar{display:none!important}
   font-family:var(--cond);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
   background:none;color:var(--ink-3);border:1px solid var(--rule);border-radius:20px;padding:8px 14px;cursor:pointer;
 }
-.nestnew:hover{color:var(--teal);border-color:var(--teal)}
+.nestnew:hover:not(:disabled){color:var(--teal);border-color:var(--teal)}
+.nestnew:disabled{opacity:.4;cursor:default}
 .nesttablewrap{
   overflow:auto;border:1px solid var(--rule-soft);border-radius:6px;background:var(--card);
   margin-bottom:16px;-webkit-overflow-scrolling:touch;max-height:340px;
@@ -753,6 +754,7 @@ body.feat-off-vergleich #cmpbar{display:none!important}
 .notizclose:hover{color:var(--teal)}
 .notizbody{padding:10px 14px 16px}
 .notiztabs{margin-bottom:12px}
+.notizexportrow{margin-bottom:12px}
 .notizitem{border:1px solid var(--rule-soft);border-radius:6px;padding:11px 13px;margin-bottom:9px}
 .notizitem .ni-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .ni-status{font-family:var(--cond);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--ink-3)}
@@ -788,7 +790,7 @@ body.feat-off-vergleich #cmpbar{display:none!important}
       <h1>RECARO – Übersichtsliste</h1>
       <span class="sub">F-LIST · LIVE</span>
       <div class="brandactions">
-        <button class="notizbadge" id="notizbadge" type="button" hidden aria-label="Offene Notizen anzeigen">
+        <button class="notizbadge" id="notizbadge" type="button" aria-label="Notizen anzeigen">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
             <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
@@ -2631,7 +2633,6 @@ async function notizBadgeAktualisieren(){
     notizOffenCache = await res.json();
     const n = notizOffenCache.length;
     notizcountEl.textContent = n;
-    notizbadge.hidden = n === 0;
     notizbadge.classList.toggle('has-notes', n > 0);
     if(!notizlay.hidden && notizTab === 'offen') notizRender();
   }catch(e){ /* offline o.ä. - Badge bleibt beim zuletzt bekannten Stand */ }
@@ -2669,6 +2670,28 @@ function notizItemHtml(n){
     + '</div></div>';
 }
 
+function notizVerlaufExportieren(){
+  if(!notizAlleCache || !notizAlleCache.length) return;
+  const kopf = ['Bauteilnummer','Notiz','Erstellt am','Erledigt','Erledigt am'];
+  const zeilen = [kopf.map(csvZelle).join(';')];
+  notizAlleCache.forEach(n => {
+    zeilen.push([
+      n.bauteil_nr,
+      n.notiz,
+      notizZeitAnzeige(n.erstellt_am),
+      n.erledigt ? 'Ja' : 'Nein',
+      n.erledigt ? notizZeitAnzeige(n.erledigt_am) : ''
+    ].map(csvZelle).join(';'));
+  });
+  const csv = '﻿' + zeilen.join('\r\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'notizen-verlauf_' + datumHeute() + '.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 async function notizAufTabWechseln(tab){
   notizTab = tab;
   if(tab === 'verlauf' && notizAlleCache === null){
@@ -2681,12 +2704,17 @@ async function notizAufTabWechseln(tab){
 function notizRender(){
   const liste = notizTab === 'offen' ? notizOffenCache : (notizAlleCache || []);
   let h = notizTabsHtml();
+  if(notizTab === 'verlauf'){
+    h += '<div class="notizexportrow"><button type="button" class="nestnew" id="notizexport"'+(liste.length?'':' disabled')+'>Verlauf als CSV exportieren</button></div>';
+  }
   if(!liste.length){
     h += '<div class="notizempty">'+(notizTab==='offen' ? 'Keine offenen Notizen.' : 'Noch keine Notizen gesendet.')+'</div>';
   }else{
     liste.forEach(n => { h += notizItemHtml(n); });
   }
   notizbody.innerHTML = h;
+  const exportBtn = document.getElementById('notizexport');
+  if(exportBtn) exportBtn.addEventListener('click', notizVerlaufExportieren);
   notizbody.querySelectorAll('[data-notiztab]').forEach(b => b.addEventListener('click', () => notizAufTabWechseln(b.dataset.notiztab)));
   notizbody.querySelectorAll('[data-gonr]').forEach(b => b.addEventListener('click', () => {
     notizSchliessen();
@@ -2704,7 +2732,6 @@ function notizRender(){
         if(n){ n.erledigt = true; n.erledigt_am = new Date().toISOString(); }
       }
       notizcountEl.textContent = notizOffenCache.length;
-      notizbadge.hidden = notizOffenCache.length === 0;
       notizbadge.classList.toggle('has-notes', notizOffenCache.length > 0);
       notizRender();
     }catch(e){
