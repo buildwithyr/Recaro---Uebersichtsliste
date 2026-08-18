@@ -781,6 +781,20 @@ body.feat-off-vergleich #cmpbar{display:none!important}
 .notizhint{padding:0 14px 12px;font-size:12.5px;color:var(--ink-3);min-height:14px}
 .notizhint.ok{color:var(--teal)}
 .notizhint.err{color:var(--red)}
+.notizfoto{display:flex;align-items:center;gap:10px}
+.notizfotobtn{
+  font-family:var(--cond);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  background:none;color:var(--ink-2);border:1px solid var(--rule);border-radius:3px;padding:8px 13px;cursor:pointer;
+}
+.notizfotobtn:hover{border-color:var(--teal);color:var(--teal)}
+.notizfotobtn[hidden]{display:none}
+.notizfotopreview{display:flex;align-items:center;gap:8px}
+.notizfotopreview[hidden]{display:none}
+.notizfotopreview img{width:52px;height:52px;object-fit:cover;border-radius:4px;border:1px solid var(--rule-soft)}
+.notizfotopreview button{border:0;background:none;color:var(--ink-3);font-size:20px;line-height:1;cursor:pointer;padding:4px 6px}
+.notizfotopreview button:hover{color:var(--red)}
+.ni-foto{display:block;margin-bottom:8px}
+.ni-foto img{max-width:100%;max-height:180px;border-radius:4px;border:1px solid var(--rule-soft);display:block}
 
 /* ---------- Offene-Notizen-Fenster ---------- */
 .notizlay{
@@ -1793,6 +1807,7 @@ function zeigeBauteil(nr){
   h += '<div class="block"><h2>Notiz hinterlassen</h2>'
     + '<div class="notizform">'
     + '<textarea id="notiztext" rows="2" maxlength="500" placeholder="z. B. Hinweis für Büro/Nesting …"></textarea>'
+    + notizFotoFeldHtml()
     + '<button type="button" class="notizsend" id="notizsend">Notiz senden</button>'
     + '</div><div class="notizhint" id="notizhint"></div></div>';
 
@@ -2464,9 +2479,11 @@ function sammelRender(){
   ).join('') + '</div>';
   h += '<div class="notizform">'
     + '<textarea id="notiztext" rows="3" maxlength="500" placeholder="Notiz für alle ausgewählten Bauteile …"></textarea>'
+    + notizFotoFeldHtml()
     + '<button type="button" class="notizsend" id="notizsend">An '+sammelListe.length+(sammelListe.length===1?' Bauteil':' Bauteile')+' senden</button>'
     + '</div><div class="notizhint" id="notizhint"></div>';
   sammelbody.innerHTML = h;
+  notizFotoBind();
   sammelbody.querySelectorAll('[data-sammelrm]').forEach(b => b.addEventListener('click', () => {
     sammelListe = sammelListe.filter(nr => nr !== b.dataset.sammelrm);
     if(!sammelListe.length){ sammelKomponierenSchliessen(); return; }
@@ -2484,11 +2501,17 @@ async function sammelSenden(){
   const anzahl = sammelListe.length;
   btn.disabled = true;
   hint.className = 'notizhint';
-  hint.textContent = 'Wird gesendet …';
+  hint.textContent = notizFotoDatei ? 'Foto wird hochgeladen …' : 'Wird gesendet …';
   try{
-    await Promise.all(sammelListe.map(nr => notizSenden(nr, text)));
+    let fotoUrl = null;
+    if(notizFotoDatei){
+      fotoUrl = await notizFotoHochladen(await notizFotoKomprimieren(notizFotoDatei));
+      hint.textContent = 'Wird gesendet …';
+    }
+    await Promise.all(sammelListe.map(nr => notizSenden(nr, text, fotoUrl)));
     notizBadgeAktualisieren();
     sammelListe = [];
+    notizFotoZuruecksetzen();
     sammelKomponierenSchliessen();
     toast('Notiz an ' + anzahl + (anzahl===1?' Bauteil':' Bauteile') + ' gesendet.');
   }catch(err){
@@ -2953,11 +2976,11 @@ function urlBase64ToUint8Array(base64String){
   return arr;
 }
 
-async function notizSenden(nr, text){
+async function notizSenden(nr, text, fotoUrl){
   await sbFetch('notizen', {
     method:'POST',
     headers:{Prefer:'return=minimal'},
-    body: JSON.stringify({bauteil_nr: nr, notiz: text})
+    body: JSON.stringify({bauteil_nr: nr, notiz: text, foto_url: fotoUrl || null})
   });
 }
 async function notizErledigen(id){
@@ -2968,24 +2991,113 @@ async function notizErledigen(id){
   });
 }
 
+/* ---------- Foto-Anhang fürs Notiz-Formular (optional, überall gleich) ---------- */
+let notizFotoDatei = null;
+
+function notizFotoFeldHtml(){
+  return '<div class="notizfoto">'
+    + '<input type="file" accept="image/*" capture="environment" id="notizfotoinput" hidden>'
+    + '<button type="button" class="notizfotobtn" id="notizfotobtn">Foto aufnehmen</button>'
+    + '<div class="notizfotopreview" id="notizfotopreview" hidden>'
+    + '<img id="notizfotoimg" alt="">'
+    + '<button type="button" id="notizfotoentfernen" aria-label="Foto entfernen">&times;</button>'
+    + '</div></div>';
+}
+
+function notizFotoBind(){
+  notizFotoDatei = null;
+  const input = document.getElementById('notizfotoinput');
+  if(!input) return;
+  const btn = document.getElementById('notizfotobtn');
+  const preview = document.getElementById('notizfotopreview');
+  const img = document.getElementById('notizfotoimg');
+  btn.addEventListener('click', () => input.click());
+  input.addEventListener('change', () => {
+    const datei = input.files[0];
+    if(!datei) return;
+    notizFotoDatei = datei;
+    img.src = URL.createObjectURL(datei);
+    preview.hidden = false;
+    btn.hidden = true;
+  });
+  document.getElementById('notizfotoentfernen').addEventListener('click', () => {
+    notizFotoZuruecksetzen();
+  });
+}
+
+function notizFotoZuruecksetzen(){
+  notizFotoDatei = null;
+  const input   = document.getElementById('notizfotoinput');
+  const preview = document.getElementById('notizfotopreview');
+  const btn     = document.getElementById('notizfotobtn');
+  if(input) input.value = '';
+  if(preview) preview.hidden = true;
+  if(btn) btn.hidden = false;
+}
+
+/* Verkleinert/komprimiert ein Kamerafoto (oft 4-8MB) auf handliche Größe
+   (max. 1280px lange Kante, JPEG ~70%) vor dem Hochladen. */
+function notizFotoKomprimieren(file){
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const MAXDIM = 1280;
+      let width = img.naturalWidth, height = img.naturalHeight;
+      if(width > MAXDIM || height > MAXDIM){
+        const skala = MAXDIM / Math.max(width, height);
+        width = Math.round(width * skala);
+        height = Math.round(height * skala);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob => {
+        URL.revokeObjectURL(url);
+        if(blob) resolve(blob); else reject(new Error('Foto konnte nicht verarbeitet werden.'));
+      }, 'image/jpeg', 0.72);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Foto konnte nicht gelesen werden.')); };
+    img.src = url;
+  });
+}
+
+async function notizFotoHochladen(blob){
+  const dateiname = Date.now() + '-' + Math.random().toString(36).slice(2, 9) + '.jpg';
+  const res = await fetch(SB_URL + '/storage/v1/object/notiz-fotos/' + dateiname, {
+    method: 'POST',
+    headers: { apikey: SB_ANON_KEY, Authorization: 'Bearer ' + SB_ANON_KEY, 'Content-Type': 'image/jpeg' },
+    body: blob
+  });
+  if(!res.ok) throw new Error('Foto-Upload fehlgeschlagen (' + res.status + ')');
+  return SB_URL + '/storage/v1/object/public/notiz-fotos/' + dateiname;
+}
+
 function notizFormBind(nr, onErfolg){
   const btn  = document.getElementById('notizsend');
   const ta   = document.getElementById('notiztext');
   const hint = document.getElementById('notizhint');
   if(!btn) return;
+  notizFotoBind();
   btn.addEventListener('click', async () => {
     const text = ta.value.trim();
     if(!text) return;
     btn.disabled = true;
     hint.className = 'notizhint';
-    hint.textContent = 'Wird gesendet …';
+    hint.textContent = notizFotoDatei ? 'Foto wird hochgeladen …' : 'Wird gesendet …';
     try{
-      await notizSenden(nr, text);
+      let fotoUrl = null;
+      if(notizFotoDatei){
+        fotoUrl = await notizFotoHochladen(await notizFotoKomprimieren(notizFotoDatei));
+        hint.textContent = 'Wird gesendet …';
+      }
+      await notizSenden(nr, text, fotoUrl);
       notizBadgeAktualisieren();
       if(onErfolg){
         onErfolg();
       }else{
         ta.value = '';
+        notizFotoZuruecksetzen();
         hint.className = 'notizhint ok';
         hint.textContent = 'Notiz gesendet.';
         btn.disabled = false;
@@ -3009,7 +3121,7 @@ let notizTab = 'offen';
 
 async function notizBadgeAktualisieren(){
   try{
-    const res = await sbFetch('notizen?erledigt=eq.false&select=id,bauteil_nr,notiz,erstellt_am&order=erstellt_am.desc');
+    const res = await sbFetch('notizen?erledigt=eq.false&select=id,bauteil_nr,notiz,erstellt_am,foto_url&order=erstellt_am.desc');
     notizOffenCache = await res.json();
     const n = notizOffenCache.length;
     notizcountEl.textContent = n;
@@ -3019,7 +3131,7 @@ async function notizBadgeAktualisieren(){
 }
 
 async function notizAlleLaden(){
-  const res = await sbFetch('notizen?select=id,bauteil_nr,notiz,erstellt_am,erledigt,erledigt_am&order=erstellt_am.desc');
+  const res = await sbFetch('notizen?select=id,bauteil_nr,notiz,erstellt_am,erledigt,erledigt_am,foto_url&order=erstellt_am.desc');
   notizAlleCache = await res.json();
 }
 
@@ -3045,6 +3157,7 @@ function notizItemHtml(n){
     + '<div class="ni-top"><button type="button" class="ni-nr" data-gonr="'+esc(n.bauteil_nr)+'">'+esc(n.bauteil_nr)+'</button>'
     + '<span class="ni-zeit">'+notizZeitAnzeige(n.erstellt_am)+'</span></div>'
     + '<div class="ni-text">'+esc(n.notiz)+'</div>'
+    + (n.foto_url ? '<a class="ni-foto" href="'+esc(n.foto_url)+'" target="_blank" rel="noopener"><img src="'+esc(n.foto_url)+'" alt="Foto zur Notiz" loading="lazy"></a>' : '')
     + '<div class="ni-bottom">'+status
     + (!n.erledigt ? '<button type="button" class="ni-done" data-done="'+esc(n.id)+'">Erledigt</button>' : '')
     + '</div></div>';
@@ -3052,7 +3165,7 @@ function notizItemHtml(n){
 
 function notizVerlaufExportieren(){
   if(!notizAlleCache || !notizAlleCache.length) return;
-  const kopf = ['Bauteilnummer','Notiz','Erstellt am','Erledigt','Erledigt am'];
+  const kopf = ['Bauteilnummer','Notiz','Erstellt am','Erledigt','Erledigt am','Foto-URL'];
   const zeilen = [kopf.map(csvZelle).join(';')];
   notizAlleCache.forEach(n => {
     zeilen.push([
@@ -3060,7 +3173,8 @@ function notizVerlaufExportieren(){
       n.notiz,
       notizZeitAnzeige(n.erstellt_am),
       n.erledigt ? 'Ja' : 'Nein',
-      n.erledigt ? notizZeitAnzeige(n.erledigt_am) : ''
+      n.erledigt ? notizZeitAnzeige(n.erledigt_am) : '',
+      n.foto_url || ''
     ].map(csvZelle).join(';'));
   });
   const csv = '﻿' + zeilen.join('\r\n');
@@ -3270,6 +3384,7 @@ function peekOeffnen(row){
       '<div class="peekhead"><span class="peektitel">'+esc(nr)+'</span></div>'
     + '<div class="notizform">'
     + '<textarea id="notiztext" rows="3" maxlength="500" placeholder="Notiz eingeben …"></textarea>'
+    + notizFotoFeldHtml()
     + '<button type="button" class="notizsend" id="notizsend">Senden</button>'
     + '</div><div class="notizhint" id="notizhint"></div>';
   peeklay.hidden = false;
