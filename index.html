@@ -241,6 +241,49 @@ body{
 .scanfoot .err{background:var(--red-bg-fixed);color:var(--red-text-fixed);border-radius:3px;padding:11px 13px;text-align:left;font-size:14px;line-height:1.45}
 .scanfoot .err a{color:var(--red-text-fixed);font-weight:600}
 .scanfoot .err code{font-family:var(--mono);background:rgba(94,39,22,.12);padding:1px 5px;border-radius:2px;font-size:13px}
+.scansammel{padding:10px 16px calc(14px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.14)}
+.scansammel[hidden]{display:none}
+.scansammelchips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;max-height:96px;overflow-y:auto}
+.scansammelchip{
+  font-family:var(--mono);font-size:12.5px;color:#fff;background:rgba(255,255,255,.14);
+  border-radius:3px;padding:5px 10px;
+}
+.scansammelfertig{
+  width:100%;font-family:var(--cond);font-size:14px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;
+  background:var(--teal);color:#fff;border:0;border-radius:3px;padding:12px;cursor:pointer;min-height:44px;
+}
+.scansammelfertig:disabled{opacity:.4;cursor:default}
+
+/* ---------- Sammel-Notiz (mehrere gescannte Bauteile) ---------- */
+.sammellay{
+  position:fixed;inset:0;z-index:230;background:rgba(15,11,8,.5);
+  -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;transition:opacity .16s ease-out;
+}
+.sammellay[hidden]{display:none}
+.sammellay.show{opacity:1}
+.sammelcard{
+  width:100%;max-width:460px;max-height:calc(100vh - 40px);overflow-y:auto;
+  background:var(--card);border:1px solid var(--rule-soft);border-radius:12px;
+  box-shadow:0 20px 48px rgba(0,0,0,.4);
+  transform:scale(.94);opacity:0;transition:transform .17s ease-out,opacity .17s ease-out;
+}
+.sammellay.show .sammelcard{transform:scale(1);opacity:1}
+.sammelhead{
+  position:sticky;top:0;background:var(--card);display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border-bottom:1px solid var(--rule-soft);z-index:2;
+}
+.sammelhead span{font-family:var(--cond);font-size:15px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--ink)}
+.sammelclose{border:0;background:none;color:var(--ink-3);font-size:22px;line-height:1;cursor:pointer;padding:3px 6px}
+.sammelclose:hover{color:var(--teal)}
+.sammelbody{padding:14px 16px 16px}
+.sammelbody .selchips{max-height:120px;margin-bottom:14px}
+.sammelbody .notizform{padding:0}
+.sammelbody .notizhint{padding:6px 0 0}
+@media (prefers-reduced-motion:reduce){
+  .sammellay,.sammelcard{transition:none}
+}
 
 /* ---------- Trefferliste ---------- */
 .wrap{max-width:940px;margin:0 auto;padding:0 16px}
@@ -853,6 +896,20 @@ body.feat-off-vergleich #cmpbar{display:none!important}
     <div class="scanframe"></div>
   </div>
   <div class="scanfoot" id="scanfoot"></div>
+  <div class="scansammel" id="scansammel" hidden>
+    <div class="scansammelchips" id="scansammelchips"></div>
+    <button type="button" class="scansammelfertig" id="scansammelfertig" disabled>Fertig (0)</button>
+  </div>
+</div>
+
+<div class="sammellay" id="sammellay" hidden>
+  <div class="sammelcard" id="sammelcard" role="dialog" aria-modal="true" aria-label="Notiz an mehrere Bauteile">
+    <div class="sammelhead">
+      <span id="sammeltitel">Notiz an 0 Bauteile</span>
+      <button class="sammelclose" id="sammelclose" aria-label="Schließen" type="button">&times;</button>
+    </div>
+    <div class="sammelbody" id="sammelbody"></div>
+  </div>
 </div>
 
 <div class="peeklay" id="peeklay" hidden>
@@ -911,6 +968,8 @@ body.feat-off-vergleich #cmpbar{display:none!important}
       <p>Die Liste basiert auf einer lokal geladenen Excel-Datei (Übersichtsliste, Schablonenregister, Matrixblatt). Es gibt keine Cloud-Anbindung &mdash; über &bdquo;Aktualisieren&ldquo; bzw. &bdquo;Andere Datei&ldquo; im Kopfbereich lässt sich die Quelle neu laden oder wechseln.</p>
       <h3>Suche</h3>
       <p>Bauteil- oder Schablonennummer eingeben &mdash; Trennzeichen wie Bindestrich, Unterstrich oder X/S/G sind egal. Die Suche greift auch bei Bezeichnung, Projekt oder Material. Die Chips oben grenzen die Treffer nach Bauteile, Schablonen, Einzelteile oder HT-Nummern ein.</p>
+      <h3>Mehrfach-Scan</h3>
+      <p>Den Scan-Button gedrückt halten (statt kurz antippen) startet den Mehrfach-Scan: mehrere Barcodes nacheinander scannen, ohne dass die Kamera nach jedem Treffer schließt. Auf &bdquo;Fertig&ldquo; tippen öffnet ein Fenster, in dem sich eine gemeinsame Notiz an alle gescannten Bauteile auf einmal senden lässt.</p>
       <h3>Long-Touch: Notiz senden</h3>
       <p>Langes Antippen einer Zeile in der Trefferliste öffnet direkt ein kleines Fenster zum Senden einer Notiz zu diesem Bauteil bzw. dieser Schablone. Lässt sich unten unter &bdquo;Long-Touch: Notiz senden&ldquo; ein- und ausschalten.</p>
       <h3>Vergleichsfunktion</h3>
@@ -2128,11 +2187,23 @@ function sichererKontext(){
 
 function scanSchliessen(){
   scanAktiv = false;
+  sammelAktiv = false;
+  document.getElementById('scansammel').hidden = true;
   if(scanRAF) cancelAnimationFrame(scanRAF);
   if(zxingReader){ try{ zxingReader.reset(); }catch(e){} zxingReader = null; }
   if(scanStream){ scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
   scanVideo.srcObject = null;
   overlay.hidden = true;
+}
+
+/* Schließt den Scanner über einen Nutzer-Trigger (X, Escape, Klick daneben,
+   "Fertig"-Button) - im Sammel-Modus mit bereits gescannten Bauteilen öffnet
+   das direkt die Sammel-Notiz, statt die Liste kommentarlos zu verwerfen. */
+function scanBeenden(){
+  const warSammel = sammelAktiv;
+  const liste = sammelListe.slice();
+  scanSchliessen();
+  if(warSammel && liste.length) sammelKomponierenOeffnen(liste);
 }
 
 function scanTreffer(text){
@@ -2146,6 +2217,59 @@ function scanTreffer(text){
   // beim Scannen am Lager will man das Ergebnis sehen, nicht erst klicken.
   if(treffer.length === 1) gehe(treffer[0].nr);
   if(navigator.vibrate) navigator.vibrate(60);
+}
+
+/* ---------- Mehrfach-Scan: mehrere Barcodes sammeln, dann eine Notiz an alle ---------- */
+let sammelAktiv = false;
+let sammelListe = [];
+let sammelLetzterWert = null, sammelLetzteZeit = 0;
+
+function scanErkannt(text){
+  if(sammelAktiv) sammelTreffer(text);
+  else scanTreffer(text);
+}
+
+function sammelChipsRender(){
+  const chips  = document.getElementById('scansammelchips');
+  const fertig = document.getElementById('scansammelfertig');
+  if(!chips || !fertig) return;
+  chips.innerHTML = sammelListe.map(nr => '<span class="scansammelchip">'+esc(nr)+'</span>').join('');
+  fertig.textContent = 'Fertig (' + sammelListe.length + ')';
+  fertig.disabled = !sammelListe.length;
+}
+
+function sammelTreffer(text){
+  const wert = String(text).trim();
+  const jetzt = Date.now();
+  // Derselbe Barcode bleibt oft mehrere Frames im Bild - kurze Sperre
+  // verhindert doppelte Toasts/Vibration fürs selbe Bauteil in Folge.
+  if(wert === sammelLetzterWert && jetzt - sammelLetzteZeit < 1500) return;
+  sammelLetzterWert = wert; sammelLetzteZeit = jetzt;
+
+  const treffer = suche(ohneRevision(wert));
+  const match = treffer.find(t => t.art === 'nr');
+  if(!match){
+    toast('Kein Treffer für „' + wert + '“');
+    if(navigator.vibrate) navigator.vibrate([30,40,30]);
+    return;
+  }
+  if(sammelListe.includes(match.nr)){
+    toast(match.nr + ' schon in der Liste');
+    return;
+  }
+  sammelListe.push(match.nr);
+  if(navigator.vibrate) navigator.vibrate(40);
+  toast(match.nr + ' hinzugefügt (' + sammelListe.length + ')');
+  sammelChipsRender();
+}
+
+function sammelScanStarten(){
+  sammelAktiv = true;
+  sammelListe = [];
+  sammelLetzterWert = null;
+  document.getElementById('scansammel').hidden = false;
+  sammelChipsRender();
+  scanStarten();
 }
 
 function mitZeitlimit(promise, ms, timeoutFehler){
@@ -2230,7 +2354,7 @@ async function scanMitBarcodeDetector(){
     if(!scanAktiv) return;
     try{
       const treffer = await detector.detect(scanVideo);
-      if(treffer && treffer.length){ scanTreffer(treffer[0].rawValue); return; }
+      if(treffer && treffer.length){ scanErkannt(treffer[0].rawValue); if(!sammelAktiv) return; }
     }catch(e){ /* einzelnen Frame ignorieren, weiterscannen */ }
     scanRAF = requestAnimationFrame(schleife);
   };
@@ -2257,17 +2381,45 @@ async function scanMitZXing(){
     if(!scanAktiv) return;
     try{
       const treffer = zxingReader.decode(scanVideo);
-      if(treffer){ scanTreffer(treffer.getText()); return; }
+      if(treffer){ scanErkannt(treffer.getText()); if(!sammelAktiv) return; }
     }catch(e){ /* kein Barcode in diesem Frame - weiterscannen, unabhängig vom Fehlertyp */ }
     scanRAF = requestAnimationFrame(schleife);
   };
   scanRAF = requestAnimationFrame(schleife);
 }
 
-scanBtn.addEventListener('click', scanStarten);
-document.getElementById('scanclose').addEventListener('click', scanSchliessen);
-overlay.addEventListener('click', e => { if(e.target === overlay) scanSchliessen(); });
-window.addEventListener('keydown', e => { if(e.key === 'Escape' && !overlay.hidden) scanSchliessen(); });
+/* Kurzer Tipp auf den Scan-Button: normaler Einzel-Scan (springt direkt zum
+   Treffer). Langes Drücken: Mehrfach-Scan, sammelt Bauteile für eine
+   gemeinsame Notiz - selbes Interaktionsmuster wie Long-Touch auf einer
+   Trefferzeile (siehe peekStarten). */
+const SCANBTN_LONGPRESS = 550;
+let scanLongpressTimer = null, scanLongpressAusgeloest = false;
+function scanLongpressStart(){
+  scanLongpressAusgeloest = false;
+  scanLongpressTimer = setTimeout(() => {
+    scanLongpressAusgeloest = true;
+    if(navigator.vibrate) navigator.vibrate(15);
+    sammelScanStarten();
+  }, SCANBTN_LONGPRESS);
+}
+function scanLongpressCancel(){
+  clearTimeout(scanLongpressTimer);
+}
+scanBtn.addEventListener('touchstart', scanLongpressStart, {passive:true});
+scanBtn.addEventListener('touchend', scanLongpressCancel);
+scanBtn.addEventListener('touchmove', scanLongpressCancel);
+scanBtn.addEventListener('touchcancel', scanLongpressCancel);
+scanBtn.addEventListener('mousedown', scanLongpressStart);
+scanBtn.addEventListener('mouseup', scanLongpressCancel);
+scanBtn.addEventListener('mouseleave', scanLongpressCancel);
+scanBtn.addEventListener('click', e => {
+  if(scanLongpressAusgeloest){ scanLongpressAusgeloest = false; e.preventDefault(); e.stopPropagation(); return; }
+  scanStarten();
+});
+document.getElementById('scansammelfertig').addEventListener('click', scanBeenden);
+document.getElementById('scanclose').addEventListener('click', scanBeenden);
+overlay.addEventListener('click', e => { if(e.target === overlay) scanBeenden(); });
+window.addEventListener('keydown', e => { if(e.key === 'Escape' && !overlay.hidden) scanBeenden(); });
 
 (async function start(){
   const h = await holeHandle();
@@ -2287,6 +2439,72 @@ window.addEventListener('keydown', e => { if(e.key === 'Escape' && !overlay.hidd
   }
   dropzone();
 })();
+
+/* ---------- Sammel-Notiz: Text an alle gescannten Bauteile senden ---------- */
+const sammellay   = document.getElementById('sammellay');
+const sammelbody  = document.getElementById('sammelbody');
+const sammeltitel = document.getElementById('sammeltitel');
+
+function sammelKomponierenOeffnen(liste){
+  sammelListe = liste.slice();
+  sammellay.hidden = false;
+  sammelRender();
+  requestAnimationFrame(() => sammellay.classList.add('show'));
+}
+function sammelKomponierenSchliessen(){
+  if(sammellay.hidden) return;
+  sammellay.classList.remove('show');
+  setTimeout(() => { sammellay.hidden = true; }, 160);
+}
+
+function sammelRender(){
+  sammeltitel.textContent = 'Notiz an ' + sammelListe.length + (sammelListe.length===1 ? ' Bauteil' : ' Bauteile');
+  let h = '<div class="selchips">' + sammelListe.map(nr =>
+    '<span class="selchip">'+esc(nr)+'<button type="button" data-sammelrm="'+esc(nr)+'" aria-label="'+esc(nr)+' entfernen">&times;</button></span>'
+  ).join('') + '</div>';
+  h += '<div class="notizform">'
+    + '<textarea id="notiztext" rows="3" maxlength="500" placeholder="Notiz für alle ausgewählten Bauteile …"></textarea>'
+    + '<button type="button" class="notizsend" id="notizsend">An '+sammelListe.length+(sammelListe.length===1?' Bauteil':' Bauteile')+' senden</button>'
+    + '</div><div class="notizhint" id="notizhint"></div>';
+  sammelbody.innerHTML = h;
+  sammelbody.querySelectorAll('[data-sammelrm]').forEach(b => b.addEventListener('click', () => {
+    sammelListe = sammelListe.filter(nr => nr !== b.dataset.sammelrm);
+    if(!sammelListe.length){ sammelKomponierenSchliessen(); return; }
+    sammelRender();
+  }));
+  document.getElementById('notizsend').addEventListener('click', sammelSenden);
+}
+
+async function sammelSenden(){
+  const ta   = document.getElementById('notiztext');
+  const btn  = document.getElementById('notizsend');
+  const hint = document.getElementById('notizhint');
+  const text = ta.value.trim();
+  if(!text || !sammelListe.length) return;
+  const anzahl = sammelListe.length;
+  btn.disabled = true;
+  hint.className = 'notizhint';
+  hint.textContent = 'Wird gesendet …';
+  try{
+    await Promise.all(sammelListe.map(nr => notizSenden(nr, text)));
+    notizBadgeAktualisieren();
+    sammelListe = [];
+    sammelKomponierenSchliessen();
+    toast('Notiz an ' + anzahl + (anzahl===1?' Bauteil':' Bauteile') + ' gesendet.');
+  }catch(err){
+    hint.className = 'notizhint err';
+    hint.textContent = 'Konnte nicht an alle Bauteile gesendet werden — Internetverbindung prüfen.';
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('sammelclose').addEventListener('click', () => {
+  sammelListe = [];
+  sammelKomponierenSchliessen();
+});
+sammellay.addEventListener('click', e => {
+  if(e.target === sammellay){ sammelListe = []; sammelKomponierenSchliessen(); }
+});
 
 /* ==================== Dark Mode ==================== */
 const THEME_KEY = 'recaro-theme';
@@ -3003,7 +3221,8 @@ if(notizZielNr){
 
 document.addEventListener('keydown', e => {
   if(e.key !== 'Escape') return;
-  if(!notizlay.hidden) notizSchliessen();
+  if(!sammellay.hidden){ sammelListe = []; sammelKomponierenSchliessen(); }
+  else if(!notizlay.hidden) notizSchliessen();
   else if(!nestlay.hidden) nestSchliessen();
   else if(!infolay.hidden) infoSchliessen();
   else if(!menulay.hidden) menuSchliessen();
