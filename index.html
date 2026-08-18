@@ -675,6 +675,16 @@ body.feat-off-vergleich #cmpbar{display:none!important}
 .neststat .nv{font-family:var(--mono);font-size:21px;font-weight:600;color:var(--ink)}
 .neststat .nl{font-family:var(--cond);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-top:2px}
 .nesttoolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.ncnestform{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.ncnestform label{
+  display:flex;flex-direction:column;gap:4px;flex:1;min-width:180px;
+  font-family:var(--cond);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);
+}
+.ncnestform input{
+  font-family:var(--mono);font-size:14px;padding:9px 11px;border:1px solid var(--rule);border-radius:4px;
+  background:var(--surface-bright);color:var(--ink);
+}
+.ncnestform input:focus{outline:2px solid var(--teal);outline-offset:1px}
 .nesttabs{display:flex;gap:4px;background:var(--surface-alt);border-radius:20px;padding:3px}
 .nesttab{
   font-family:var(--cond);font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
@@ -2404,6 +2414,8 @@ const nestlay  = document.getElementById('nestlay');
 const nestbody = document.getElementById('nestbody');
 let nestState = null;
 let nestActiveTab = 'hlt';
+let nestRueckmeldenr = '';
+let nestAuftragsnr = '';
 
 function nestOeffnen(){
   nestlay.hidden = false;
@@ -2473,6 +2485,8 @@ function nestLadeDatei(file){
       }else{
         nestState = {total, hlt, nest, fileName:file.name};
         nestActiveTab = 'hlt';
+        nestRueckmeldenr = '';
+        nestAuftragsnr = '';
       }
     }catch(err){
       nestState = {error:'Die Datei konnte nicht ausgewertet werden: ' + (err && err.message ? err.message : err)};
@@ -2499,6 +2513,88 @@ function nestDownload(rows, filename){
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+function nestDownloadZeilen(zeilen, filename){
+  if(!zeilen.length) return;
+  const text = zeilen.map(z => z.join(';')).join('\r\n') + '\r\n';
+  const blob = new Blob([nestToIso88591Bytes(text)], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* ProAlpha-Nummer mit Bauteilstärke aus Spalte G der Nesting-CSV, z.B.
+   "160-1100-142-9.5" -> {teil1:"160-1100", teil2:"142", staerke:"9,5"}.
+   Eigene Funktion statt der bestehenden PROALPHA_MUSTER/htTeile() aus der
+   Übersichtsliste, weil dort die Excel-Spalte H Komma als Dezimaltrennzeichen
+   nutzt, diese CSV aber Punkt - unterschiedliche Quellformate. */
+function nestParseProAlpha(g){
+  const m = /^(\d+-\d+)-(\d+)-(\d+(?:\.\d+)?)$/.exec((g||'').trim());
+  if(!m) return null;
+  return {teil1:m[1], teil2:m[2], staerke:m[3].replace('.', ',')};
+}
+
+/* Dicke (Komma-Format, z.B. "9,5") -> "NOM095" (Dicke x10, 3-stellig).
+   Nur für die "NOM"-Materialfamilie bestätigt (Standardfall der Jobs, die
+   diese App bekommt) - andere Materialfamilien (UNI/AWP/...) würden einen
+   anderen Präfix brauchen, dafür fehlt aktuell die Zuordnungstabelle. */
+function nestNomCode(staerkeKomma){
+  const val = parseFloat((staerkeKomma||'').replace(',', '.'));
+  if(isNaN(val)) return '';
+  return 'NOM' + String(Math.round(val * 10)).padStart(3, '0');
+}
+
+/* Baut die 18-Spalten-NC_NEST-Zeilen aus den bereits geparsten HLT-/Nestteile-
+   Listen. Rückmeldenummer und Auftragsnummer kommen aus den manuellen
+   Eingabefeldern im NC_NEST-Tab, da sie nicht in der Nesting-CSV stehen.
+   Werkzeugcode (Spalte 9, außer HOC-Default) und die Programmdatei-Spalten
+   (11-13, 17) bleiben bewusst leer - dafür fehlt aktuell die Aufbauten-
+   Lookup-Tabelle bzw. eine Prüfung auf dem H:-Laufwerk. */
+function nestBaueNcNestZeilen(hlt, nest, rueckmeldenr, auftragsnr){
+  const eintraege = [];
+  hlt.forEach(r => {
+    const c = r.cols;
+    const jobref = c[c.length-1] || '';
+    eintraege.push({nr:c[0]||'', menge:c[3]||'', spalten:[
+      c[0]||'', c[1]||'', c[2]||'', c[3]||'',
+      'HLT-STD', '', '',
+      jobref,
+      '1,0',
+      'HOC',
+      rueckmeldenr,
+      '', '', '',
+      auftragsnr,
+      'NIX001',
+      jobref,
+      ''
+    ]});
+  });
+  nest.forEach(r => {
+    const c = r.cols;
+    const jobref = c[c.length-1] || '';
+    const pa = nestParseProAlpha(c[6]);
+    eintraege.push({nr:c[0]||'', menge:c[3]||'', spalten:[
+      c[0]||'', c[1]||'', c[2]||'', c[3]||'',
+      pa ? pa.teil1 : (c[6]||''), pa ? pa.teil2 : '', '',
+      jobref,
+      pa ? pa.staerke : '',
+      '',
+      rueckmeldenr,
+      '', '', '',
+      auftragsnr,
+      pa ? nestNomCode(pa.staerke) : '',
+      jobref,
+      ''
+    ]});
+  });
+  eintraege.sort((a,b) => {
+    if(a.nr !== b.nr) return a.nr < b.nr ? -1 : 1;
+    return (parseFloat(b.menge)||0) - (parseFloat(a.menge)||0);
+  });
+  return eintraege.map(e => e.spalten);
+}
+
 function nestRender(){
   if(!nestState){
     nestbody.innerHTML = nestDropHtml();
@@ -2520,9 +2616,61 @@ function nestRender(){
   h += '<div class="nesttabs" role="group" aria-label="Liste wählen">'
     + '<button type="button" class="nesttab'+(nestActiveTab==='hlt'?' active':'')+'" data-nesttab="hlt">HLT Teile ('+hlt.length+')</button>'
     + '<button type="button" class="nesttab'+(nestActiveTab==='nest'?' active':'')+'" data-nesttab="nest">Nestteile ('+nest.length+')</button>'
+    + '<button type="button" class="nesttab'+(nestActiveTab==='ncnest'?' active':'')+'" data-nesttab="ncnest">NC_NEST-Export</button>'
     + '</div>';
   h += '<button type="button" class="nestnew" id="nestneu">Andere Datei laden</button>';
   h += '</div>';
+
+  if(nestActiveTab === 'ncnest'){
+    const zeilen = nestBaueNcNestZeilen(hlt, nest, nestRueckmeldenr, nestAuftragsnr);
+    const bereit = zeilen.length && nestRueckmeldenr.trim() && nestAuftragsnr.trim();
+    h += '<p class="menuhinweis">Rückmeldenummer und Auftragsnummer gelten für die ganze Exportdatei. '
+      + 'Werkzeugcode bei Nestteilen sowie die Programmdatei-Spalten werden noch nicht automatisch befüllt '
+      + 'und bleiben leer.</p>';
+    h += '<div class="ncnestform">'
+      + '<label>Rückmeldenummer<input type="text" id="ncnestrueckmeldenr" value="'+esc(nestRueckmeldenr)+'" placeholder="z. B. 537677"></label>'
+      + '<label>Auftragsnummer<input type="text" id="ncnestauftragsnr" value="'+esc(nestAuftragsnr)+'" placeholder="z. B. 63030396"></label>'
+      + '</div>';
+    h += '<div class="nesttablewrap">';
+    if(!zeilen.length){
+      h += '<div class="nestempty">Keine Zeilen zum Exportieren.</div>';
+    }else{
+      h += '<table class="nesttable"><thead><tr><th>Bauteilnummer</th><th>Rest der Zeile</th></tr></thead><tbody>';
+      zeilen.forEach(z => {
+        h += '<tr><td class="nc-a">'+esc(z[0]||'')+'</td><td class="nc-r">'+esc(z.slice(1).join(';'))+'</td></tr>';
+      });
+      h += '</tbody></table>';
+    }
+    h += '</div>';
+    h += '<div class="nestactions">'
+      + '<button type="button" class="nestdl" id="nestdlncnest"'+(bereit?'':' disabled')+'>NC_NEST.csv herunterladen</button>'
+      + '</div>';
+    nestbody.innerHTML = h;
+    nestbody.querySelectorAll('[data-nesttab]').forEach(b => b.addEventListener('click', () => {
+      nestActiveTab = b.dataset.nesttab;
+      nestRender();
+    }));
+    document.getElementById('nestneu').addEventListener('click', () => {
+      nestState = null;
+      nestActiveTab = 'hlt';
+      nestRender();
+    });
+    document.getElementById('ncnestrueckmeldenr').addEventListener('input', e => {
+      nestRueckmeldenr = e.target.value;
+      document.getElementById('nestdlncnest').disabled = !(zeilen.length && nestRueckmeldenr.trim() && nestAuftragsnr.trim());
+    });
+    document.getElementById('ncnestauftragsnr').addEventListener('input', e => {
+      nestAuftragsnr = e.target.value;
+      document.getElementById('nestdlncnest').disabled = !(zeilen.length && nestRueckmeldenr.trim() && nestAuftragsnr.trim());
+    });
+    document.getElementById('nestdlncnest').addEventListener('click', () => {
+      const erste = zeilen[0];
+      const jobref = erste ? erste[7] : '';
+      nestDownloadZeilen(zeilen, 'NC_NEST' + (jobref ? '_'+jobref : '') + '.csv');
+    });
+    return;
+  }
+
   const aktiv = nestActiveTab === 'hlt' ? hlt : nest;
   h += '<div class="nesttablewrap">';
   if(!aktiv.length){
