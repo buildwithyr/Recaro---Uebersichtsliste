@@ -1205,6 +1205,26 @@ function suche(qr){
   return exakt.concat(anfang, drin, text);
 }
 
+/* Der Filter "HT-Nummern" soll ausschließlich Spalte H der Übersichtsliste
+   durchsuchen (b.ht), unabhängig davon, ob die Bauteilnummer selbst passt -
+   deshalb eine eigene, auf dieses Feld beschränkte Suche statt eines
+   Nachfilters auf die allgemeine suche(). */
+function sucheHt(qr){
+  const n = norm(qr);
+  if(n.length < 2) return [];
+  const out = [];
+  BT.forEach(b => {
+    if(b.ht && norm(b.ht).indexOf(n) >= 0){
+      out.push({
+        typ:'bt', nr:b.nr, art:'text',
+        roh:[b.bez, b.projekt].filter(Boolean).join(' · '),
+        felder:[{l:'HT-Nummer (Spalte H)', v:b.ht}]
+      });
+    }
+  });
+  return out;
+}
+
 /* ---------- Hilfen ---------- */
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 /* radius (optional): statt des ganzen Strings nur ein Fenster um den Treffer
@@ -1800,26 +1820,17 @@ function ohneRevision(s){
   return String(s).replace(/_(NC|[A-Z])_(ST|BA|CP)\s*$/i, '').trim();
 }
 
-/* HT-Rohteilnummern sind kein eigener Eintragstyp im Index, sondern ein Feld
-   innerhalb von Bauteilen (b.ht) - der Filter "HT-Nummern" ist deshalb ein
-   Unterfilter der Bauteile, kein eigener typ-Wert. */
-function hatHtNummer(nr){
-  const b = BT.get(nr);
-  return !!(b && htTeile(b.ht).ht.length);
-}
 function passtTyp(t, typ){
   if(typ === 'alle') return true;
-  if(typ === 'ht') return t.typ === 'bt' && hatHtNummer(t.nr);
   return t.typ === typ;
 }
-const TYP_LABEL = {alle:'Ergebnisse', bt:'Bauteile', sch:'Schablonen', ez:'Einzelteile', ht:'Bauteile mit HT-Nummer'};
+const TYP_LABEL = {alle:'Ergebnisse', bt:'Bauteile', sch:'Schablonen', ez:'Einzelteile', ht:'Treffer in Spalte H'};
 function zaehleTypen(liste){
   return {
     alle: liste.length,
     bt:   liste.filter(t => t.typ === 'bt').length,
     sch:  liste.filter(t => t.typ === 'sch').length,
-    ez:   liste.filter(t => t.typ === 'ez').length,
-    ht:   liste.filter(t => t.typ === 'bt' && hatHtNummer(t.nr)).length
+    ez:   liste.filter(t => t.typ === 'ez').length
   };
 }
 function chipsAktualisieren(counts){
@@ -1839,10 +1850,13 @@ function liste(){
   if(!roh){ chipsAktualisieren({alle:0,bt:0,sch:0,ez:0,ht:0}); startseite(); return; }
   const qr = ohneRevision(roh);
   const alleTreffer = suche(qr);
-  chipsAktualisieren(zaehleTypen(alleTreffer));
-  const gefiltert = alleTreffer.filter(t => passtTyp(t, typFilter));
+  const htTreffer = sucheHt(qr);
+  const counts = zaehleTypen(alleTreffer);
+  counts.ht = htTreffer.length;
+  chipsAktualisieren(counts);
+  const gefiltert = typFilter === 'ht' ? htTreffer : alleTreffer.filter(t => passtTyp(t, typFilter));
   treffer = gefiltert.slice(0, 60); sel = -1;
-  if(!alleTreffer.length){
+  if(!alleTreffer.length && !htTreffer.length){
     main.innerHTML = '<div class="empty"><h3>Nichts gefunden</h3>'
       + '<p>Kein Bauteil und keine Schablone passt zu <code>'+esc(roh)+'</code>.</p>'
       + '<p>Es lässt sich auch nach Bezeichnung, Projekt oder Material suchen &mdash; zum Beispiel <code>Seatshell</code> oder <code>Kompaktplatte</code>.</p></div>';
