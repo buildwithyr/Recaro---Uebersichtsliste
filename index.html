@@ -124,13 +124,24 @@ body{
   font-family:var(--cond);font-size:14px;letter-spacing:.1em;text-transform:uppercase;
   color:#C9B7A8;font-weight:500;
 }
+.brandactions{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
 .menubtn{
-  margin-left:auto;border:1px solid #5A473C;background:none;color:#C9B7A8;
+  border:1px solid #5A473C;background:none;color:#C9B7A8;
   width:36px;height:36px;border-radius:3px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
 .menubtn:hover,.menubtn[aria-expanded="true"]{color:#fff;border-color:#E8C990}
 .menubtn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.notizbadge{
+  border:1px solid #5A473C;background:none;color:#C9B7A8;
+  height:36px;padding:0 11px;border-radius:20px;cursor:pointer;flex-shrink:0;
+  display:flex;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:13px;font-weight:600;
+}
+.notizbadge[hidden]{display:none}
+.notizbadge:hover{color:#fff;border-color:#E8C990}
+.notizbadge.has-notes{border-color:var(--teal);color:var(--teal)}
+.notizbadge:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .searchwrap{position:relative}
 #q{
   width:100%;font-family:var(--mono);font-size:17px;font-weight:500;
@@ -593,6 +604,7 @@ body.feat-off-vergleich #cmpbar{display:none!important}
   border:0;background:none;border-radius:6px;padding:10px 8px;cursor:pointer;
 }
 .menuinfo:hover{background:var(--surface-alt);color:var(--teal)}
+.menuhinweis{font-size:12px;line-height:1.4;color:var(--ink-3);padding:0 8px 6px}
 
 /* ---------- Info-Fenster ---------- */
 .infolay{
@@ -711,8 +723,63 @@ body.feat-off-vergleich #cmpbar{display:none!important}
 .nestdl:hover:not(:disabled){filter:brightness(1.12)}
 .nestdl:disabled{opacity:.4;cursor:default}
 
+/* ---------- Notiz-Formular (Bauteil-Detailansicht) ---------- */
+.notizform{display:flex;flex-direction:column;gap:8px;padding:12px 14px}
+.notizform textarea{
+  width:100%;resize:vertical;min-height:52px;font-family:inherit;font-size:14px;
+  padding:10px 11px;border:1px solid var(--rule);border-radius:4px;background:var(--surface-bright);color:var(--ink);
+}
+.notizform textarea:focus{outline:2px solid var(--teal);outline-offset:1px}
+.notizsend{
+  align-self:flex-start;font-family:var(--cond);font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  background:var(--teal);color:#fff;border:0;border-radius:3px;padding:9px 16px;cursor:pointer;
+}
+.notizsend:hover:not(:disabled){filter:brightness(1.12)}
+.notizsend:disabled{opacity:.5;cursor:default}
+.notizhint{padding:0 14px 12px;font-size:12.5px;color:var(--ink-3);min-height:14px}
+.notizhint.ok{color:var(--teal)}
+.notizhint.err{color:var(--red)}
+
+/* ---------- Offene-Notizen-Fenster ---------- */
+.notizlay{
+  position:fixed;inset:0;z-index:240;background:rgba(15,11,8,.5);
+  -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;transition:opacity .16s ease-out;
+}
+.notizlay[hidden]{display:none}
+.notizlay.show{opacity:1}
+.notizcard{
+  width:100%;max-width:520px;max-height:calc(100vh - 40px);overflow-y:auto;
+  background:var(--card);border:1px solid var(--rule-soft);border-radius:12px;
+  box-shadow:0 20px 48px rgba(0,0,0,.4);
+  transform:scale(.94);opacity:0;transition:transform .17s ease-out,opacity .17s ease-out;
+}
+.notizlay.show .notizcard{transform:scale(1);opacity:1}
+.notizhead{
+  position:sticky;top:0;background:var(--card);display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border-bottom:1px solid var(--rule-soft);z-index:2;
+}
+.notizhead span{font-family:var(--cond);font-size:15px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--ink)}
+.notizclose{border:0;background:none;color:var(--ink-3);font-size:22px;line-height:1;cursor:pointer;padding:3px 6px}
+.notizclose:hover{color:var(--teal)}
+.notizbody{padding:10px 14px 16px}
+.notizitem{border:1px solid var(--rule-soft);border-radius:6px;padding:11px 13px;margin-bottom:9px}
+.notizitem .ni-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}
+.notizitem .ni-nr{font-family:var(--mono);font-weight:600;font-size:14px;color:var(--ink);background:none;border:0;padding:0;cursor:pointer}
+.notizitem .ni-nr:hover{color:var(--teal)}
+.notizitem .ni-zeit{font-family:var(--cond);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+.notizitem .ni-text{font-size:14px;line-height:1.45;color:var(--ink-2);margin-bottom:8px;white-space:pre-wrap}
+.ni-done{
+  font-family:var(--cond);font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  background:var(--teal);color:#fff;border:0;border-radius:20px;padding:6px 13px;cursor:pointer;
+}
+.ni-done:hover:not(:disabled){filter:brightness(1.12)}
+.ni-done:disabled{opacity:.5;cursor:default}
+.notizempty,.notizladen{padding:24px;text-align:center;color:var(--ink-3);font-size:13.5px}
+
 @media (prefers-reduced-motion:reduce){
-  .menulay .menupanel,.infolay,.infocard,.nestlay,.nestcard{transition:none}
+  .menulay .menupanel,.infolay,.infocard,.nestlay,.nestcard,.notizlay,.notizcard{transition:none}
 }
 
 </style>
@@ -728,11 +795,20 @@ body.feat-off-vergleich #cmpbar{display:none!important}
     <div class="brand">
       <h1>RECARO – Übersichtsliste</h1>
       <span class="sub">F-LIST · LIVE</span>
-      <button class="menubtn" id="menubtn" type="button" aria-label="Menü öffnen" aria-haspopup="true" aria-expanded="false">
-        <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor">
-          <circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>
-        </svg>
-      </button>
+      <div class="brandactions">
+        <button class="notizbadge" id="notizbadge" type="button" hidden aria-label="Offene Notizen anzeigen">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span id="notizcount">0</span>
+        </button>
+        <button class="menubtn" id="menubtn" type="button" aria-label="Menü öffnen" aria-haspopup="true" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor">
+            <circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>
+          </svg>
+        </button>
+      </div>
     </div>
     <div class="typfilter" id="typfilter" role="group" aria-label="Ergebnisse nach Typ filtern">
       <button class="fchip active" type="button" data-typ="alle" aria-pressed="true" disabled>Alle <span class="fc" id="fc-alle">(0)</span></button>
@@ -797,6 +873,12 @@ body.feat-off-vergleich #cmpbar{display:none!important}
       </div>
     </div>
     <div class="menusec">
+      <div class="menuitem">
+        <label><span>Push-Benachrichtigungen</span><input type="checkbox" id="opt-push"></label>
+      </div>
+      <p class="menuhinweis">Benachrichtigt dieses Gerät bei neuen Notizen. Auf dem iPhone nur, wenn die App über „Zum Home-Bildschirm“ installiert ist.</p>
+    </div>
+    <div class="menusec">
       <div class="menuitem menutheme">
         <span>Darstellung</span>
         <div class="themeswitch" id="themeswitch" role="group" aria-label="Hell/Dunkel umschalten">
@@ -846,6 +928,16 @@ body.feat-off-vergleich #cmpbar{display:none!important}
       <button class="nestclose" id="nestclose" aria-label="Schließen" type="button">&times;</button>
     </div>
     <div class="nestbody" id="nestbody"></div>
+  </div>
+</div>
+
+<div class="notizlay" id="notizlay" hidden>
+  <div class="notizcard" id="notizcard" role="dialog" aria-modal="true" aria-label="Offene Notizen">
+    <div class="notizhead">
+      <span>Offene Notizen</span>
+      <button class="notizclose" id="notizclose" aria-label="Schließen" type="button">&times;</button>
+    </div>
+    <div class="notizbody" id="notizbody"></div>
   </div>
 </div>
 
@@ -1615,8 +1707,15 @@ function zeigeBauteil(nr){
   if(b.z && b.z.length) h += '<span>Übersichtsliste Zeile <b>'+b.z.join(', ')+'</b></span>';
   h += '<span>Zuordnung aus Blatt <b>Schablnr - Bauteilnr.</b></span></div></div>';
 
+  h += '<div class="block"><h2>Notiz hinterlassen</h2>'
+    + '<div class="notizform">'
+    + '<textarea id="notiztext" rows="2" maxlength="500" placeholder="z. B. Hinweis für Büro/Nesting …"></textarea>'
+    + '<button type="button" class="notizsend" id="notizsend">Notiz senden</button>'
+    + '</div><div class="notizhint" id="notizhint"></div></div>';
+
   main.innerHTML = h;
   bind();
+  notizFormBind(nr);
   window.scrollTo(0,0);
 }
 
@@ -2215,6 +2314,7 @@ const menupanel = document.getElementById('menupanel');
 const optCsv    = document.getElementById('opt-csvExport');
 const optCmp    = document.getElementById('opt-vergleich');
 const optPeek   = document.getElementById('opt-longtouch');
+const optPush   = document.getElementById('opt-push');
 
 function menuPositionieren(){
   const margin = 10;
@@ -2235,6 +2335,7 @@ function menuOeffnen(){
   optCmp.checked = features.vergleich;
   optPeek.checked = features.longtouch;
   themeSwitchAktualisieren();
+  pushStatusSync();
   menulay.hidden = false;
   menuPositionieren();
   requestAnimationFrame(() => menulay.classList.add('show'));
@@ -2263,6 +2364,13 @@ optCmp.addEventListener('change', () => {
 optPeek.addEventListener('change', () => {
   features.longtouch = optPeek.checked;
   featuresSpeichern();
+});
+optPush.addEventListener('change', async () => {
+  const gewuenscht = optPush.checked;
+  optPush.disabled = true;
+  const ok = gewuenscht ? await pushAktivieren() : await pushDeaktivieren();
+  optPush.checked = gewuenscht ? ok : false;
+  optPush.disabled = false;
 });
 
 /* ==================== Info-Fenster ==================== */
@@ -2437,9 +2545,233 @@ function nestRender(){
   document.getElementById('nestdlnest').addEventListener('click', () => nestDownload(nest, 'Nestteile.csv'));
 }
 
+/* ==================== Notizen & Push-Benachrichtigungen ====================
+   Backend: Supabase-Projekt "recaro-notizen" (Tabellen notizen, push_subscriptions;
+   Edge Function send-push per Database-Trigger). Kein Login - RLS erlaubt offenen
+   Zugriff mit dem Publishable/Anon-Key, der hier bewusst im Client steht. */
+const SB_URL = 'https://pvjzeueveetnkfdbagdx.supabase.co';
+const SB_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2anpldWV2ZWV0bmtmZGJhZ2R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTkxNzQsImV4cCI6MjEwMjU3NTE3NH0.D-mAsJVkWAnG0MsxU-aOGtCEWA_8JG5NRlDVFWyNK2M';
+const VAPID_PUBLIC_KEY = 'BMPP6ult_kyaK9orztkmugHmt13n7GwnPmSV1SrXSUHFRfcFjd2mvVj7z6E0oXICY_ZDqDfpZ4MlHNiXUNzbGrA';
+
+async function sbFetch(path, opts){
+  opts = opts || {};
+  const headers = Object.assign({
+    apikey: SB_ANON_KEY,
+    Authorization: 'Bearer ' + SB_ANON_KEY,
+    'Content-Type': 'application/json'
+  }, opts.headers || {});
+  const res = await fetch(SB_URL + '/rest/v1/' + path, Object.assign({}, opts, {headers}));
+  if(!res.ok) throw new Error('Supabase-Fehler ' + res.status);
+  return res;
+}
+
+function urlBase64ToUint8Array(base64String){
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  const arr = new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++) arr[i] = raw.charCodeAt(i);
+  return arr;
+}
+
+async function notizSenden(nr, text){
+  await sbFetch('notizen', {
+    method:'POST',
+    headers:{Prefer:'return=minimal'},
+    body: JSON.stringify({bauteil_nr: nr, notiz: text})
+  });
+}
+async function notizErledigen(id){
+  await sbFetch('notizen?id=eq.' + encodeURIComponent(id), {
+    method:'PATCH',
+    headers:{Prefer:'return=minimal'},
+    body: JSON.stringify({erledigt:true, erledigt_am: new Date().toISOString()})
+  });
+}
+
+function notizFormBind(nr){
+  const btn  = document.getElementById('notizsend');
+  const ta   = document.getElementById('notiztext');
+  const hint = document.getElementById('notizhint');
+  if(!btn) return;
+  btn.addEventListener('click', async () => {
+    const text = ta.value.trim();
+    if(!text) return;
+    btn.disabled = true;
+    hint.className = 'notizhint';
+    hint.textContent = 'Wird gesendet …';
+    try{
+      await notizSenden(nr, text);
+      ta.value = '';
+      hint.className = 'notizhint ok';
+      hint.textContent = 'Notiz gesendet.';
+      notizBadgeAktualisieren();
+    }catch(err){
+      hint.className = 'notizhint err';
+      hint.textContent = 'Konnte nicht gesendet werden — Internetverbindung prüfen.';
+    }finally{
+      btn.disabled = false;
+    }
+  });
+}
+
+/* ---------- Badge & Offene-Notizen-Fenster ---------- */
+const notizbadge   = document.getElementById('notizbadge');
+const notizcountEl = document.getElementById('notizcount');
+const notizlay     = document.getElementById('notizlay');
+const notizbody    = document.getElementById('notizbody');
+let notizOffenCache = [];
+
+async function notizBadgeAktualisieren(){
+  try{
+    const res = await sbFetch('notizen?erledigt=eq.false&select=id,bauteil_nr,notiz,erstellt_am&order=erstellt_am.desc');
+    notizOffenCache = await res.json();
+    const n = notizOffenCache.length;
+    notizcountEl.textContent = n;
+    notizbadge.hidden = n === 0;
+    notizbadge.classList.toggle('has-notes', n > 0);
+    if(!notizlay.hidden) notizRender();
+  }catch(e){ /* offline o.ä. - Badge bleibt beim zuletzt bekannten Stand */ }
+}
+
+function notizZeitAnzeige(iso){
+  try{
+    const d = new Date(iso);
+    return d.toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){ return ''; }
+}
+
+function notizRender(){
+  if(!notizOffenCache.length){
+    notizbody.innerHTML = '<div class="notizempty">Keine offenen Notizen.</div>';
+    return;
+  }
+  let h = '';
+  notizOffenCache.forEach(n => {
+    h += '<div class="notizitem">'
+      + '<div class="ni-top"><button type="button" class="ni-nr" data-gonr="'+esc(n.bauteil_nr)+'">'+esc(n.bauteil_nr)+'</button>'
+      + '<span class="ni-zeit">'+notizZeitAnzeige(n.erstellt_am)+'</span></div>'
+      + '<div class="ni-text">'+esc(n.notiz)+'</div>'
+      + '<button type="button" class="ni-done" data-done="'+esc(n.id)+'">Erledigt</button>'
+      + '</div>';
+  });
+  notizbody.innerHTML = h;
+  notizbody.querySelectorAll('[data-gonr]').forEach(b => b.addEventListener('click', () => {
+    notizSchliessen();
+    gehe(b.dataset.gonr);
+  }));
+  notizbody.querySelectorAll('[data-done]').forEach(b => b.addEventListener('click', async () => {
+    b.disabled = true;
+    try{
+      await notizErledigen(b.dataset.done);
+      await notizBadgeAktualisieren();
+    }catch(e){
+      b.disabled = false;
+      alert('Konnte nicht als erledigt markiert werden — Internetverbindung prüfen.');
+    }
+  }));
+}
+
+function notizOeffnen(){
+  notizlay.hidden = false;
+  notizRender();
+  requestAnimationFrame(() => notizlay.classList.add('show'));
+  notizBadgeAktualisieren();
+}
+function notizSchliessen(){
+  if(notizlay.hidden) return;
+  notizlay.classList.remove('show');
+  setTimeout(() => { notizlay.hidden = true; }, 160);
+}
+notizbadge.addEventListener('click', notizOeffnen);
+document.getElementById('notizclose').addEventListener('click', notizSchliessen);
+notizlay.addEventListener('click', e => { if(e.target === notizlay) notizSchliessen(); });
+
+/* ---------- Web-Push-Abo ---------- */
+async function pushStatusSync(){
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)){
+    optPush.checked = false; optPush.disabled = true; return;
+  }
+  optPush.disabled = false;
+  try{
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    optPush.checked = !!sub;
+  }catch(e){ optPush.checked = false; }
+}
+
+async function pushAboSpeichern(sub){
+  const j = sub.toJSON();
+  await sbFetch('push_subscriptions', {
+    method:'POST',
+    headers:{Prefer:'resolution=merge-duplicates,return=minimal'},
+    body: JSON.stringify({endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth})
+  });
+}
+
+async function pushAktivieren(){
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)){
+    alert('Push-Benachrichtigungen werden auf diesem Gerät/Browser nicht unterstützt. Auf dem iPhone: App zuerst über „Zum Home-Bildschirm“ installieren und von dort aus öffnen.');
+    return false;
+  }
+  try{
+    const perm = await Notification.requestPermission();
+    if(perm !== 'granted') return false;
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if(!sub){
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+    await pushAboSpeichern(sub);
+    return true;
+  }catch(err){
+    alert('Push konnte nicht aktiviert werden: ' + (err && err.message ? err.message : err));
+    return false;
+  }
+}
+
+async function pushDeaktivieren(){
+  try{
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if(sub){
+      await sbFetch('push_subscriptions?endpoint=eq.' + encodeURIComponent(sub.endpoint), {
+        method:'DELETE', headers:{Prefer:'return=minimal'}
+      });
+      await sub.unsubscribe();
+    }
+  }catch(e){ /* egal, Checkbox wird trotzdem zurückgesetzt */ }
+  return false;
+}
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('service-worker.js').catch(() => {});
+}
+notizBadgeAktualisieren();
+setInterval(notizBadgeAktualisieren, 60000);
+
+/* Von einem Push-Klick geöffnet ("?nr=...") - Bauteil direkt anzeigen, sobald Daten da sind */
+const notizZielNr = new URLSearchParams(location.search).get('nr');
+if(notizZielNr){
+  let notizZielVersuche = 0;
+  const wennBereit = setInterval(() => {
+    notizZielVersuche++;
+    if(DATA){
+      clearInterval(wennBereit);
+      gehe(notizZielNr);
+    }else if(notizZielVersuche > 100){
+      clearInterval(wennBereit);
+    }
+  }, 300);
+}
+
 document.addEventListener('keydown', e => {
   if(e.key !== 'Escape') return;
-  if(!nestlay.hidden) nestSchliessen();
+  if(!notizlay.hidden) notizSchliessen();
+  else if(!nestlay.hidden) nestSchliessen();
   else if(!infolay.hidden) infoSchliessen();
   else if(!menulay.hidden) menuSchliessen();
 });
