@@ -514,6 +514,45 @@ table.cmptable tr.diff td:first-child{background:#F0E4C8}
   .cmpbtn2{flex:1}
 }
 
+/* ---------- Long-Press Vorschau (Peek) ---------- */
+.row{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+body.peek-open{overflow:hidden}
+.peeklay{
+  position:fixed;inset:0;z-index:220;background:rgba(15,11,8,.5);
+  -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+  opacity:0;transition:opacity .16s ease-out;
+}
+.peeklay[hidden]{display:none}
+.peeklay.show{opacity:1}
+.peekcard{
+  position:absolute;width:340px;max-width:calc(100vw - 24px);
+  background:var(--card);border:1px solid var(--rule-soft);border-radius:12px;
+  box-shadow:0 20px 48px rgba(0,0,0,.4);padding:16px 17px 14px;
+  transform:scale(.92);opacity:0;transition:transform .17s ease-out,opacity .17s ease-out;
+}
+.peeklay.show .peekcard{transform:scale(1);opacity:1}
+.peekhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.peektitel{font-family:var(--mono);font-weight:700;font-size:17px;word-break:break-all}
+.peekfelder{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.peekfeld{display:flex;flex-direction:column;gap:1px}
+.peekfeld .pk{
+  font-family:var(--cond);font-size:11px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:600;
+}
+.peekfeld .pv{font-size:14px;color:var(--ink);word-break:break-word}
+.peekactions{display:flex;gap:8px;flex-wrap:wrap}
+.peekbtn{
+  flex:1;font-family:var(--cond);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  border:1px solid var(--rule);background:var(--surface-bright);color:var(--ink-2);border-radius:3px;
+  padding:9px 10px;cursor:pointer;min-height:36px;white-space:nowrap;
+}
+.peekbtn:hover{border-color:var(--teal);color:var(--teal)}
+.peekbtn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.peekbtn.active{background:var(--teal);border-color:var(--teal);color:#fff}
+@media (prefers-reduced-motion:reduce){
+  .peeklay,.peekcard{transition:none}
+}
+
 </style>
 <link rel="apple-touch-icon" href="icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -576,6 +615,10 @@ table.cmptable tr.diff td:first-child{background:#F0E4C8}
     <div class="scanframe"></div>
   </div>
   <div class="scanfoot" id="scanfoot"></div>
+</div>
+
+<div class="peeklay" id="peeklay" hidden>
+  <div class="peekcard" id="peekcard" role="dialog" aria-modal="true"></div>
 </div>
 
 <footer class="wrap" id="foot">
@@ -1913,6 +1956,166 @@ themebtn.addEventListener('click', () => {
   document.documentElement.setAttribute('data-theme', naechstes);
   try{ localStorage.setItem(THEME_KEY, naechstes); }catch(e){}
 });
+
+/* ==================== Long-Press Vorschau (Peek) ==================== */
+const PEEK_DELAY = 470, PEEK_SCHWELLE = 10;
+const peeklay  = document.getElementById('peeklay');
+const peekcard = document.getElementById('peekcard');
+let peekTimer = null, peekRow = null, peekStartX = 0, peekStartY = 0, peekBewegt = false;
+let peekSuppressClick = false;
+
+function peekFeld(label, wert){
+  if(wert == null || wert === '') return '';
+  return '<div class="peekfeld"><span class="pk">'+esc(label)+'</span><span class="pv">'+esc(wert)+'</span></div>';
+}
+
+function peekStarten(row, x, y){
+  peekAbbrechenTimer();
+  peekRow = row; peekStartX = x; peekStartY = y; peekBewegt = false;
+  peekTimer = setTimeout(() => {
+    if(!peekRow || peekBewegt) return;
+    peekSuppressClick = true;
+    if(navigator.vibrate){ try{ navigator.vibrate(10); }catch(e){} }
+    peekOeffnen(peekRow);
+    peekRow = null;
+  }, PEEK_DELAY);
+}
+function peekBewegen(x, y){
+  if(!peekRow) return;
+  if(Math.abs(x-peekStartX) > PEEK_SCHWELLE || Math.abs(y-peekStartY) > PEEK_SCHWELLE){
+    peekBewegt = true;
+    peekAbbrechenTimer();
+  }
+}
+function peekAbbrechenTimer(){
+  clearTimeout(peekTimer);
+  peekTimer = null;
+}
+function peekLoslassen(){
+  peekAbbrechenTimer();
+  peekRow = null;
+}
+
+function peekOeffnen(row){
+  const nr = row.dataset.go;
+  if(!nr) return;
+  const istBt = row.classList.contains('t-bt');
+  const istEz = row.classList.contains('t-ez');
+  const typ = istBt ? 'bt' : (istEz ? 'ez' : 'sch');
+  let felder = '', tagLabel;
+  if(typ === 'bt'){
+    const b = BT.get(nr);
+    if(!b) return;
+    tagLabel = 'Bauteil';
+    felder = peekFeld('Interne Bezeichnung', b.bez)
+      + peekFeld('Projekt', b.projekt)
+      + peekFeld('Zugeordnete Schablonen', (b.sch||[]).join(', '))
+      + peekFeld('Externe Nummer', b.extern);
+  }else{
+    const s = SCH.get(nr);
+    if(!s) return;
+    tagLabel = typ === 'ez' ? 'Einzelteil' : 'Schablone';
+    felder = peekFeld('Bezeichnung', s.bez)
+      + peekFeld('Beschreibung', s.beschr)
+      + peekFeld('Material / Hinweis', s.material)
+      + peekFeld('Verwendende Bauteile', (btVonSch.get(s.nr)||[]).join(', '));
+  }
+  const ausgewaehlt = selectedItems.has(nr);
+  peekcard.innerHTML =
+      '<div class="peekhead"><span class="peektitel">'+esc(nr)+'</span>'
+    + '<span class="tag tag-'+typ+'">'+esc(tagLabel)+'</span></div>'
+    + '<div class="peekfelder">'+(felder || '<div class="peekfeld"><span class="pv">Keine weiteren Angaben.</span></div>')+'</div>'
+    + '<div class="peekactions">'
+    + '<button type="button" class="peekbtn'+(ausgewaehlt?' active':'')+'" id="peekselbtn">'+(ausgewaehlt?'✓ In Auswahl':'Zur Auswahl hinzufügen')+'</button>'
+    + '<button type="button" class="peekbtn primary" id="peekopenbtn">Details öffnen</button>'
+    + '</div>';
+  peeklay.hidden = false;
+  document.body.classList.add('peek-open');
+  const rect = row.getBoundingClientRect();
+  peekPositionieren(rect);
+  requestAnimationFrame(() => peeklay.classList.add('show'));
+  document.getElementById('peekselbtn').addEventListener('click', () => {
+    const neu = !selectedItems.has(nr);
+    toggleSelect(nr, neu);
+    syncCheckboxes();
+    peekSchliessen();
+  });
+  document.getElementById('peekopenbtn').addEventListener('click', () => {
+    peekSchliessen();
+    gehe(nr);
+  });
+}
+
+function peekPositionieren(rowRect){
+  const margin = 12;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  peekcard.style.left = '0px'; peekcard.style.top = '0px';
+  const cw = peekcard.offsetWidth, ch = peekcard.offsetHeight;
+  let top = rowRect.bottom + 10;
+  if(top + ch > vh - margin) top = rowRect.top - ch - 10;
+  if(top < margin) top = Math.max(margin, Math.min(vh - margin - ch, (vh - ch) / 2));
+  let left = rowRect.left;
+  if(left + cw > vw - margin) left = vw - margin - cw;
+  if(left < margin) left = margin;
+  peekcard.style.left = left + 'px';
+  peekcard.style.top = top + 'px';
+}
+
+function peekSchliessen(){
+  if(peeklay.hidden) return;
+  peeklay.classList.remove('show');
+  document.body.classList.remove('peek-open');
+  setTimeout(() => { peeklay.hidden = true; peekcard.innerHTML = ''; }, 170);
+}
+
+peeklay.addEventListener('click', e => { if(e.target === peeklay) peekSchliessen(); });
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape' && !peeklay.hidden) peekSchliessen();
+});
+
+/* Swipe nach unten auf der Karte schließt die Vorschau */
+let peekSwipeY = null;
+peekcard.addEventListener('touchstart', e => { peekSwipeY = e.touches[0].clientY; }, {passive:true});
+peekcard.addEventListener('touchmove', e => {
+  if(peekSwipeY == null) return;
+  if(e.touches[0].clientY - peekSwipeY > 60) peekSchliessen();
+}, {passive:true});
+peekcard.addEventListener('touchend', () => { peekSwipeY = null; });
+
+main.addEventListener('touchstart', e => {
+  const row = e.target.closest('.row');
+  if(!row) return;
+  const t = e.touches[0];
+  peekStarten(row, t.clientX, t.clientY);
+}, {passive:true});
+main.addEventListener('touchmove', e => {
+  if(!peekRow) return;
+  const t = e.touches[0];
+  peekBewegen(t.clientX, t.clientY);
+}, {passive:true});
+main.addEventListener('touchend', e => {
+  if(peekSuppressClick) e.preventDefault();
+  peekLoslassen();
+});
+main.addEventListener('touchcancel', peekLoslassen);
+
+main.addEventListener('mousedown', e => {
+  if(e.button !== 0) return;
+  const row = e.target.closest('.row');
+  if(!row) return;
+  peekStarten(row, e.clientX, e.clientY);
+});
+main.addEventListener('mousemove', e => { peekBewegen(e.clientX, e.clientY); });
+document.addEventListener('mouseup', peekLoslassen);
+main.addEventListener('mouseleave', peekLoslassen);
+
+main.addEventListener('click', e => {
+  if(peekSuppressClick){
+    peekSuppressClick = false;
+    e.preventDefault();
+    e.stopPropagation();
+  }
+}, true);
 </script>
 </body>
 </html>
