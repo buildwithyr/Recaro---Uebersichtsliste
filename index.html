@@ -536,22 +536,8 @@ body.peek-open{overflow:hidden}
 .peeklay.show .peekcard{transform:scale(1);opacity:1}
 .peekhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
 .peektitel{font-family:var(--mono);font-weight:700;font-size:17px;word-break:break-all}
-.peekfelder{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
-.peekfeld{display:flex;flex-direction:column;gap:1px}
-.peekfeld .pk{
-  font-family:var(--cond);font-size:11px;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--ink-3);font-weight:600;
-}
-.peekfeld .pv{font-size:14px;color:var(--ink);word-break:break-word}
-.peekactions{display:flex;gap:8px;flex-wrap:wrap}
-.peekbtn{
-  flex:1;font-family:var(--cond);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
-  border:1px solid var(--rule);background:var(--surface-bright);color:var(--ink-2);border-radius:3px;
-  padding:9px 10px;cursor:pointer;min-height:36px;white-space:nowrap;
-}
-.peekbtn:hover{border-color:var(--teal);color:var(--teal)}
-.peekbtn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
-.peekbtn.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.peekcard .notizform{padding:0;margin-bottom:2px}
+.peekcard .notizhint{padding:6px 0 0}
 @media (prefers-reduced-motion:reduce){
   .peeklay,.peekcard{transition:none}
 }
@@ -722,6 +708,8 @@ body.feat-off-vergleich #cmpbar{display:none!important}
 }
 .nestdl:hover:not(:disabled){filter:brightness(1.12)}
 .nestdl:disabled{opacity:.4;cursor:default}
+.nestdl.alt{background:none;color:var(--ink-2);border:1px solid var(--rule)}
+.nestdl.alt:hover:not(:disabled){border-color:var(--teal);color:var(--teal);filter:none}
 
 /* ---------- Notiz-Formular (Bauteil-Detailansicht) ---------- */
 .notizform{display:flex;flex-direction:column;gap:8px;padding:12px 14px}
@@ -764,7 +752,11 @@ body.feat-off-vergleich #cmpbar{display:none!important}
 .notizclose{border:0;background:none;color:var(--ink-3);font-size:22px;line-height:1;cursor:pointer;padding:3px 6px}
 .notizclose:hover{color:var(--teal)}
 .notizbody{padding:10px 14px 16px}
+.notiztabs{margin-bottom:12px}
 .notizitem{border:1px solid var(--rule-soft);border-radius:6px;padding:11px 13px;margin-bottom:9px}
+.notizitem .ni-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ni-status{font-family:var(--cond);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--ink-3)}
+.ni-status.done{color:var(--teal)}
 .notizitem .ni-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}
 .notizitem .ni-nr{font-family:var(--mono);font-weight:600;font-size:14px;color:var(--ink);background:none;border:0;padding:0;cursor:pointer}
 .notizitem .ni-nr:hover{color:var(--teal)}
@@ -869,7 +861,7 @@ body.feat-off-vergleich #cmpbar{display:none!important}
         <label><span>Vergleichsfunktion</span><input type="checkbox" id="opt-vergleich"></label>
       </div>
       <div class="menuitem">
-        <label><span>Long-Touch-Vorschau</span><input type="checkbox" id="opt-longtouch"></label>
+        <label><span>Long-Touch: Notiz senden</span><input type="checkbox" id="opt-longtouch"></label>
       </div>
     </div>
     <div class="menusec">
@@ -907,8 +899,8 @@ body.feat-off-vergleich #cmpbar{display:none!important}
       <p>Die Liste basiert auf einer lokal geladenen Excel-Datei (Übersichtsliste, Schablonenregister, Matrixblatt). Es gibt keine Cloud-Anbindung &mdash; über &bdquo;Aktualisieren&ldquo; bzw. &bdquo;Andere Datei&ldquo; im Kopfbereich lässt sich die Quelle neu laden oder wechseln.</p>
       <h3>Suche</h3>
       <p>Bauteil- oder Schablonennummer eingeben &mdash; Trennzeichen wie Bindestrich, Unterstrich oder X/S/G sind egal. Die Suche greift auch bei Bezeichnung, Projekt oder Material. Die Chips oben grenzen die Treffer nach Bauteile, Schablonen, Einzelteile oder HT-Nummern ein.</p>
-      <h3>Long-Touch-Vorschau</h3>
-      <p>Langes Antippen einer Zeile in der Trefferliste zeigt die Kerndaten direkt in einem kleinen Vorschau-Fenster, ohne dass die Detailansicht geöffnet werden muss. Lässt sich unten unter &bdquo;Long-Touch-Vorschau&ldquo; ein- und ausschalten.</p>
+      <h3>Long-Touch: Notiz senden</h3>
+      <p>Langes Antippen einer Zeile in der Trefferliste öffnet direkt ein kleines Fenster zum Senden einer Notiz zu diesem Bauteil bzw. dieser Schablone. Lässt sich unten unter &bdquo;Long-Touch: Notiz senden&ldquo; ein- und ausschalten.</p>
       <h3>Vergleichsfunktion</h3>
       <p>Bis zu vier Bauteile oder Schablonen lassen sich nebeneinander in einer Tabelle vergleichen, um Unterschiede in den Feldern zu sehen. Lässt sich unten deaktivieren, falls nicht gebraucht.</p>
       <h3>Auswahl &amp; CSV-Export</h3>
@@ -2530,6 +2522,7 @@ function nestRender(){
   h += '<div class="nestactions">'
     + '<button type="button" class="nestdl" id="nestdlhlt"'+(hlt.length?'':' disabled')+'>HLT Teile.csv herunterladen</button>'
     + '<button type="button" class="nestdl" id="nestdlnest"'+(nest.length?'':' disabled')+'>Nestteile.csv herunterladen</button>'
+    + '<button type="button" class="nestdl alt" id="nestdlbeide"'+((hlt.length||nest.length)?'':' disabled')+'>Beide herunterladen</button>'
     + '</div>';
   nestbody.innerHTML = h;
   nestbody.querySelectorAll('[data-nesttab]').forEach(b => b.addEventListener('click', () => {
@@ -2543,6 +2536,10 @@ function nestRender(){
   });
   document.getElementById('nestdlhlt').addEventListener('click', () => nestDownload(hlt, 'HLT Teile.csv'));
   document.getElementById('nestdlnest').addEventListener('click', () => nestDownload(nest, 'Nestteile.csv'));
+  document.getElementById('nestdlbeide').addEventListener('click', () => {
+    nestDownload(hlt, 'HLT Teile.csv');
+    setTimeout(() => nestDownload(nest, 'Nestteile.csv'), 400);
+  });
 }
 
 /* ==================== Notizen & Push-Benachrichtigungen ====================
@@ -2589,7 +2586,7 @@ async function notizErledigen(id){
   });
 }
 
-function notizFormBind(nr){
+function notizFormBind(nr, onErfolg){
   const btn  = document.getElementById('notizsend');
   const ta   = document.getElementById('notiztext');
   const hint = document.getElementById('notizhint');
@@ -2602,25 +2599,31 @@ function notizFormBind(nr){
     hint.textContent = 'Wird gesendet …';
     try{
       await notizSenden(nr, text);
-      ta.value = '';
-      hint.className = 'notizhint ok';
-      hint.textContent = 'Notiz gesendet.';
       notizBadgeAktualisieren();
+      if(onErfolg){
+        onErfolg();
+      }else{
+        ta.value = '';
+        hint.className = 'notizhint ok';
+        hint.textContent = 'Notiz gesendet.';
+        btn.disabled = false;
+      }
     }catch(err){
       hint.className = 'notizhint err';
       hint.textContent = 'Konnte nicht gesendet werden — Internetverbindung prüfen.';
-    }finally{
       btn.disabled = false;
     }
   });
 }
 
-/* ---------- Badge & Offene-Notizen-Fenster ---------- */
+/* ---------- Badge & Notizen-Fenster (Offen / Verlauf) ---------- */
 const notizbadge   = document.getElementById('notizbadge');
 const notizcountEl = document.getElementById('notizcount');
 const notizlay     = document.getElementById('notizlay');
 const notizbody    = document.getElementById('notizbody');
 let notizOffenCache = [];
+let notizAlleCache = null; /* null = noch nicht geladen (Verlauf-Tab) */
+let notizTab = 'offen';
 
 async function notizBadgeAktualisieren(){
   try{
@@ -2630,8 +2633,13 @@ async function notizBadgeAktualisieren(){
     notizcountEl.textContent = n;
     notizbadge.hidden = n === 0;
     notizbadge.classList.toggle('has-notes', n > 0);
-    if(!notizlay.hidden) notizRender();
+    if(!notizlay.hidden && notizTab === 'offen') notizRender();
   }catch(e){ /* offline o.ä. - Badge bleibt beim zuletzt bekannten Stand */ }
+}
+
+async function notizAlleLaden(){
+  const res = await sbFetch('notizen?select=id,bauteil_nr,notiz,erstellt_am,erledigt,erledigt_am&order=erstellt_am.desc');
+  notizAlleCache = await res.json();
 }
 
 function notizZeitAnzeige(iso){
@@ -2641,32 +2649,66 @@ function notizZeitAnzeige(iso){
   }catch(e){ return ''; }
 }
 
-function notizRender(){
-  if(!notizOffenCache.length){
-    notizbody.innerHTML = '<div class="notizempty">Keine offenen Notizen.</div>';
-    return;
+function notizTabsHtml(){
+  return '<div class="nesttabs notiztabs" role="group" aria-label="Ansicht wählen">'
+    + '<button type="button" class="nesttab'+(notizTab==='offen'?' active':'')+'" data-notiztab="offen">Offen ('+notizOffenCache.length+')</button>'
+    + '<button type="button" class="nesttab'+(notizTab==='verlauf'?' active':'')+'" data-notiztab="verlauf">Verlauf</button>'
+    + '</div>';
+}
+
+function notizItemHtml(n){
+  const status = n.erledigt
+    ? '<span class="ni-status done">Erledigt · '+notizZeitAnzeige(n.erledigt_am)+'</span>'
+    : '<span class="ni-status open">Offen</span>';
+  return '<div class="notizitem">'
+    + '<div class="ni-top"><button type="button" class="ni-nr" data-gonr="'+esc(n.bauteil_nr)+'">'+esc(n.bauteil_nr)+'</button>'
+    + '<span class="ni-zeit">'+notizZeitAnzeige(n.erstellt_am)+'</span></div>'
+    + '<div class="ni-text">'+esc(n.notiz)+'</div>'
+    + '<div class="ni-bottom">'+status
+    + (!n.erledigt ? '<button type="button" class="ni-done" data-done="'+esc(n.id)+'">Erledigt</button>' : '')
+    + '</div></div>';
+}
+
+async function notizAufTabWechseln(tab){
+  notizTab = tab;
+  if(tab === 'verlauf' && notizAlleCache === null){
+    notizbody.innerHTML = notizTabsHtml() + '<div class="notizladen">Wird geladen …</div>';
+    try{ await notizAlleLaden(); }catch(e){ notizAlleCache = []; }
   }
-  let h = '';
-  notizOffenCache.forEach(n => {
-    h += '<div class="notizitem">'
-      + '<div class="ni-top"><button type="button" class="ni-nr" data-gonr="'+esc(n.bauteil_nr)+'">'+esc(n.bauteil_nr)+'</button>'
-      + '<span class="ni-zeit">'+notizZeitAnzeige(n.erstellt_am)+'</span></div>'
-      + '<div class="ni-text">'+esc(n.notiz)+'</div>'
-      + '<button type="button" class="ni-done" data-done="'+esc(n.id)+'">Erledigt</button>'
-      + '</div>';
-  });
+  notizRender();
+}
+
+function notizRender(){
+  const liste = notizTab === 'offen' ? notizOffenCache : (notizAlleCache || []);
+  let h = notizTabsHtml();
+  if(!liste.length){
+    h += '<div class="notizempty">'+(notizTab==='offen' ? 'Keine offenen Notizen.' : 'Noch keine Notizen gesendet.')+'</div>';
+  }else{
+    liste.forEach(n => { h += notizItemHtml(n); });
+  }
   notizbody.innerHTML = h;
+  notizbody.querySelectorAll('[data-notiztab]').forEach(b => b.addEventListener('click', () => notizAufTabWechseln(b.dataset.notiztab)));
   notizbody.querySelectorAll('[data-gonr]').forEach(b => b.addEventListener('click', () => {
     notizSchliessen();
     gehe(b.dataset.gonr);
   }));
-  notizbody.querySelectorAll('[data-done]').forEach(b => b.addEventListener('click', async () => {
-    b.disabled = true;
+  notizbody.querySelectorAll('[data-done]').forEach(b => b.addEventListener('click', async e => {
+    const btn = e.currentTarget;
+    const id = btn.dataset.done;
+    btn.disabled = true;
     try{
-      await notizErledigen(b.dataset.done);
-      await notizBadgeAktualisieren();
+      await notizErledigen(id);
+      notizOffenCache = notizOffenCache.filter(n => n.id !== id);
+      if(notizAlleCache){
+        const n = notizAlleCache.find(x => x.id === id);
+        if(n){ n.erledigt = true; n.erledigt_am = new Date().toISOString(); }
+      }
+      notizcountEl.textContent = notizOffenCache.length;
+      notizbadge.hidden = notizOffenCache.length === 0;
+      notizbadge.classList.toggle('has-notes', notizOffenCache.length > 0);
+      notizRender();
     }catch(e){
-      b.disabled = false;
+      btn.disabled = false;
       alert('Konnte nicht als erledigt markiert werden — Internetverbindung prüfen.');
     }
   }));
@@ -2674,6 +2716,8 @@ function notizRender(){
 
 function notizOeffnen(){
   notizlay.hidden = false;
+  notizTab = 'offen';
+  notizAlleCache = null;
   notizRender();
   requestAnimationFrame(() => notizlay.classList.add('show'));
   notizBadgeAktualisieren();
@@ -2783,11 +2827,6 @@ const peekcard = document.getElementById('peekcard');
 let peekTimer = null, peekRow = null, peekStartX = 0, peekStartY = 0, peekBewegt = false;
 let peekSuppressClick = false;
 
-function peekFeld(label, wert){
-  if(wert == null || wert === '') return '';
-  return '<div class="peekfeld"><span class="pk">'+esc(label)+'</span><span class="pv">'+esc(wert)+'</span></div>';
-}
-
 function peekStarten(row, x, y){
   if(!features.longtouch) return;
   peekAbbrechenTimer();
@@ -2819,51 +2858,20 @@ function peekLoslassen(){
 function peekOeffnen(row){
   const nr = row.dataset.go;
   if(!nr) return;
-  const istBt = row.classList.contains('t-bt');
-  const istEz = row.classList.contains('t-ez');
-  const typ = istBt ? 'bt' : (istEz ? 'ez' : 'sch');
-  let felder = '', tagLabel;
-  if(typ === 'bt'){
-    const b = BT.get(nr);
-    if(!b) return;
-    tagLabel = 'Bauteil';
-    felder = peekFeld('Interne Bezeichnung', b.bez)
-      + peekFeld('Projekt', b.projekt)
-      + peekFeld('Zugeordnete Schablonen', (b.sch||[]).join(', '))
-      + peekFeld('Externe Nummer', b.extern);
-  }else{
-    const s = SCH.get(nr);
-    if(!s) return;
-    tagLabel = typ === 'ez' ? 'Einzelteil' : 'Schablone';
-    felder = peekFeld('Bezeichnung', s.bez)
-      + peekFeld('Beschreibung', s.beschr)
-      + peekFeld('Material / Hinweis', s.material)
-      + peekFeld('Verwendende Bauteile', (btVonSch.get(s.nr)||[]).join(', '));
-  }
-  const ausgewaehlt = selectedItems.has(nr);
   peekcard.innerHTML =
-      '<div class="peekhead"><span class="peektitel">'+esc(nr)+'</span>'
-    + '<span class="tag tag-'+typ+'">'+esc(tagLabel)+'</span></div>'
-    + '<div class="peekfelder">'+(felder || '<div class="peekfeld"><span class="pv">Keine weiteren Angaben.</span></div>')+'</div>'
-    + '<div class="peekactions">'
-    + '<button type="button" class="peekbtn'+(ausgewaehlt?' active':'')+'" id="peekselbtn">'+(ausgewaehlt?'✓ In Auswahl':'Zur Auswahl hinzufügen')+'</button>'
-    + '<button type="button" class="peekbtn primary" id="peekopenbtn">Details öffnen</button>'
-    + '</div>';
+      '<div class="peekhead"><span class="peektitel">'+esc(nr)+'</span></div>'
+    + '<div class="notizform">'
+    + '<textarea id="notiztext" rows="3" maxlength="500" placeholder="Notiz eingeben …"></textarea>'
+    + '<button type="button" class="notizsend" id="notizsend">Senden</button>'
+    + '</div><div class="notizhint" id="notizhint"></div>';
   peeklay.hidden = false;
   document.body.classList.add('peek-open');
   const rect = row.getBoundingClientRect();
   peekPositionieren(rect);
   requestAnimationFrame(() => peeklay.classList.add('show'));
-  document.getElementById('peekselbtn').addEventListener('click', () => {
-    const neu = !selectedItems.has(nr);
-    toggleSelect(nr, neu);
-    syncCheckboxes();
-    peekSchliessen();
-  });
-  document.getElementById('peekopenbtn').addEventListener('click', () => {
-    peekSchliessen();
-    gehe(nr);
-  });
+  const ta = document.getElementById('notiztext');
+  ta.focus();
+  notizFormBind(nr, peekSchliessen);
 }
 
 function peekPositionieren(rowRect){
