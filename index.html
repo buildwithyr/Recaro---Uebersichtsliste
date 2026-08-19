@@ -1002,7 +1002,7 @@ body.feat-off-vergleich #cmpbar{display:none!important}
       <h3>Auswahl &amp; CSV-Export</h3>
       <p>Mehrere Treffer per Checkbox markieren und gesammelt als CSV-Datei exportieren. Der Export-Button lässt sich unten ausblenden, die Auswahl per Checkbox bleibt davon unberührt.</p>
       <h3>Nesting-Teileliste</h3>
-      <p>Über den Menüpunkt &bdquo;Nesting-Teileliste&ldquo; lässt sich eine Nesting-CSV importieren. Die Zeilen werden anhand von Spalte G automatisch in HLT Teile und Nestteile aufgeteilt und lassen sich getrennt wieder als CSV exportieren.</p>
+      <p>Über den Menüpunkt &bdquo;Nesting-Teileliste&ldquo; lässt sich eine Nesting-CSV importieren. Die Zeilen werden anhand von Spalte G automatisch in HLT Teile und Nestteile aufgeteilt und lassen sich getrennt wieder als CSV exportieren. Der Tab &bdquo;Saubere Nestingliste&ldquo; liefert die Nestteile zusätzlich sortiert (Stärke, Aufbau-Code, Bauteilnummer) mit reduzierter Spaltenauswahl als eigenen CSV-Export.</p>
       <h3>Darstellung</h3>
       <p>Hell/Dunkel lässt sich hier im Menü umschalten. Alle Einstellungen (Funktionen und Darstellung) werden nur lokal auf diesem Gerät gespeichert.</p>
     </div>
@@ -2740,7 +2740,7 @@ nestlay.addEventListener('click', e => { if(e.target === nestlay) nestSchliessen
 function nestDropHtml(fehler){
   let h = '<div class="nestdrop" id="nestdropzone">'
     + '<h3>Nesting-Daten importieren</h3>'
-    + '<p>Nesting-CSV (semikolon-getrennt, ohne Kopfzeile) und/oder BAZ-Stempelkarte (PDF) hierher ziehen oder auswählen - Reihenfolge und Kombination egal. Die CSV-Zeilen werden anhand von Spalte G automatisch in HLT Teile und Nestteile aufgeteilt, aus der PDF werden Rückmeldenummer und Auftragsnummer ausgelesen.</p>'
+    + '<p>Nesting-CSV (semikolon-getrennt, ohne Kopfzeile) und/oder BAZ-Stempelkarte (PDF) hierher ziehen oder auswählen - Reihenfolge und Kombination egal. Die CSV-Zeilen werden anhand von Spalte G automatisch in HLT Teile und Nestteile aufgeteilt, aus der PDF werden Rückmeldenummer und Auftragsnummer ausgelesen. Unter &bdquo;Saubere Nestingliste&ldquo; gibt es die Nestteile zusätzlich gefiltert und sortiert mit reduzierter Spaltenauswahl zum Export.</p>'
     + '<button type="button" class="nestpick" id="nestpick">Datei(en) auswählen</button>'
     + '<input type="file" id="nestfileinput" accept=".csv,.pdf,application/pdf" multiple hidden>'
     + nestBazStatusHtml()
@@ -2796,20 +2796,38 @@ function nestBindBazDrop(){
   });
 }
 
+/* Zwei bekannte F/List-Rohformate, beide Semikolon-getrennt ohne Kopfzeile,
+   Spalte G (Index 6) aber an derselben Stelle: leer = Baugruppe/Chemikalie/
+   Hardware (raus), 'HLT-STD' = HLT-Teil, sonst Aufbau-/Layup-Code = Nestteil.
+   20 Spalten: Bauteil;Bezeichnung;Status;Anzahl;Position;LfdNr;AufbauCode;...;
+     Länge;Breite;Stärke;...;ProalphaNr;;;Shipset;ShipsetKurz;;Flag
+   17 Spalten: Bauteil;Zweitbez;Status;Anzahl;RMNr;;AufbauCode;...;Shipset
+   (keine eigenen Maß-/Proalpha-Spalten, Stärke steckt im AufbauCode selbst,
+   z.B. "160-1100-142-9.5" -> siehe nestParseProAlpha). Andere Spaltenzahlen
+   sind ein unbekanntes drittes Format und werden nur roh gesplittet, ohne
+   den "saubere Liste"-Export zu erlauben. */
+function nestErkenneFormat(cols){
+  if(cols.length === 20) return '20';
+  if(cols.length === 17) return '17';
+  return 'unbekannt';
+}
+
 function nestParseCsv(text){
   const lines = text.split(/\r\n|\r|\n/);
   const hlt = [], nest = [];
   let total = 0;
+  let format = null;
   lines.forEach(line => {
     if(line === '') return;
     total++;
     const cols = line.split(';');
     const g = (cols[6] || '').trim();
     if(g === '') return;
+    if(format === null) format = nestErkenneFormat(cols);
     if(g === 'HLT-STD') hlt.push({raw:line, cols});
     else nest.push({raw:line, cols});
   });
-  return {total, hlt, nest};
+  return {total, hlt, nest, format: format || 'unbekannt'};
 }
 
 function nestLadeDatei(file){
@@ -2817,11 +2835,11 @@ function nestLadeDatei(file){
   fr.onerror = () => { nestState = {error:'Die Datei konnte nicht gelesen werden.'}; nestRender(); };
   fr.onload = () => {
     try{
-      const {total, hlt, nest} = nestParseCsv(fr.result);
+      const {total, hlt, nest, format} = nestParseCsv(fr.result);
       if(!hlt.length && !nest.length){
         nestState = {error:'Keine gültigen Zeilen gefunden. Spalte G (Index 6) ist bei allen Zeilen leer, oder die Datei hat ein anderes Format.'};
       }else{
-        nestState = {total, hlt, nest, fileName:file.name};
+        nestState = {total, hlt, nest, format, fileName:file.name};
         nestActiveTab = 'hlt';
       }
     }catch(err){
@@ -2879,6 +2897,71 @@ function nestNomCode(staerkeKomma){
   const val = parseFloat((staerkeKomma||'').replace(',', '.'));
   if(isNaN(val)) return '';
   return 'NOM' + String(Math.round(val * 10)).padStart(3, '0');
+}
+
+function nestZahl(str){
+  const v = parseFloat((str||'').replace(',', '.'));
+  return isNaN(v) ? 0 : v;
+}
+
+/* Sortierkriterium für die "Saubere Nestingliste" - erstmal Stärke, dann
+   Aufbau-Code (Material), dann Bauteilnummer, wie mit Yannick abgesprochen.
+   Bewusst als eigene, austauschbare Vergleichsfunktion, falls sich das
+   Kriterium später doch ändern soll. */
+function nestSaubereVergleich(a, b){
+  if(a.staerkeNum !== b.staerkeNum) return a.staerkeNum - b.staerkeNum;
+  if(a.aufbaucode !== b.aufbaucode) return a.aufbaucode < b.aufbaucode ? -1 : 1;
+  return a.bauteilnr < b.bauteilnr ? -1 : (a.bauteilnr > b.bauteilnr ? 1 : 0);
+}
+
+/* Baut die gefilterte, sortierte "Saubere Nestingliste" (Spaltenauswahl:
+   Bauteilnummer, Bezeichnung, Aufbau-Code, Länge, Breite, Stärke,
+   Proalpha-Nummer, Shipsetnummer) aus der bereits per Spalte G gefilterten
+   Nestteile-Liste. Beim 17-Spalten-Format (z.B. Klebstoff-/Chemikalien-Listen)
+   gibt es keine eigenen Maß-/Proalpha-Spalten - die Stärke steckt dort im
+   Aufbau-Code selbst (z.B. "160-1100-142-9.5", siehe nestParseProAlpha),
+   Länge/Breite/Proalpha-Nummer bleiben leer. Bei unbekanntem Format (weder
+   17 noch 20 Spalten) gibt's keinen sauberen Export - null statt raten. */
+function nestBaueSaubereZeilen(nest, format){
+  if(format !== '20' && format !== '17') return null;
+  const eintraege = nest.map(r => {
+    const c = r.cols;
+    const bauteilnr = c[0] || '';
+    const aufbaucode = c[6] || '';
+    const bezeichnung = c[1] || '';
+    const shipset = c[16] || '';
+    let laenge = '', breite = '', staerke = '', proalpha = '';
+    if(format === '20'){
+      laenge = c[9] || '';
+      breite = c[10] || '';
+      staerke = c[11] || '';
+      proalpha = c[13] || '';
+    }else{
+      const pa = nestParseProAlpha(aufbaucode);
+      staerke = pa ? pa.staerke : '';
+    }
+    return {
+      staerkeNum: nestZahl(staerke), aufbaucode, bauteilnr,
+      spalten: [bauteilnr, bezeichnung, aufbaucode, laenge, breite, staerke, proalpha, shipset]
+    };
+  });
+  eintraege.sort(nestSaubereVergleich);
+  return eintraege.map(e => e.spalten);
+}
+
+const NEST_SAUBER_HEADER = ['Bauteilnummer','Bezeichnung','Aufbau-Code','Länge','Breite','Stärke','Proalpha-Nummer','Shipsetnummer'];
+
+/* UTF-8 mit BOM statt ISO-8859-1 (anders als nestDownload/nestDownloadZeilen),
+   damit Excel Umlaute in der sauberen Liste korrekt anzeigt. */
+function nestDownloadSauber(zeilen, filename){
+  if(!zeilen || !zeilen.length) return;
+  const text = [NEST_SAUBER_HEADER, ...zeilen].map(z => z.join(';')).join('\r\n') + '\r\n';
+  const blob = new Blob(['﻿' + text], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 /* Baut die 18-Spalten-NC_NEST-Zeilen aus den bereits geparsten HLT-/Nestteile-
@@ -3008,7 +3091,7 @@ function nestRender(){
     nestBindDrop();
     return;
   }
-  const {total, hlt, nest} = nestState;
+  const {total, hlt, nest, format} = nestState;
   let h = '<div class="neststats">'
     + '<div class="neststat"><div class="nv">'+total+'</div><div class="nl">Zeilen gesamt</div></div>'
     + '<div class="neststat"><div class="nv">'+hlt.length+'</div><div class="nl">HLT Teile</div></div>'
@@ -3018,10 +3101,51 @@ function nestRender(){
   h += '<div class="nesttabs" role="group" aria-label="Liste wählen">'
     + '<button type="button" class="nesttab'+(nestActiveTab==='hlt'?' active':'')+'" data-nesttab="hlt">HLT Teile ('+hlt.length+')</button>'
     + '<button type="button" class="nesttab'+(nestActiveTab==='nest'?' active':'')+'" data-nesttab="nest">Nestteile ('+nest.length+')</button>'
+    + '<button type="button" class="nesttab'+(nestActiveTab==='sauber'?' active':'')+'" data-nesttab="sauber">Saubere Nestingliste</button>'
     + '<button type="button" class="nesttab'+(nestActiveTab==='ncnest'?' active':'')+'" data-nesttab="ncnest">NC_NEST-Export</button>'
     + '</div>';
   h += '<button type="button" class="nestnew" id="nestneu">Andere Datei laden</button>';
   h += '</div>';
+
+  if(nestActiveTab === 'sauber'){
+    const zeilen = nestBaueSaubereZeilen(nest, format);
+    h += '<p class="menuhinweis">Gefilterte, sortierte Nestteile-Liste (nach Stärke, Aufbau-Code, Bauteilnummer) mit den Spalten '
+      + 'Bauteilnummer, Bezeichnung, Aufbau-Code, Länge, Breite, Stärke, Proalpha-Nummer und Shipsetnummer.'
+      + (format === '17' ? ' Bei diesem Listenformat gibt es keine eigenen Länge/Breite/Proalpha-Spalten - die Stärke wird aus dem Aufbau-Code abgeleitet, der Rest bleibt leer.' : '')
+      + '</p>';
+    h += '<div class="nesttablewrap">';
+    if(zeilen === null){
+      h += '<div class="nesterr">Dieses Listenformat wird aktuell nicht unterstützt.</div>';
+    }else if(!zeilen.length){
+      h += '<div class="nestempty">Keine Zeilen für die saubere Liste.</div>';
+    }else{
+      h += '<table class="nesttable"><thead><tr>' + NEST_SAUBER_HEADER.map(sp => '<th>'+esc(sp)+'</th>').join('') + '</tr></thead><tbody>';
+      zeilen.forEach(z => {
+        h += '<tr>' + z.map(sp => '<td>'+esc(sp)+'</td>').join('') + '</tr>';
+      });
+      h += '</tbody></table>';
+    }
+    h += '</div>';
+    h += '<div class="nestactions">'
+      + '<button type="button" class="nestdl" id="nestdlsauber"'+(zeilen && zeilen.length?'':' disabled')+'>Saubere Nestingliste.csv herunterladen</button>'
+      + '</div>';
+    nestbody.innerHTML = h;
+    nestbody.querySelectorAll('[data-nesttab]').forEach(b => b.addEventListener('click', () => {
+      nestActiveTab = b.dataset.nesttab;
+      nestRender();
+    }));
+    document.getElementById('nestneu').addEventListener('click', () => {
+      nestState = null;
+      nestActiveTab = 'hlt';
+      nestRueckmeldenr = '';
+      nestAuftragsnr = '';
+      nestBazFehler = '';
+      nestRender();
+    });
+    const dlSauber = document.getElementById('nestdlsauber');
+    if(dlSauber) dlSauber.addEventListener('click', () => nestDownloadSauber(zeilen, 'Saubere Nestingliste.csv'));
+    return;
+  }
 
   if(nestActiveTab === 'ncnest'){
     const zeilen = nestBaueNcNestZeilen(hlt, nest, nestRueckmeldenr, nestAuftragsnr);
