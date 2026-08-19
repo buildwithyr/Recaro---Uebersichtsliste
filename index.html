@@ -703,6 +703,14 @@ body.feat-off-vergleich #cmpbar{display:none!important}
 .nestdrop.over{border-color:var(--teal);background:var(--teal-bg)}
 .nestdrop h3{font-family:var(--cond);font-size:19px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink);margin-bottom:8px}
 .nestdrop p{color:var(--ink-3);font-size:13.5px;max-width:46ch;margin:0 auto 14px;line-height:1.5}
+.nestdrop.compact{padding:16px 18px;margin-bottom:14px}
+.nestdrop.compact h3{font-size:15px;margin-bottom:6px}
+.nestdrop.compact p{margin-bottom:12px}
+.nestbazstatus{
+  margin:12px auto 0;max-width:46ch;font-family:var(--mono);font-size:13px;color:var(--teal);
+  border-radius:3px;padding:6px 10px;transition:background .8s ease;
+}
+.nestbazstatus.bazok{background:var(--teal-bg)}
 .nestpick{
   font-family:var(--cond);font-size:14px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;
   background:var(--ink-solid);color:#fff;border:0;border-radius:3px;padding:11px 20px;cursor:pointer;
@@ -731,20 +739,6 @@ body.feat-off-vergleich #cmpbar{display:none!important}
 }
 .ncnestform input:focus{outline:2px solid var(--teal);outline-offset:1px}
 .ncnestform input.bazok{outline:2px solid var(--teal);outline-offset:1px;background:var(--teal-bg);transition:background .8s ease,outline-color .8s ease}
-.bazimport{
-  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
-  border:2px dashed var(--rule);border-radius:6px;background:var(--surface-alt);
-  padding:12px 14px;margin-bottom:14px;
-}
-.bazimport.over{border-color:var(--teal);background:var(--teal-bg)}
-.bazpick{
-  font-family:var(--cond);font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
-  background:var(--ink-solid);color:#fff;border:0;border-radius:3px;padding:9px 16px;cursor:pointer;
-}
-.bazpick:hover{background:var(--teal)}
-.bazpick:disabled{opacity:.5;cursor:default}
-.bazhint{color:var(--ink-3);font-size:12.5px}
-.bazerr{margin-bottom:14px}
 .nesttabs{display:flex;gap:4px;background:var(--surface-alt);border-radius:20px;padding:3px}
 .nesttab{
   font-family:var(--cond);font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
@@ -2741,27 +2735,64 @@ document.getElementById('menunestbtn').addEventListener('click', () => {
 document.getElementById('nestclose').addEventListener('click', nestSchliessen);
 nestlay.addEventListener('click', e => { if(e.target === nestlay) nestSchliessen(); });
 
+/* Nimmt CSV und PDF im selben Fenster entgegen - Reihenfolge/Kombination
+   egal, Dateityp wird anhand der Endung erkannt (siehe nestRouteDateien). */
 function nestDropHtml(fehler){
   let h = '<div class="nestdrop" id="nestdropzone">'
-    + '<h3>Nesting-CSV importieren</h3>'
-    + '<p>Semikolon-getrennte CSV-Datei ohne Kopfzeile hierher ziehen oder auswählen. Die Zeilen werden anhand von Spalte G automatisch in HLT Teile und Nestteile aufgeteilt.</p>'
-    + '<button type="button" class="nestpick" id="nestpick">Datei auswählen</button>'
-    + '<input type="file" id="nestfileinput" accept=".csv" hidden>'
+    + '<h3>Nesting-Daten importieren</h3>'
+    + '<p>Nesting-CSV (semikolon-getrennt, ohne Kopfzeile) und/oder BAZ-Stempelkarte (PDF) hierher ziehen oder auswählen - Reihenfolge und Kombination egal. Die CSV-Zeilen werden anhand von Spalte G automatisch in HLT Teile und Nestteile aufgeteilt, aus der PDF werden Rückmeldenummer und Auftragsnummer ausgelesen.</p>'
+    + '<button type="button" class="nestpick" id="nestpick">Datei(en) auswählen</button>'
+    + '<input type="file" id="nestfileinput" accept=".csv,.pdf,application/pdf" multiple hidden>'
+    + nestBazStatusHtml()
     + '</div>';
   if(fehler) h += '<div class="nesterr">'+esc(fehler)+'</div>';
+  if(nestBazFehler) h += '<div class="nesterr">'+esc(nestBazFehler)+'</div>';
   return h;
+}
+
+function nestBazStatusHtml(){
+  if(!nestRueckmeldenr && !nestAuftragsnr) return '';
+  const teile = [];
+  if(nestAuftragsnr) teile.push('Auftragsnummer '+esc(nestAuftragsnr));
+  if(nestRueckmeldenr) teile.push('RMNr '+esc(nestRueckmeldenr));
+  return '<p class="nestbazstatus" id="nestbazstatus">&#10003; Aus PDF erkannt: '+teile.join(' &middot; ')+'</p>';
+}
+
+function nestRouteDateien(fileList){
+  Array.from(fileList || []).forEach(f => {
+    if(/\.pdf$/i.test(f.name || '')) nestBazPdfEinlesen(f);
+    else nestLadeDatei(f);
+  });
 }
 
 function nestBindDrop(){
   const dz  = document.getElementById('nestdropzone');
   const inp = document.getElementById('nestfileinput');
   document.getElementById('nestpick').addEventListener('click', () => inp.click());
-  inp.addEventListener('change', () => { if(inp.files[0]) nestLadeDatei(inp.files[0]); });
+  inp.addEventListener('change', () => { nestRouteDateien(inp.files); inp.value = ''; });
+  ['dragenter','dragover'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.add('over'); }));
+  ['dragleave','drop'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.remove('over'); }));
+  dz.addEventListener('drop', ev => {
+    nestRouteDateien(ev.dataTransfer.files);
+  });
+}
+
+/* Fallback-Einstieg fuer die PDF im NC_NEST-Tab, falls die BAZ-Stempelkarte
+   nicht schon zusammen mit der CSV im Startfenster reingezogen wurde -
+   gleiche .nestdrop-Optik wie oben, nur einspaltig fuer PDF. */
+function nestBindBazDrop(){
+  const dz  = document.getElementById('bazdropzone');
+  const inp = document.getElementById('bazfileinput');
+  document.getElementById('bazpick').addEventListener('click', () => inp.click());
+  inp.addEventListener('change', () => {
+    if(inp.files[0]) nestBazPdfEinlesen(inp.files[0]);
+    inp.value = '';
+  });
   ['dragenter','dragover'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.add('over'); }));
   ['dragleave','drop'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.remove('over'); }));
   dz.addEventListener('drop', ev => {
     const f = ev.dataTransfer.files[0];
-    if(f) nestLadeDatei(f);
+    if(f) nestBazPdfEinlesen(f);
   });
 }
 
@@ -2792,9 +2823,6 @@ function nestLadeDatei(file){
       }else{
         nestState = {total, hlt, nest, fileName:file.name};
         nestActiveTab = 'hlt';
-        nestRueckmeldenr = '';
-        nestAuftragsnr = '';
-        nestBazFehler = '';
       }
     }catch(err){
       nestState = {error:'Die Datei konnte nicht ausgewertet werden: ' + (err && err.message ? err.message : err)};
@@ -2966,6 +2994,7 @@ async function nestBazPdfEinlesen(file){
   nestRender();
   if(auftragOk) nestFlashFeld('ncnestauftragsnr');
   if(rmnrOk) nestFlashFeld('ncnestrueckmeldenr');
+  nestFlashFeld('nestbazstatus');
 }
 
 function nestRender(){
@@ -3000,12 +3029,13 @@ function nestRender(){
     h += '<p class="menuhinweis">Rückmeldenummer und Auftragsnummer gelten für die ganze Exportdatei. '
       + 'Werkzeugcode bei Nestteilen sowie die Programmdatei-Spalten werden noch nicht automatisch befüllt '
       + 'und bleiben leer.</p>';
-    h += '<div class="bazimport" id="bazimportzone">'
-      + '<button type="button" class="bazpick" id="bazpick">BAZ-Stempelkarte (PDF) einlesen</button>'
-      + '<input type="file" id="bazfileinput" accept="application/pdf,.pdf" hidden>'
-      + '<span class="bazhint">liest Rückmeldenummer + Auftragsnummer aus, oder PDF hierher ziehen</span>'
+    h += '<div class="nestdrop compact" id="bazdropzone">'
+      + '<h3>BAZ-Stempelkarte (PDF) einlesen</h3>'
+      + '<p>Trägt Rückmeldenummer und Auftragsnummer unten automatisch ein.</p>'
+      + '<button type="button" class="nestpick" id="bazpick">Datei auswählen</button>'
+      + '<input type="file" id="bazfileinput" accept=".pdf,application/pdf" hidden>'
       + '</div>';
-    if(nestBazFehler) h += '<div class="nesterr bazerr">'+esc(nestBazFehler)+'</div>';
+    if(nestBazFehler) h += '<div class="nesterr">'+esc(nestBazFehler)+'</div>';
     h += '<div class="ncnestform">'
       + '<label>Rückmeldenummer<input type="text" id="ncnestrueckmeldenr" value="'+esc(nestRueckmeldenr)+'" placeholder="z. B. 537677"></label>'
       + '<label>Auftragsnummer<input type="text" id="ncnestauftragsnr" value="'+esc(nestAuftragsnr)+'" placeholder="z. B. 63030396"></label>'
@@ -3032,6 +3062,9 @@ function nestRender(){
     document.getElementById('nestneu').addEventListener('click', () => {
       nestState = null;
       nestActiveTab = 'hlt';
+      nestRueckmeldenr = '';
+      nestAuftragsnr = '';
+      nestBazFehler = '';
       nestRender();
     });
     document.getElementById('ncnestrueckmeldenr').addEventListener('input', e => {
@@ -3042,19 +3075,7 @@ function nestRender(){
       nestAuftragsnr = e.target.value;
       document.getElementById('nestdlncnest').disabled = !(zeilen.length && nestRueckmeldenr.trim() && nestAuftragsnr.trim());
     });
-    const bazzone = document.getElementById('bazimportzone');
-    const bazinp  = document.getElementById('bazfileinput');
-    document.getElementById('bazpick').addEventListener('click', () => bazinp.click());
-    bazinp.addEventListener('change', () => {
-      if(bazinp.files[0]) nestBazPdfEinlesen(bazinp.files[0]);
-      bazinp.value = '';
-    });
-    ['dragenter','dragover'].forEach(e => bazzone.addEventListener(e, ev => { ev.preventDefault(); bazzone.classList.add('over'); }));
-    ['dragleave','drop'].forEach(e => bazzone.addEventListener(e, ev => { ev.preventDefault(); bazzone.classList.remove('over'); }));
-    bazzone.addEventListener('drop', ev => {
-      const f = ev.dataTransfer.files[0];
-      if(f) nestBazPdfEinlesen(f);
-    });
+    nestBindBazDrop();
     document.getElementById('nestdlncnest').addEventListener('click', () => {
       const erste = zeilen[0];
       const jobref = erste ? erste[7] : '';
@@ -3088,6 +3109,9 @@ function nestRender(){
   document.getElementById('nestneu').addEventListener('click', () => {
     nestState = null;
     nestActiveTab = 'hlt';
+    nestRueckmeldenr = '';
+    nestAuftragsnr = '';
+    nestBazFehler = '';
     nestRender();
   });
   document.getElementById('nestdlhlt').addEventListener('click', () => nestDownload(hlt, 'HLT Teile.csv'));
