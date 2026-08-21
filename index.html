@@ -217,6 +217,45 @@ body{
 .fchip.active[data-typ="ez"]{background:var(--amber)}
 .fchip.active[data-typ="ht"]{background:var(--red)}
 
+/* ---------- Ansicht-Umschalter (Suche / Nesting) ---------- */
+.viewnav{display:flex;gap:6px;margin:2px 0 10px}
+.vchip{
+  display:inline-flex;align-items:center;gap:6px;min-height:36px;
+  font-family:var(--cond);font-size:13px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+  background:none;border:1px solid #5A473C;color:#C9B7A8;
+  padding:7px 15px;border-radius:20px;cursor:pointer;
+  transition:background-color .18s ease,color .18s ease,border-color .18s ease;
+}
+.vchip:hover:not(:disabled){border-color:#E8C990;color:#fff}
+.vchip:disabled{opacity:.4;cursor:default}
+.vchip:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.vchip.active{color:#fff;border-color:transparent;background:var(--teal)}
+.vchip.active[data-view="nesting"]{background:var(--amber)}
+
+/* ---------- Nesting Teileliste ---------- */
+.nestintro p{color:var(--ink-3);max-width:60ch;margin:4px 0 0}
+.nesttabs{display:flex;gap:6px;margin:16px 0 0}
+.nesttab{
+  font-family:var(--cond);font-size:13px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+  background:none;border:1px solid var(--rule);border-bottom:0;color:var(--ink-3);
+  padding:8px 14px;border-radius:6px 6px 0 0;cursor:pointer;
+}
+.nesttab:hover{color:var(--ink)}
+.nesttab.active{color:var(--ink);background:var(--card)}
+.nesttablewrap{border:1px solid var(--rule-soft);border-radius:0 3px 3px 3px;overflow:hidden;max-height:420px;overflow-y:auto}
+.nesttable{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--card)}
+.nesttable th,.nesttable td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule-soft)}
+.nesttable th{font-family:var(--cond);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);position:sticky;top:0;background:var(--card)}
+.nesttable td.n{font-family:var(--mono);font-weight:600;white-space:nowrap}
+.nesttable td.rest{color:var(--ink-3);font-size:12.5px}
+.badge-prog{
+  display:inline-block;font-family:var(--cond);font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+  background:var(--amber-bg);color:var(--amber);border-radius:20px;padding:3px 9px;white-space:nowrap;
+}
+.nestactions{display:flex;gap:10px;margin:16px 0}
+.nestactions .reload{flex:none}
+#nestErr{color:var(--red);margin-top:8px;font-size:13.5px}
+
 /* ---------- Kamera-Overlay ---------- */
 .scanoverlay{position:fixed;inset:0;z-index:200;background:#0B0E11;display:flex;flex-direction:column}
 .scanoverlay[hidden]{display:none}
@@ -575,6 +614,10 @@ body.peek-open{overflow:hidden}
           <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
         </svg>
       </button>
+    </div>
+    <div class="viewnav" id="viewnav" role="group" aria-label="Ansicht wechseln">
+      <button class="vchip active" type="button" data-view="suche" aria-pressed="true">Suche</button>
+      <button class="vchip" type="button" data-view="nesting" aria-pressed="false" disabled>Nesting</button>
     </div>
     <div class="typfilter" id="typfilter" role="group" aria-label="Ergebnisse nach Typ filtern">
       <button class="fchip active" type="button" data-typ="alle" aria-pressed="true" disabled>Alle <span class="fc" id="fc-alle">(0)</span></button>
@@ -1718,11 +1761,13 @@ function leseDatei(file){
       DATA = baueDaten(wb);
       indexAufbauen();
       vergleichZuruecksetzen();
+      nestRecompute();
       quelleEl.hidden = false;
       qnameEl.textContent = dateiName + ' · ' + new Date().toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
       qEl.disabled = false;
       scanBtn.disabled = false;
       document.querySelectorAll('.fchip').forEach(b => b.disabled = false);
+      document.querySelector('.vchip[data-view="nesting"]').disabled = false;
       footEl.textContent = DATA.meta.bauteile + ' Bauteile · ' + DATA.meta.schablonen
         + ' Schablonen · ' + DATA.meta.paare + ' Zuordnungen · gelesen aus ' + dateiName;
       current = null; stack = [];
@@ -2116,6 +2161,200 @@ main.addEventListener('click', e => {
     e.stopPropagation();
   }
 }, true);
+</script>
+<script>
+/* ==========================================================
+   Nesting Teileliste (integriert aus nesting-teileliste.html)
+   CSV-Import, ISO-8859-1-Decoding, Spalte-G-Split, Sortierung
+   nach Spalte A und CSV-Export bleiben 1:1 erhalten. Zusätzlich
+   greift der "Programm vorhanden"-Check auf die bereits im
+   Speicher geladene Übersichtsliste (BT) zu, kein zweiter
+   Excel-Upload nötig.
+   ========================================================== */
+let ansicht = 'suche';
+let nestHlt = [], nestPro = [], nestTab = 'hlt', nestFileName = '';
+
+/* Normalisierter Schlüssel fürs Matching: Groß-/Kleinschreibung,
+   Leerzeichen und Trennzeichen egal, führende Nullen je Segment
+   werden entfernt (aber "0" allein bleibt "0"). */
+function progKey(s){
+  return String(s||'').trim().toUpperCase()
+    .split(/[^A-Z0-9]+/).filter(Boolean)
+    .map(seg => seg.replace(/^0+(?=[0-9])/, ''))
+    .join('');
+}
+
+function nestProgSet(){
+  const s = new Set();
+  BT.forEach((v, nr) => s.add(progKey(nr)));
+  return s;
+}
+
+/* Neu berechnen, wenn die Übersichtsliste (neu) geladen wird,
+   während schon eine Nesting-CSV importiert ist. */
+function nestRecompute(){
+  if(!nestHlt.length && !nestPro.length) return;
+  const progSet = nestProgSet();
+  [nestHlt, nestPro].forEach(arr => arr.forEach(r => { r.vorhanden = progSet.has(progKey(r.colA)); }));
+  if(ansicht === 'nesting') renderNesting();
+}
+
+function setAnsicht(v){
+  if(v === 'nesting' && !DATA) return;
+  ansicht = v;
+  document.querySelectorAll('.vchip').forEach(b => {
+    const on = b.dataset.view === ansicht;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  const zeigSuche = ansicht === 'suche';
+  document.getElementById('typfilter').style.display = zeigSuche ? '' : 'none';
+  document.querySelector('.searchwrap').style.display = zeigSuche ? '' : 'none';
+  document.getElementById('hint').style.display = zeigSuche ? '' : 'none';
+  if(zeigSuche) render(); else renderNesting();
+}
+document.querySelectorAll('.vchip').forEach(btn => {
+  btn.addEventListener('click', () => setAnsicht(btn.dataset.view));
+});
+
+function renderNesting(){
+  let h = '<div class="nestintro"><h3>Nesting Teileliste</h3>'
+    + '<p>CSV importieren &rarr; HLT-STD-Teile und proalpha-Nummern getrennt, sortiert nach Bauteilnummer, '
+    + 'mit Abgleich gegen die geladene Übersichtsliste.</p></div>';
+
+  h += '<label class="drop" id="nestDrop">'
+    + '<input type="file" id="nestFile" accept=".csv">'
+    + '<h3>Nesting-CSV auswählen</h3>'
+    + '<p>' + (nestFileName ? esc(nestFileName) : 'CSV hier reinziehen oder klicken zum Auswählen (ISO-8859-1, Semikolon-getrennt)') + '</p>'
+    + '</label>'
+    + '<div id="nestErr"></div>';
+
+  if(nestHlt.length || nestPro.length){
+    const total = nestHlt.length + nestPro.length;
+    h += '<div class="stats">'
+      + '<div class="stat"><b>' + total + '</b><span>Zeilen gesamt</span></div>'
+      + '<div class="stat"><b>' + nestHlt.length + '</b><span>HLT-STD Zeilen</span></div>'
+      + '<div class="stat"><b>' + nestPro.length + '</b><span>proalpha Zeilen</span></div>'
+      + '</div>';
+    h += '<div class="nestactions">'
+      + '<button class="reload" id="nestDlHlt" type="button">HLT-STD CSV runterladen</button>'
+      + '<button class="reload alt" id="nestDlPro" type="button">proalpha CSV runterladen</button>'
+      + '</div>';
+    h += '<div class="nesttabs">'
+      + '<button class="nesttab' + (nestTab === 'hlt' ? ' active' : '') + '" type="button" data-ntab="hlt">HLT-STD Teile</button>'
+      + '<button class="nesttab' + (nestTab === 'pro' ? ' active' : '') + '" type="button" data-ntab="pro">proalpha Nummern</button>'
+      + '</div>'
+      + '<div class="nesttablewrap">' + nestTableHtml() + '</div>';
+  }
+
+  main.innerHTML = h;
+  nestBind();
+}
+
+function nestTableHtml(){
+  const list = nestTab === 'hlt' ? nestHlt : nestPro;
+  const kopf = nestTab === 'hlt' ? 'Bauteilnummer (HLT-STD)' : 'Bauteilnummer (proalpha)';
+  if(!list.length) return '<div class="empty"><p>Keine Daten</p></div>';
+  let h = '<table class="nesttable"><thead><tr><th>' + kopf + '</th><th>Programm</th><th>Rest der Zeile</th></tr></thead><tbody>';
+  list.forEach(row => {
+    h += '<tr><td class="n">' + esc(row.colA) + '</td><td>'
+      + (row.vorhanden ? '<span class="badge-prog">Programm vorhanden</span>' : '')
+      + '</td><td class="rest">' + esc(row.rest) + '</td></tr>';
+  });
+  h += '</tbody></table>';
+  return h;
+}
+
+function nestBind(){
+  const dropEl = document.getElementById('nestDrop');
+  const fileEl = document.getElementById('nestFile');
+  if(dropEl){
+    dropEl.addEventListener('dragover', e => { e.preventDefault(); dropEl.classList.add('over'); });
+    dropEl.addEventListener('dragleave', () => dropEl.classList.remove('over'));
+    dropEl.addEventListener('drop', e => {
+      e.preventDefault(); dropEl.classList.remove('over');
+      if(e.dataTransfer.files.length) nestHandleFile(e.dataTransfer.files[0]);
+    });
+  }
+  if(fileEl) fileEl.addEventListener('change', () => { if(fileEl.files.length) nestHandleFile(fileEl.files[0]); });
+  document.querySelectorAll('.nesttab').forEach(t => {
+    t.addEventListener('click', () => { nestTab = t.dataset.ntab; renderNesting(); });
+  });
+  const dlHlt = document.getElementById('nestDlHlt');
+  const dlPro = document.getElementById('nestDlPro');
+  if(dlHlt) dlHlt.addEventListener('click', () => nestDownloadCSV(nestHlt, 'HLT-STD-Teile.csv'));
+  if(dlPro) dlPro.addEventListener('click', () => nestDownloadCSV(nestPro, 'proalpha-Teile.csv'));
+}
+
+function nestHandleFile(file){
+  nestFileName = file.name;
+  const reader = new FileReader();
+  reader.onerror = () => {
+    const errEl = document.getElementById('nestErr');
+    if(errEl) errEl.textContent = 'Die Datei konnte nicht gelesen werden.';
+  };
+  reader.onload = () => {
+    try{
+      // Nesting-CSVs sind ISO-8859-1 codiert
+      const decoder = new TextDecoder('iso-8859-1');
+      const text = decoder.decode(reader.result);
+      nestParseCSV(text);
+    }catch(e){
+      const errEl = document.getElementById('nestErr');
+      if(errEl) errEl.textContent = 'Fehler beim Einlesen: ' + e.message;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function nestParseCSV(text){
+  const progSet = nestProgSet();
+  const lines = text.split(/\r\n|\n|\r/).filter(l => l.trim().length > 0);
+  const hlt = [], pro = [];
+
+  for(const line of lines){
+    const cols = line.split(';');
+    const colG = (cols[6] || '').trim();
+    if(!colG) continue; // Spalte G leer -> Zeile ignorieren
+    const colA = cols[0] || '';
+    const row = {
+      line: line,
+      colA: colA,
+      rest: cols.slice(1).join(' | '),
+      vorhanden: progSet.has(progKey(colA))
+    };
+    if(colG === 'HLT-STD') hlt.push(row);
+    else pro.push(row);
+  }
+
+  // Sortierung nach Bauteilnummer (Spalte A)
+  const byColA = (a, b) => a.colA.localeCompare(b.colA, undefined, { numeric: true });
+  hlt.sort(byColA);
+  pro.sort(byColA);
+
+  nestHlt = hlt;
+  nestPro = pro;
+  nestTab = 'hlt';
+
+  const errEl = document.getElementById('nestErr');
+  if(errEl) errEl.textContent = (hlt.length + pro.length) === 0
+    ? 'Keine Zeilen mit Inhalt in Spalte G gefunden. Ist das die richtige Datei / Trennzeichen ";"?'
+    : '';
+
+  renderNesting();
+}
+
+function nestDownloadCSV(rows, filename){
+  if(!rows.length) return;
+  const csv = rows.map(r => r.line + ';' + (r.vorhanden ? 'Programm vorhanden' : '')).join('\r\n') + '\r\n';
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 </script>
 </body>
 </html>
