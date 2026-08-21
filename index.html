@@ -1298,6 +1298,30 @@ function exportiereAuswahl(){
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/* Export der aktuell verglichenen Bauteile/Schablonen: ein Feld pro Zeile
+   wie in exportiereAuswahl() reicht hier nicht, weil der Vergleich Spalten-
+   pro-Eintrag ist - stattdessen eine Zeile pro Eintrag mit den Feldern aus
+   BT_FELDER/SCH_FELDER als Spalten (unabhängig vom "Nur Unterschiede"-
+   Filter, damit die Datei ein vollständiger Datensatz bleibt). */
+function exportiereVergleich(){
+  if(vergleich.length < 2) return;
+  const istBt = vergleich[0].typ === 'bt';
+  const felder = istBt ? BT_FELDER : SCH_FELDER;
+  const eintraege = vergleich.map(v => ({nr:v.nr, d: istBt ? BT.get(v.nr) : SCH.get(v.nr)})).filter(e => e.d);
+  if(!eintraege.length) return;
+  const zeilen = [felder.map(f => csvZelle(f.label)).join(';')];
+  eintraege.forEach(e => {
+    zeilen.push(felder.map(f => csvZelle(f.get(e.d))).join(';'));
+  });
+  const csv = '﻿' + zeilen.join('\r\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = (istBt ? 'vergleich-bauteile_' : 'vergleich-schablonen_') + datumHeute() + '.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 /* Spalte H wie in feldHT() aufteilen, aber je Kategorie getrennt für die Vergleichstabelle */
 function htTeile(rohWert){
   const out = {ht:[], proalpha:[], staerke:[]};
@@ -1399,7 +1423,7 @@ function zeigeVergleich(){
     h += '</tr>';
   });
   h += '</tbody></table></div>';
-  h += '<div class="cmpfoot"><button class="cmpbtn2 alt" id="cmpclearview">Auswahl löschen</button></div>';
+  h += '<div class="cmpfoot"><button class="cmpbtn2" id="cmpexport">CSV exportieren</button><button class="cmpbtn2 alt" id="cmpclearview">Auswahl löschen</button></div>';
 
   main.innerHTML = h;
   document.getElementById('bk').addEventListener('click', zurueck);
@@ -1417,6 +1441,7 @@ function zeigeVergleich(){
     vergleichZuruecksetzen();
     zurueck();
   });
+  document.getElementById('cmpexport').addEventListener('click', exportiereVergleich);
   vergleichLeisteRender();
   window.scrollTo(0,0);
 }
