@@ -217,44 +217,112 @@ body{
 .fchip.active[data-typ="ez"]{background:var(--amber)}
 .fchip.active[data-typ="ht"]{background:var(--red)}
 
-/* ---------- Ansicht-Umschalter (Suche / Nesting) ---------- */
-.viewnav{display:flex;gap:6px;margin:2px 0 10px}
-.vchip{
-  display:inline-flex;align-items:center;gap:6px;min-height:36px;
+/* ---------- Nesting-Teileliste ---------- */
+.nestbtn{
+  margin-left:8px;border:1px solid #5A473C;background:none;color:#C9B7A8;
   font-family:var(--cond);font-size:13px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
-  background:none;border:1px solid #5A473C;color:#C9B7A8;
-  padding:7px 15px;border-radius:20px;cursor:pointer;
-  transition:background-color .18s ease,color .18s ease,border-color .18s ease;
+  border-radius:20px;padding:7px 15px;cursor:pointer;flex-shrink:0;
 }
-.vchip:hover:not(:disabled){border-color:#E8C990;color:#fff}
-.vchip:disabled{opacity:.4;cursor:default}
-.vchip:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-.vchip.active{color:#fff;border-color:transparent;background:var(--teal)}
-.vchip.active[data-view="nesting"]{background:var(--amber)}
-
-/* ---------- Nesting Teileliste ---------- */
-.nestintro p{color:var(--ink-3);max-width:60ch;margin:4px 0 0}
-.nesttabs{display:flex;gap:6px;margin:16px 0 0}
+.nestbtn:hover{color:#fff;border-color:#E8C990}
+.nestlay{
+  position:fixed;inset:0;z-index:240;background:rgba(15,11,8,.5);
+  -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;transition:opacity .16s ease-out;
+}
+.nestlay[hidden]{display:none}
+.nestlay.show{opacity:1}
+.nestcard{
+  width:100%;max-width:860px;max-height:calc(100vh - 40px);overflow-y:auto;
+  background:var(--card);border:1px solid var(--rule-soft);border-radius:12px;
+  box-shadow:0 20px 48px rgba(0,0,0,.4);
+  transform:scale(.94);opacity:0;transition:transform .17s ease-out,opacity .17s ease-out;
+}
+.nestlay.show .nestcard{transform:scale(1);opacity:1}
+.nesthead{
+  position:sticky;top:0;background:var(--card);display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border-bottom:1px solid var(--rule-soft);z-index:2;
+}
+.nesthead span{
+  font-family:var(--cond);font-size:15px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--ink);
+}
+.nestclose{border:0;background:none;color:var(--ink-3);font-size:22px;line-height:1;cursor:pointer;padding:3px 6px}
+.nestclose:hover{color:var(--teal)}
+.nestbody{padding:16px}
+.nestdrop{
+  border:2px dashed var(--rule);border-radius:6px;background:var(--surface-alt);
+  padding:34px 20px;text-align:center;
+}
+.nestdrop.over{border-color:var(--teal);background:var(--teal-bg)}
+.nestdrop h3{font-family:var(--cond);font-size:19px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink);margin-bottom:8px}
+.nestdrop p{color:var(--ink-3);font-size:13.5px;max-width:46ch;margin:0 auto 14px;line-height:1.5}
+.nestpick{
+  font-family:var(--cond);font-size:14px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;
+  background:var(--ink-solid);color:#fff;border:0;border-radius:3px;padding:11px 20px;cursor:pointer;
+}
+.nestpick:hover{background:var(--teal)}
+.nesterr{
+  margin-top:14px;background:var(--red-bg-fixed);color:var(--red-text-fixed);
+  border-radius:3px;padding:11px 13px;font-size:13.5px;line-height:1.45;
+}
+.neststats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.neststat{
+  flex:1;min-width:120px;background:var(--surface-alt);border:1px solid var(--rule-soft);
+  border-radius:6px;padding:11px 13px;
+}
+.neststat .nv{font-family:var(--mono);font-size:21px;font-weight:600;color:var(--ink)}
+.neststat .nl{font-family:var(--cond);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-top:2px}
+.nesttoolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.ncnestform{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.ncnestform label{
+  display:flex;flex-direction:column;gap:4px;flex:1;min-width:180px;
+  font-family:var(--cond);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);
+}
+.ncnestform input{
+  font-family:var(--mono);font-size:14px;padding:9px 11px;border:1px solid var(--rule);border-radius:4px;
+  background:var(--surface-bright);color:var(--ink);
+}
+.ncnestform input:focus{outline:2px solid var(--teal);outline-offset:1px}
+.nesttabs{display:flex;gap:4px;background:var(--surface-alt);border-radius:20px;padding:3px}
 .nesttab{
-  font-family:var(--cond);font-size:13px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
-  background:none;border:1px solid var(--rule);border-bottom:0;color:var(--ink-3);
-  padding:8px 14px;border-radius:6px 6px 0 0;cursor:pointer;
+  font-family:var(--cond);font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+  border:0;background:none;color:var(--ink-3);border-radius:16px;padding:8px 14px;cursor:pointer;white-space:nowrap;
 }
-.nesttab:hover{color:var(--ink)}
-.nesttab.active{color:var(--ink);background:var(--card)}
-.nesttablewrap{border:1px solid var(--rule-soft);border-radius:0 3px 3px 3px;overflow:hidden;max-height:420px;overflow-y:auto}
-.nesttable{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--card)}
-.nesttable th,.nesttable td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule-soft)}
-.nesttable th{font-family:var(--cond);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);position:sticky;top:0;background:var(--card)}
-.nesttable td.n{font-family:var(--mono);font-weight:600;white-space:nowrap}
-.nesttable td.rest{color:var(--ink-3);font-size:12.5px}
+.nesttab.active{background:var(--teal);color:#fff}
+.nestnew{
+  font-family:var(--cond);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  background:none;color:var(--ink-3);border:1px solid var(--rule);border-radius:20px;padding:8px 14px;cursor:pointer;
+}
+.nestnew:hover:not(:disabled){color:var(--teal);border-color:var(--teal)}
+.nestnew:disabled{opacity:.4;cursor:default}
+.nesttablewrap{
+  overflow:auto;border:1px solid var(--rule-soft);border-radius:6px;background:var(--card);
+  margin-bottom:16px;-webkit-overflow-scrolling:touch;max-height:340px;
+}
+.nesttable{width:100%;border-collapse:collapse;font-size:13px}
+.nesttable th{
+  position:sticky;top:0;background:var(--surface-alt);text-align:left;padding:8px 11px;
+  font-family:var(--cond);font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);
+  border-bottom:1px solid var(--rule-soft);white-space:nowrap;
+}
+.nesttable td{padding:7px 11px;border-bottom:1px solid var(--rule-soft);color:var(--ink);vertical-align:top}
+.nesttable td.nc-a{font-family:var(--mono);font-weight:600;white-space:nowrap}
+.nesttable td.nc-r{color:var(--ink-2);font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+.nesttable tr:last-child td{border-bottom:0}
+.nestempty{padding:24px;text-align:center;color:var(--ink-3);font-size:13.5px}
+.nestactions{display:flex;gap:10px;flex-wrap:wrap}
+.nestdl{
+  font-family:var(--cond);font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  background:var(--teal);color:#fff;border:0;border-radius:3px;padding:11px 16px;cursor:pointer;
+}
+.nestdl:hover:not(:disabled){filter:brightness(1.12)}
+.nestdl:disabled{opacity:.4;cursor:default}
+.nestdl.alt{background:none;color:var(--ink-2);border:1px solid var(--rule)}
+.nestdl.alt:hover:not(:disabled){border-color:var(--teal);color:var(--teal);filter:none}
 .badge-prog{
-  display:inline-block;font-family:var(--cond);font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+  display:inline-block;font-family:var(--cond);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
   background:var(--amber-bg);color:var(--amber);border-radius:20px;padding:3px 9px;white-space:nowrap;
 }
-.nestactions{display:flex;gap:10px;margin:16px 0}
-.nestactions .reload{flex:none}
-#nestErr{color:var(--red);margin-top:8px;font-size:13.5px}
 
 /* ---------- Kamera-Overlay ---------- */
 .scanoverlay{position:fixed;inset:0;z-index:200;background:#0B0E11;display:flex;flex-direction:column}
@@ -614,10 +682,7 @@ body.peek-open{overflow:hidden}
           <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
         </svg>
       </button>
-    </div>
-    <div class="viewnav" id="viewnav" role="group" aria-label="Ansicht wechseln">
-      <button class="vchip active" type="button" data-view="suche" aria-pressed="true">Suche</button>
-      <button class="vchip" type="button" data-view="nesting" aria-pressed="false" disabled>Nesting</button>
+      <button class="nestbtn" id="nestopenbtn" type="button">Nesting-Teileliste</button>
     </div>
     <div class="typfilter" id="typfilter" role="group" aria-label="Ergebnisse nach Typ filtern">
       <button class="fchip active" type="button" data-typ="alle" aria-pressed="true" disabled>Alle <span class="fc" id="fc-alle">(0)</span></button>
@@ -645,6 +710,16 @@ body.peek-open{overflow:hidden}
     </div>
   </div>
 </header>
+
+<div class="nestlay" id="nestlay" hidden>
+  <div class="nestcard" id="nestcard" role="dialog" aria-modal="true" aria-label="Nesting-Teileliste">
+    <div class="nesthead">
+      <span>Nesting-Teileliste</span>
+      <button class="nestclose" id="nestclose" aria-label="Schließen" type="button">&times;</button>
+    </div>
+    <div class="nestbody" id="nestbody"></div>
+  </div>
+</div>
 
 <main class="wrap" id="main"></main>
 
@@ -1767,7 +1842,6 @@ function leseDatei(file){
       qEl.disabled = false;
       scanBtn.disabled = false;
       document.querySelectorAll('.fchip').forEach(b => b.disabled = false);
-      document.querySelector('.vchip[data-view="nesting"]').disabled = false;
       footEl.textContent = DATA.meta.bauteile + ' Bauteile · ' + DATA.meta.schablonen
         + ' Schablonen · ' + DATA.meta.paare + ' Zuordnungen · gelesen aus ' + dateiName;
       current = null; stack = [];
@@ -2163,197 +2237,448 @@ main.addEventListener('click', e => {
 }, true);
 </script>
 <script>
-/* ==========================================================
-   Nesting Teileliste (integriert aus nesting-teileliste.html)
-   CSV-Import, ISO-8859-1-Decoding, Spalte-G-Split, Sortierung
-   nach Spalte A und CSV-Export bleiben 1:1 erhalten. Zusätzlich
-   greift der "Programm vorhanden"-Check auf die bereits im
-   Speicher geladene Übersichtsliste (BT) zu, kein zweiter
-   Excel-Upload nötig.
-   ========================================================== */
-let ansicht = 'suche';
-let nestHlt = [], nestPro = [], nestTab = 'hlt', nestFileName = '';
+/* ==================== Nesting-Teileliste ====================
+   CSV-Import (ISO-8859-1, Semikolon-getrennt, ohne Kopfzeile), Spalte-G-Split
+   in HLT Teile / Nestteile, "Saubere Nestingliste" (gefiltert/sortiert nach
+   Stärke, Aufbau-Code, Bauteilnummer) und NC_NEST-Export bleiben erhalten.
+   Zusätzlich wird pro Zeile die Bauteilnummer (Spalte A) gegen die bereits
+   geladene Übersichtsliste (BT) abgeglichen ("Programm vorhanden"). */
+const nestlay  = document.getElementById('nestlay');
+const nestbody = document.getElementById('nestbody');
+let nestState = null;
+let nestActiveTab = 'hlt';
+let nestRueckmeldenr = '';
+let nestAuftragsnr = '';
 
-/* Normalisierter Schlüssel fürs Matching: Groß-/Kleinschreibung,
-   Leerzeichen und Trennzeichen egal, führende Nullen je Segment
-   werden entfernt (aber "0" allein bleibt "0"). */
+/* Normalisierter Schlüssel fürs Matching: Groß-/Kleinschreibung, Leerzeichen
+   und Trennzeichen egal, führende Nullen je Segment entfernt (aber "0"
+   allein bleibt "0"). */
 function progKey(s){
   return String(s||'').trim().toUpperCase()
     .split(/[^A-Z0-9]+/).filter(Boolean)
     .map(seg => seg.replace(/^0+(?=[0-9])/, ''))
     .join('');
 }
-
 function nestProgSet(){
   const s = new Set();
   BT.forEach((v, nr) => s.add(progKey(nr)));
   return s;
 }
-
-/* Neu berechnen, wenn die Übersichtsliste (neu) geladen wird,
-   während schon eine Nesting-CSV importiert ist. */
+/* Neu berechnen, wenn die Übersichtsliste (neu) geladen wird, während schon
+   eine Nesting-CSV importiert ist. */
 function nestRecompute(){
-  if(!nestHlt.length && !nestPro.length) return;
+  if(!nestState || nestState.error) return;
   const progSet = nestProgSet();
-  [nestHlt, nestPro].forEach(arr => arr.forEach(r => { r.vorhanden = progSet.has(progKey(r.colA)); }));
-  if(ansicht === 'nesting') renderNesting();
+  [nestState.hlt, nestState.nest].forEach(arr => arr.forEach(r => {
+    r.vorhanden = progSet.has(progKey(r.cols[0] || ''));
+  }));
+  if(!nestlay.hidden) nestRender();
 }
 
-function setAnsicht(v){
-  if(v === 'nesting' && !DATA) return;
-  ansicht = v;
-  document.querySelectorAll('.vchip').forEach(b => {
-    const on = b.dataset.view === ansicht;
-    b.classList.toggle('active', on);
-    b.setAttribute('aria-pressed', on ? 'true' : 'false');
-  });
-  const zeigSuche = ansicht === 'suche';
-  document.getElementById('typfilter').style.display = zeigSuche ? '' : 'none';
-  document.querySelector('.searchwrap').style.display = zeigSuche ? '' : 'none';
-  document.getElementById('hint').style.display = zeigSuche ? '' : 'none';
-  if(zeigSuche) render(); else renderNesting();
+function nestOeffnen(){
+  nestlay.hidden = false;
+  nestRender();
+  requestAnimationFrame(() => nestlay.classList.add('show'));
 }
-document.querySelectorAll('.vchip').forEach(btn => {
-  btn.addEventListener('click', () => setAnsicht(btn.dataset.view));
-});
-
-function renderNesting(){
-  let h = '<div class="nestintro"><h3>Nesting Teileliste</h3>'
-    + '<p>CSV importieren &rarr; HLT-STD-Teile und proalpha-Nummern getrennt, sortiert nach Bauteilnummer, '
-    + 'mit Abgleich gegen die geladene Übersichtsliste.</p></div>';
-
-  h += '<label class="drop" id="nestDrop">'
-    + '<input type="file" id="nestFile" accept=".csv">'
-    + '<h3>Nesting-CSV auswählen</h3>'
-    + '<p>' + (nestFileName ? esc(nestFileName) : 'CSV hier reinziehen oder klicken zum Auswählen (ISO-8859-1, Semikolon-getrennt)') + '</p>'
-    + '</label>'
-    + '<div id="nestErr"></div>';
-
-  if(nestHlt.length || nestPro.length){
-    const total = nestHlt.length + nestPro.length;
-    h += '<div class="stats">'
-      + '<div class="stat"><b>' + total + '</b><span>Zeilen gesamt</span></div>'
-      + '<div class="stat"><b>' + nestHlt.length + '</b><span>HLT-STD Zeilen</span></div>'
-      + '<div class="stat"><b>' + nestPro.length + '</b><span>proalpha Zeilen</span></div>'
-      + '</div>';
-    h += '<div class="nestactions">'
-      + '<button class="reload" id="nestDlHlt" type="button">HLT-STD CSV runterladen</button>'
-      + '<button class="reload alt" id="nestDlPro" type="button">proalpha CSV runterladen</button>'
-      + '</div>';
-    h += '<div class="nesttabs">'
-      + '<button class="nesttab' + (nestTab === 'hlt' ? ' active' : '') + '" type="button" data-ntab="hlt">HLT-STD Teile</button>'
-      + '<button class="nesttab' + (nestTab === 'pro' ? ' active' : '') + '" type="button" data-ntab="pro">proalpha Nummern</button>'
-      + '</div>'
-      + '<div class="nesttablewrap">' + nestTableHtml() + '</div>';
-  }
-
-  main.innerHTML = h;
-  nestBind();
+function nestSchliessen(){
+  if(nestlay.hidden) return;
+  nestlay.classList.remove('show');
+  setTimeout(() => { nestlay.hidden = true; }, 160);
 }
+document.getElementById('nestopenbtn').addEventListener('click', nestOeffnen);
+document.getElementById('nestclose').addEventListener('click', nestSchliessen);
+nestlay.addEventListener('click', e => { if(e.target === nestlay) nestSchliessen(); });
+window.addEventListener('keydown', e => { if(e.key === 'Escape' && !nestlay.hidden) nestSchliessen(); });
 
-function nestTableHtml(){
-  const list = nestTab === 'hlt' ? nestHlt : nestPro;
-  const kopf = nestTab === 'hlt' ? 'Bauteilnummer (HLT-STD)' : 'Bauteilnummer (proalpha)';
-  if(!list.length) return '<div class="empty"><p>Keine Daten</p></div>';
-  let h = '<table class="nesttable"><thead><tr><th>' + kopf + '</th><th>Programm</th><th>Rest der Zeile</th></tr></thead><tbody>';
-  list.forEach(row => {
-    h += '<tr><td class="n">' + esc(row.colA) + '</td><td>'
-      + (row.vorhanden ? '<span class="badge-prog">Programm vorhanden</span>' : '')
-      + '</td><td class="rest">' + esc(row.rest) + '</td></tr>';
-  });
-  h += '</tbody></table>';
+function nestDropHtml(fehler){
+  let h = '<div class="nestdrop" id="nestdropzone">'
+    + '<h3>Nesting-CSV importieren</h3>'
+    + '<p>Nesting-CSV (semikolon-getrennt, ohne Kopfzeile) hierher ziehen oder auswählen. Die Zeilen werden anhand '
+    + 'von Spalte G automatisch in HLT Teile und Nestteile aufgeteilt. Unter &bdquo;Saubere Nestingliste&ldquo; gibt es '
+    + 'die Nestteile zusätzlich gefiltert und sortiert mit reduzierter Spaltenauswahl zum Export.</p>'
+    + '<button type="button" class="nestpick" id="nestpick">Datei auswählen</button>'
+    + '<input type="file" id="nestfileinput" accept=".csv" hidden>'
+    + '</div>';
+  if(fehler) h += '<div class="nesterr">'+esc(fehler)+'</div>';
   return h;
 }
 
-function nestBind(){
-  const dropEl = document.getElementById('nestDrop');
-  const fileEl = document.getElementById('nestFile');
-  if(dropEl){
-    dropEl.addEventListener('dragover', e => { e.preventDefault(); dropEl.classList.add('over'); });
-    dropEl.addEventListener('dragleave', () => dropEl.classList.remove('over'));
-    dropEl.addEventListener('drop', e => {
-      e.preventDefault(); dropEl.classList.remove('over');
-      if(e.dataTransfer.files.length) nestHandleFile(e.dataTransfer.files[0]);
-    });
-  }
-  if(fileEl) fileEl.addEventListener('change', () => { if(fileEl.files.length) nestHandleFile(fileEl.files[0]); });
-  document.querySelectorAll('.nesttab').forEach(t => {
-    t.addEventListener('click', () => { nestTab = t.dataset.ntab; renderNesting(); });
+function nestBindDrop(){
+  const dz  = document.getElementById('nestdropzone');
+  const inp = document.getElementById('nestfileinput');
+  document.getElementById('nestpick').addEventListener('click', () => inp.click());
+  inp.addEventListener('change', () => { if(inp.files[0]) nestLadeDatei(inp.files[0]); inp.value = ''; });
+  ['dragenter','dragover'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.add('over'); }));
+  ['dragleave','drop'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.remove('over'); }));
+  dz.addEventListener('drop', ev => {
+    ev.preventDefault();
+    const f = ev.dataTransfer.files[0];
+    if(f) nestLadeDatei(f);
   });
-  const dlHlt = document.getElementById('nestDlHlt');
-  const dlPro = document.getElementById('nestDlPro');
-  if(dlHlt) dlHlt.addEventListener('click', () => nestDownloadCSV(nestHlt, 'HLT-STD-Teile.csv'));
-  if(dlPro) dlPro.addEventListener('click', () => nestDownloadCSV(nestPro, 'proalpha-Teile.csv'));
 }
 
-function nestHandleFile(file){
-  nestFileName = file.name;
-  const reader = new FileReader();
-  reader.onerror = () => {
-    const errEl = document.getElementById('nestErr');
-    if(errEl) errEl.textContent = 'Die Datei konnte nicht gelesen werden.';
-  };
-  reader.onload = () => {
-    try{
-      // Nesting-CSVs sind ISO-8859-1 codiert
-      const decoder = new TextDecoder('iso-8859-1');
-      const text = decoder.decode(reader.result);
-      nestParseCSV(text);
-    }catch(e){
-      const errEl = document.getElementById('nestErr');
-      if(errEl) errEl.textContent = 'Fehler beim Einlesen: ' + e.message;
-    }
-  };
-  reader.readAsArrayBuffer(file);
+/* Zwei bekannte F/List-Rohformate, beide Semikolon-getrennt ohne Kopfzeile,
+   Spalte G (Index 6) aber an derselben Stelle: leer = Baugruppe/Chemikalie/
+   Hardware (raus), 'HLT-STD' = HLT-Teil, sonst Aufbau-/Layup-Code = Nestteil.
+   20 Spalten: Bauteil;Bezeichnung;Status;Anzahl;Position;LfdNr;AufbauCode;...;
+     Länge;Breite;Stärke;...;ProalphaNr;;;Shipset;ShipsetKurz;;Flag
+   17 Spalten: Bauteil;Zweitbez;Status;Anzahl;RMNr;;AufbauCode;...;Shipset
+   (keine eigenen Maß-/Proalpha-Spalten, Stärke steckt im AufbauCode selbst,
+   z.B. "160-1100-142-9.5" -> siehe nestParseProAlpha). Andere Spaltenzahlen
+   sind ein unbekanntes drittes Format und werden nur roh gesplittet, ohne
+   den "saubere Liste"-Export zu erlauben.
+   Die Formaterkennung nutzt bewusst die BREITESTE Zeile der ganzen Datei,
+   nicht nur die erste: Excel/F-List trimmen leere Zellen am Zeilenende beim
+   CSV-Export individuell pro Zeile weg, eine einzelne kurze Zeile (z.B. ohne
+   Shipsetnummer) würde die ganze Datei sonst fälschlich als "unbekannt"
+   erkennen lassen, obwohl der Rest sauber 17- oder 20-spaltig ist. */
+function nestErkenneFormat(maxCols){
+  if(maxCols >= 18) return '20';
+  if(maxCols >= 7) return '17';
+  return 'unbekannt';
 }
 
-function nestParseCSV(text){
-  const progSet = nestProgSet();
-  const lines = text.split(/\r\n|\n|\r/).filter(l => l.trim().length > 0);
-  const hlt = [], pro = [];
-
-  for(const line of lines){
+function nestParseCsv(text){
+  const lines = text.split(/\r\n|\r|\n/);
+  const rohHlt = [], rohNest = [];
+  let total = 0, maxCols = 0;
+  lines.forEach(line => {
+    if(line === '') return;
+    total++;
     const cols = line.split(';');
-    const colG = (cols[6] || '').trim();
-    if(!colG) continue; // Spalte G leer -> Zeile ignorieren
-    const colA = cols[0] || '';
-    const row = {
-      line: line,
-      colA: colA,
-      rest: cols.slice(1).join(' | '),
-      vorhanden: progSet.has(progKey(colA))
-    };
-    if(colG === 'HLT-STD') hlt.push(row);
-    else pro.push(row);
-  }
-
-  // Sortierung nach Bauteilnummer (Spalte A)
-  const byColA = (a, b) => a.colA.localeCompare(b.colA, undefined, { numeric: true });
-  hlt.sort(byColA);
-  pro.sort(byColA);
-
-  nestHlt = hlt;
-  nestPro = pro;
-  nestTab = 'hlt';
-
-  const errEl = document.getElementById('nestErr');
-  if(errEl) errEl.textContent = (hlt.length + pro.length) === 0
-    ? 'Keine Zeilen mit Inhalt in Spalte G gefunden. Ist das die richtige Datei / Trennzeichen ";"?'
-    : '';
-
-  renderNesting();
+    const g = (cols[6] || '').trim();
+    if(g === '') return;
+    if(cols.length > maxCols) maxCols = cols.length;
+    if(g === 'HLT-STD') rohHlt.push({raw:line, cols});
+    else rohNest.push({raw:line, cols});
+  });
+  const format = nestErkenneFormat(maxCols);
+  const progSet = nestProgSet();
+  const markiere = r => { r.vorhanden = progSet.has(progKey(r.cols[0] || '')); return r; };
+  return {total, hlt: rohHlt.map(markiere), nest: rohNest.map(markiere), format};
 }
 
-function nestDownloadCSV(rows, filename){
+function nestLadeDatei(file){
+  const fr = new FileReader();
+  fr.onerror = () => { nestState = {error:'Die Datei konnte nicht gelesen werden.'}; nestRender(); };
+  fr.onload = () => {
+    try{
+      const {total, hlt, nest, format} = nestParseCsv(fr.result);
+      if(!hlt.length && !nest.length){
+        nestState = {error:'Keine gültigen Zeilen gefunden. Spalte G (Index 6) ist bei allen Zeilen leer, oder die Datei hat ein anderes Format.'};
+      }else{
+        nestState = {total, hlt, nest, format, fileName:file.name};
+        nestActiveTab = 'hlt';
+      }
+    }catch(err){
+      nestState = {error:'Die Datei konnte nicht ausgewertet werden: ' + (err && err.message ? err.message : err)};
+    }
+    nestRender();
+  };
+  fr.readAsText(file, 'ISO-8859-1');
+}
+
+function nestToIso88591Bytes(str){
+  const bytes = new Uint8Array(str.length);
+  for(let i=0;i<str.length;i++) bytes[i] = str.charCodeAt(i) & 0xFF;
+  return bytes;
+}
+
+/* Rohzeilen-Export (HLT/Nestteile): 1:1 wie importiert, plus eine
+   angehängte "Programm vorhanden"-Spalte aus dem Abgleich. */
+function nestDownload(rows, filename){
   if(!rows.length) return;
-  const csv = rows.map(r => r.line + ';' + (r.vorhanden ? 'Programm vorhanden' : '')).join('\r\n') + '\r\n';
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const text = rows.map(r => r.raw + ';' + (r.vorhanden ? 'Programm vorhanden' : '')).join('\r\n') + '\r\n';
+  const blob = new Blob([nestToIso88591Bytes(text)], {type:'text/csv'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function nestDownloadZeilen(zeilen, filename){
+  if(!zeilen.length) return;
+  const text = zeilen.map(z => z.join(';')).join('\r\n') + '\r\n';
+  const blob = new Blob([nestToIso88591Bytes(text)], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* ProAlpha-Nummer mit Bauteilstärke aus Spalte G der Nesting-CSV, z.B.
+   "160-1100-142-9.5" -> {teil1:"160-1100", teil2:"142", staerke:"9,5"}. */
+function nestParseProAlpha(g){
+  const m = /^(\d+-\d+)-(\d+)-(\d+(?:\.\d+)?)$/.exec((g||'').trim());
+  if(!m) return null;
+  return {teil1:m[1], teil2:m[2], staerke:m[3].replace('.', ',')};
+}
+
+/* Dicke (Komma-Format, z.B. "9,5") -> "NOM095" (Dicke x10, 3-stellig).
+   Nur für die "NOM"-Materialfamilie bestätigt. */
+function nestNomCode(staerkeKomma){
+  const val = parseFloat((staerkeKomma||'').replace(',', '.'));
+  if(isNaN(val)) return '';
+  return 'NOM' + String(Math.round(val * 10)).padStart(3, '0');
+}
+
+function nestZahl(str){
+  const v = parseFloat((str||'').replace(',', '.'));
+  return isNaN(v) ? 0 : v;
+}
+
+/* Sortierkriterium für die "Saubere Nestingliste": Stärke, dann Aufbau-Code
+   (Material), dann Bauteilnummer. */
+function nestSaubereVergleich(a, b){
+  if(a.staerkeNum !== b.staerkeNum) return a.staerkeNum - b.staerkeNum;
+  if(a.aufbaucode !== b.aufbaucode) return a.aufbaucode < b.aufbaucode ? -1 : 1;
+  return a.bauteilnr < b.bauteilnr ? -1 : (a.bauteilnr > b.bauteilnr ? 1 : 0);
+}
+
+/* Baut die gefilterte, sortierte "Saubere Nestingliste" (Spaltenauswahl:
+   Bauteilnummer, Bezeichnung, Aufbau-Code, Länge, Breite, Stärke,
+   Proalpha-Nummer, Shipsetnummer, Programm) aus der bereits per Spalte G
+   gefilterten Nestteile-Liste. Beim 17-Spalten-Format gibt es keine eigenen
+   Maß-/Proalpha-Spalten - die Stärke steckt im Aufbau-Code selbst. Bei
+   unbekanntem Format gibt's keinen sauberen Export - null statt raten. */
+function nestBaueSaubereZeilen(nest, format){
+  if(format !== '20' && format !== '17') return null;
+  const eintraege = nest.map(r => {
+    const c = r.cols;
+    const bauteilnr = c[0] || '';
+    const aufbaucode = c[6] || '';
+    const bezeichnung = c[1] || '';
+    const shipset = c[16] || '';
+    let laenge = '', breite = '', staerke = '', proalpha = '';
+    if(format === '20'){
+      laenge = c[9] || '';
+      breite = c[10] || '';
+      staerke = c[11] || '';
+      proalpha = c[13] || '';
+    }else{
+      const pa = nestParseProAlpha(aufbaucode);
+      staerke = pa ? pa.staerke : '';
+    }
+    return {
+      staerkeNum: nestZahl(staerke), aufbaucode, bauteilnr,
+      spalten: [bauteilnr, bezeichnung, aufbaucode, laenge, breite, staerke, proalpha, shipset, r.vorhanden ? 'Programm vorhanden' : '']
+    };
+  });
+  eintraege.sort(nestSaubereVergleich);
+  return eintraege.map(e => e.spalten);
+}
+
+const NEST_SAUBER_HEADER = ['Bauteilnummer','Bezeichnung','Aufbau-Code','Länge','Breite','Stärke','Proalpha-Nummer','Shipsetnummer','Programm'];
+
+/* UTF-8 mit BOM statt ISO-8859-1, damit Excel Umlaute in der sauberen Liste
+   korrekt anzeigt. */
+function nestDownloadSauber(zeilen, filename){
+  if(!zeilen || !zeilen.length) return;
+  const text = [NEST_SAUBER_HEADER, ...zeilen].map(z => z.join(';')).join('\r\n') + '\r\n';
+  const blob = new Blob(['﻿' + text], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* Baut die 18-Spalten-NC_NEST-Zeilen aus den bereits geparsten HLT-/Nestteile-
+   Listen. Rückmeldenummer und Auftragsnummer kommen aus den manuellen
+   Eingabefeldern im NC_NEST-Tab. Werkzeugcode (Spalte 9, außer HOC-Default)
+   und die Programmdatei-Spalten (11-13, 17) bleiben bewusst leer - dafür
+   fehlt aktuell die Aufbauten-Lookup-Tabelle bzw. eine Prüfung auf dem
+   H:-Laufwerk. Feste Spaltenzahl fürs Maschinenformat - hier bewusst KEINE
+   zusätzliche "Programm vorhanden"-Spalte anhängen. */
+function nestBaueNcNestZeilen(hlt, nest, rueckmeldenr, auftragsnr){
+  const eintraege = [];
+  hlt.forEach(r => {
+    const c = r.cols;
+    const jobref = c[c.length-1] || '';
+    eintraege.push({nr:c[0]||'', menge:c[3]||'', spalten:[
+      c[0]||'', c[1]||'', c[2]||'', c[3]||'',
+      'HLT-STD', '', '',
+      jobref,
+      '1,0',
+      'HOC',
+      rueckmeldenr,
+      '', '', '',
+      auftragsnr,
+      'NIX001',
+      jobref,
+      ''
+    ]});
+  });
+  nest.forEach(r => {
+    const c = r.cols;
+    const jobref = c[c.length-1] || '';
+    const pa = nestParseProAlpha(c[6]);
+    eintraege.push({nr:c[0]||'', menge:c[3]||'', spalten:[
+      c[0]||'', c[1]||'', c[2]||'', c[3]||'',
+      pa ? pa.teil1 : (c[6]||''), pa ? pa.teil2 : '', '',
+      jobref,
+      pa ? pa.staerke : '',
+      '',
+      rueckmeldenr,
+      '', '', '',
+      auftragsnr,
+      pa ? nestNomCode(pa.staerke) : '',
+      jobref,
+      ''
+    ]});
+  });
+  eintraege.sort((a,b) => {
+    if(a.nr !== b.nr) return a.nr < b.nr ? -1 : 1;
+    return (parseFloat(b.menge)||0) - (parseFloat(a.menge)||0);
+  });
+  return eintraege.map(e => e.spalten);
+}
+
+function nestRender(){
+  if(!nestState){
+    nestbody.innerHTML = nestDropHtml();
+    nestBindDrop();
+    return;
+  }
+  if(nestState.error){
+    nestbody.innerHTML = nestDropHtml(nestState.error);
+    nestBindDrop();
+    return;
+  }
+  const {total, hlt, nest, format} = nestState;
+  let h = '<div class="neststats">'
+    + '<div class="neststat"><div class="nv">'+total+'</div><div class="nl">Zeilen gesamt</div></div>'
+    + '<div class="neststat"><div class="nv">'+hlt.length+'</div><div class="nl">HLT Teile</div></div>'
+    + '<div class="neststat"><div class="nv">'+nest.length+'</div><div class="nl">Nestteile</div></div>'
+    + '</div>';
+  h += '<div class="nesttoolbar">';
+  h += '<div class="nesttabs" role="group" aria-label="Liste wählen">'
+    + '<button type="button" class="nesttab'+(nestActiveTab==='hlt'?' active':'')+'" data-nesttab="hlt">HLT Teile ('+hlt.length+')</button>'
+    + '<button type="button" class="nesttab'+(nestActiveTab==='nest'?' active':'')+'" data-nesttab="nest">Nestteile ('+nest.length+')</button>'
+    + '<button type="button" class="nesttab'+(nestActiveTab==='sauber'?' active':'')+'" data-nesttab="sauber">Saubere Nestingliste</button>'
+    + '<button type="button" class="nesttab'+(nestActiveTab==='ncnest'?' active':'')+'" data-nesttab="ncnest">NC_NEST-Export</button>'
+    + '</div>';
+  h += '<button type="button" class="nestnew" id="nestneu">Andere Datei laden</button>';
+  h += '</div>';
+
+  function nestTabsBinden(){
+    nestbody.querySelectorAll('[data-nesttab]').forEach(b => b.addEventListener('click', () => {
+      nestActiveTab = b.dataset.nesttab;
+      nestRender();
+    }));
+    document.getElementById('nestneu').addEventListener('click', () => {
+      nestState = null;
+      nestActiveTab = 'hlt';
+      nestRender();
+    });
+  }
+
+  if(nestActiveTab === 'sauber'){
+    const zeilen = nestBaueSaubereZeilen(nest, format);
+    h += '<p class="menuhinweis">Gefilterte, sortierte Nestteile-Liste (nach Stärke, Aufbau-Code, Bauteilnummer) mit den Spalten '
+      + 'Bauteilnummer, Bezeichnung, Aufbau-Code, Länge, Breite, Stärke, Proalpha-Nummer, Shipsetnummer und Programm-Abgleich.'
+      + (format === '17' ? ' Bei diesem Listenformat gibt es keine eigenen Länge/Breite/Proalpha-Spalten - die Stärke wird aus dem Aufbau-Code abgeleitet, der Rest bleibt leer.' : '')
+      + '</p>';
+    h += '<div class="nesttablewrap">';
+    if(zeilen === null){
+      h += '<div class="nesterr">Dieses Listenformat wird aktuell nicht unterstützt.</div>';
+    }else if(!zeilen.length){
+      h += '<div class="nestempty">Keine Zeilen für die saubere Liste.</div>';
+    }else{
+      h += '<table class="nesttable"><thead><tr>' + NEST_SAUBER_HEADER.map(sp => '<th>'+esc(sp)+'</th>').join('') + '</tr></thead><tbody>';
+      zeilen.forEach(z => {
+        h += '<tr>' + z.slice(0,-1).map(sp => '<td>'+esc(sp)+'</td>').join('')
+          + '<td>' + (z[z.length-1] ? '<span class="badge-prog">Programm vorhanden</span>' : '') + '</td></tr>';
+      });
+      h += '</tbody></table>';
+    }
+    h += '</div>';
+    h += '<div class="nestactions">'
+      + '<button type="button" class="nestdl" id="nestdlsauber"'+(zeilen && zeilen.length?'':' disabled')+'>Saubere Nestingliste.csv herunterladen</button>'
+      + '</div>';
+    nestbody.innerHTML = h;
+    nestTabsBinden();
+    const dlSauber = document.getElementById('nestdlsauber');
+    if(dlSauber) dlSauber.addEventListener('click', () => nestDownloadSauber(zeilen, 'Saubere Nestingliste.csv'));
+    return;
+  }
+
+  if(nestActiveTab === 'ncnest'){
+    const zeilen = nestBaueNcNestZeilen(hlt, nest, nestRueckmeldenr, nestAuftragsnr);
+    const bereit = zeilen.length && nestRueckmeldenr.trim() && nestAuftragsnr.trim();
+    h += '<p class="menuhinweis">Rückmeldenummer und Auftragsnummer gelten für die ganze Exportdatei. '
+      + 'Werkzeugcode bei Nestteilen sowie die Programmdatei-Spalten werden noch nicht automatisch befüllt '
+      + 'und bleiben leer.</p>';
+    h += '<div class="ncnestform">'
+      + '<label>Rückmeldenummer<input type="text" id="ncnestrueckmeldenr" value="'+esc(nestRueckmeldenr)+'" placeholder="z. B. 537677"></label>'
+      + '<label>Auftragsnummer<input type="text" id="ncnestauftragsnr" value="'+esc(nestAuftragsnr)+'" placeholder="z. B. 63030396"></label>'
+      + '</div>';
+    h += '<div class="nesttablewrap">';
+    if(!zeilen.length){
+      h += '<div class="nestempty">Keine Zeilen zum Exportieren.</div>';
+    }else{
+      h += '<table class="nesttable"><thead><tr><th>Bauteilnummer</th><th>Rest der Zeile</th></tr></thead><tbody>';
+      zeilen.forEach(z => {
+        h += '<tr><td class="nc-a">'+esc(z[0]||'')+'</td><td class="nc-r">'+esc(z.slice(1).join(';'))+'</td></tr>';
+      });
+      h += '</tbody></table>';
+    }
+    h += '</div>';
+    h += '<div class="nestactions">'
+      + '<button type="button" class="nestdl" id="nestdlncnest"'+(bereit?'':' disabled')+'>NC_NEST.csv herunterladen</button>'
+      + '</div>';
+    nestbody.innerHTML = h;
+    nestTabsBinden();
+    document.getElementById('ncnestrueckmeldenr').addEventListener('input', e => {
+      nestRueckmeldenr = e.target.value;
+      document.getElementById('nestdlncnest').disabled = !(zeilen.length && nestRueckmeldenr.trim() && nestAuftragsnr.trim());
+    });
+    document.getElementById('ncnestauftragsnr').addEventListener('input', e => {
+      nestAuftragsnr = e.target.value;
+      document.getElementById('nestdlncnest').disabled = !(zeilen.length && nestRueckmeldenr.trim() && nestAuftragsnr.trim());
+    });
+    document.getElementById('nestdlncnest').addEventListener('click', () => {
+      // Frisch aus den aktuellen Eingabefeldern bauen, nicht die beim Rendern
+      // eingefrorene "zeilen"-Variable - sonst landen Rückmeldenummer/
+      // Auftragsnummer leer in der Export-Datei, wenn seit dem letzten
+      // Rendern getippt wurde.
+      const aktuelleZeilen = nestBaueNcNestZeilen(hlt, nest, nestRueckmeldenr, nestAuftragsnr);
+      const erste = aktuelleZeilen[0];
+      const jobref = erste ? erste[7] : '';
+      nestDownloadZeilen(aktuelleZeilen, 'NC_NEST' + (jobref ? '_'+jobref : '') + '.csv');
+    });
+    return;
+  }
+
+  const aktiv = nestActiveTab === 'hlt' ? hlt : nest;
+  h += '<div class="nesttablewrap">';
+  if(!aktiv.length){
+    h += '<div class="nestempty">Keine Zeilen in dieser Liste.</div>';
+  }else{
+    h += '<table class="nesttable"><thead><tr><th>Spalte A</th><th>Programm</th><th>Rest der Zeile</th></tr></thead><tbody>';
+    aktiv.forEach(r => {
+      h += '<tr><td class="nc-a">'+esc(r.cols[0]||'')+'</td><td>'
+        + (r.vorhanden ? '<span class="badge-prog">Programm vorhanden</span>' : '')
+        + '</td><td class="nc-r">'+esc(r.cols.slice(1).join(';'))+'</td></tr>';
+    });
+    h += '</tbody></table>';
+  }
+  h += '</div>';
+  h += '<div class="nestactions">'
+    + '<button type="button" class="nestdl" id="nestdlhlt"'+(hlt.length?'':' disabled')+'>HLT Teile.csv herunterladen</button>'
+    + '<button type="button" class="nestdl" id="nestdlnest"'+(nest.length?'':' disabled')+'>Nestteile.csv herunterladen</button>'
+    + '<button type="button" class="nestdl alt" id="nestdlbeide"'+((hlt.length||nest.length)?'':' disabled')+'>Beide herunterladen</button>'
+    + '</div>';
+  nestbody.innerHTML = h;
+  nestTabsBinden();
+  document.getElementById('nestdlhlt').addEventListener('click', () => nestDownload(hlt, 'HLT Teile.csv'));
+  document.getElementById('nestdlnest').addEventListener('click', () => nestDownload(nest, 'Nestteile.csv'));
+  document.getElementById('nestdlbeide').addEventListener('click', () => {
+    nestDownload(hlt, 'HLT Teile.csv');
+    setTimeout(() => nestDownload(nest, 'Nestteile.csv'), 400);
+  });
 }
 </script>
 </body>
