@@ -134,21 +134,13 @@ body{
 .notizbadge:hover{color:#fff;border-color:#E8C990}
 .notizbadge.has-notes{border-color:var(--teal);color:var(--teal)}
 .notizbadge:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-.themebtn{
+.menubtn{
   border:1px solid #5A473C;background:none;color:#C9B7A8;
   width:36px;height:36px;border-radius:3px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
-.themebtn:hover{color:#fff;border-color:#E8C990}
-.themebtn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-.themebtn svg{width:19px;height:19px}
-.themebtn .i-sun{display:none}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]) .themebtn .i-sun{display:block}
-  :root:not([data-theme="light"]) .themebtn .i-moon{display:none}
-}
-:root[data-theme="dark"] .themebtn .i-sun{display:block}
-:root[data-theme="dark"] .themebtn .i-moon{display:none}
+.menubtn:hover,.menubtn[aria-expanded="true"]{color:#fff;border-color:#E8C990}
+.menubtn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .searchwrap{position:relative}
 #q{
   width:100%;font-family:var(--mono);font-size:17px;font-weight:500;
@@ -785,6 +777,93 @@ body.peek-open{overflow:hidden}
   .peeklay,.peekcard{transition:none}
 }
 
+/* ---------- Funktionsschalter (Menü) ---------- */
+body.feat-off-vergleich .cmpmini,
+body.feat-off-vergleich #cmpbar{display:none!important}
+body.feat-off-mehrfachauswahl .rowselect,
+body.feat-off-mehrfachauswahl .selallbtn,
+body.feat-off-mehrfachauswahl #selbar{display:none!important}
+
+/* ---------- Menü ---------- */
+.menulay{position:fixed;inset:0;z-index:210;background:transparent}
+.menulay[hidden]{display:none}
+.menupanel{
+  position:absolute;width:264px;max-width:calc(100vw - 20px);
+  background:var(--card);border:1px solid var(--rule-soft);border-radius:10px;
+  box-shadow:0 16px 40px rgba(0,0,0,.35);overflow:hidden;
+  transform:scale(.94) translateY(-4px);opacity:0;transition:transform .15s ease-out,opacity .15s ease-out;
+}
+.menulay.show .menupanel{transform:scale(1) translateY(0);opacity:1}
+.menuhead{
+  display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;
+  border-bottom:1px solid var(--rule-soft);
+}
+.menuhead span{
+  font-family:var(--cond);font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;
+  font-weight:600;color:var(--ink-3);
+}
+.menuclose{border:0;background:none;color:var(--ink-3);font-size:20px;line-height:1;cursor:pointer;padding:3px 5px}
+.menuclose:hover{color:var(--teal)}
+.menusec{padding:6px;border-bottom:1px solid var(--rule-soft)}
+.menusec:last-child{border-bottom:0}
+.menuitem{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:9px 8px;border-radius:6px;
+}
+.menuitem label{display:flex;align-items:center;gap:10px;width:100%;cursor:pointer;font-size:14px;color:var(--ink)}
+.menuitem input[type="checkbox"]{width:18px;height:18px;accent-color:var(--teal);cursor:pointer;margin:0;order:2;margin-left:auto}
+.menuitem:hover{background:var(--surface-alt)}
+.menutheme{cursor:default}
+.menutheme:hover{background:none}
+.menutheme>span{font-size:14px;color:var(--ink)}
+.themeswitch{display:flex;gap:4px;background:var(--surface-alt);border-radius:20px;padding:3px}
+.themeswitch button{
+  font-family:var(--cond);font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+  border:0;background:none;color:var(--ink-3);border-radius:16px;padding:6px 12px;cursor:pointer;
+}
+.themeswitch button.active{background:var(--teal);color:#fff}
+.menuinfo{
+  display:block;width:100%;text-align:left;font-size:14px;color:var(--ink);
+  border:0;background:none;border-radius:6px;padding:10px 8px;cursor:pointer;
+}
+.menuinfo:hover{background:var(--surface-alt);color:var(--teal)}
+
+/* ---------- Info-Fenster ---------- */
+.infolay{
+  position:fixed;inset:0;z-index:230;background:rgba(15,11,8,.5);
+  -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;transition:opacity .16s ease-out;
+}
+.infolay[hidden]{display:none}
+.infolay.show{opacity:1}
+.infocard{
+  width:100%;max-width:420px;max-height:calc(100vh - 40px);overflow-y:auto;
+  background:var(--card);border:1px solid var(--rule-soft);border-radius:12px;
+  box-shadow:0 20px 48px rgba(0,0,0,.4);
+  transform:scale(.94);opacity:0;transition:transform .17s ease-out,opacity .17s ease-out;
+}
+.infolay.show .infocard{transform:scale(1);opacity:1}
+.infohead{
+  position:sticky;top:0;background:var(--card);display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border-bottom:1px solid var(--rule-soft);
+}
+.infohead span{
+  font-family:var(--cond);font-size:15px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--ink);
+}
+.infoclose{border:0;background:none;color:var(--ink-3);font-size:22px;line-height:1;cursor:pointer;padding:3px 6px}
+.infoclose:hover{color:var(--teal)}
+.infobody{padding:6px 16px 18px}
+.infobody h3{
+  font-family:var(--cond);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;
+  font-weight:600;color:var(--ink-3);margin:14px 0 4px;
+}
+.infobody h3:first-child{margin-top:12px}
+.infobody p{font-size:14px;line-height:1.5;color:var(--ink);margin-bottom:2px}
+@media (prefers-reduced-motion:reduce){
+  .menulay .menupanel,.infolay,.infocard{transition:none}
+}
+
 </style>
 <link rel="apple-touch-icon" href="icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -805,13 +884,9 @@ body.peek-open{overflow:hidden}
         </svg>
         <span id="notizcount">0</span>
       </button>
-      <button class="themebtn" id="themebtn" type="button" aria-label="Hell/Dunkel umschalten">
-        <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
-        <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="4"/>
-          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+      <button class="menubtn" id="menubtn" type="button" aria-label="Menü öffnen" aria-haspopup="true" aria-expanded="false">
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor">
+          <circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>
         </svg>
       </button>
       <button class="nestbtn" id="nestopenbtn" type="button">Nesting-Teileliste</button>
@@ -893,6 +968,61 @@ body.peek-open{overflow:hidden}
 
 <div class="peeklay" id="peeklay" hidden>
   <div class="peekcard" id="peekcard" role="dialog" aria-modal="true"></div>
+</div>
+
+<div class="menulay" id="menulay" hidden>
+  <div class="menupanel" id="menupanel" role="menu" aria-label="Einstellungen">
+    <div class="menuhead">
+      <span>Einstellungen</span>
+      <button class="menuclose" id="menuclose" aria-label="Menü schließen" type="button">&times;</button>
+    </div>
+    <div class="menusec">
+      <div class="menuitem">
+        <label><span>Vergleichsfunktion</span><input type="checkbox" id="opt-vergleich"></label>
+      </div>
+      <div class="menuitem">
+        <label><span>Long-Touch-Vorschau</span><input type="checkbox" id="opt-longtouch"></label>
+      </div>
+      <div class="menuitem">
+        <label><span>Mehrfachauswahl</span><input type="checkbox" id="opt-mehrfachauswahl"></label>
+      </div>
+    </div>
+    <div class="menusec">
+      <div class="menuitem menutheme">
+        <span>Darstellung</span>
+        <div class="themeswitch" id="themeswitch" role="group" aria-label="Hell/Dunkel umschalten">
+          <button type="button" data-theme-choice="light">Hell</button>
+          <button type="button" data-theme-choice="dark">Dunkel</button>
+        </div>
+      </div>
+    </div>
+    <div class="menusec">
+      <button type="button" class="menuinfo" id="menuinfobtn">Info &amp; Workflow</button>
+    </div>
+  </div>
+</div>
+
+<div class="infolay" id="infolay" hidden>
+  <div class="infocard" id="infocard" role="dialog" aria-modal="true" aria-label="Info und Workflow">
+    <div class="infohead">
+      <span>Info &amp; Workflow</span>
+      <button class="infoclose" id="infoclose" aria-label="Schließen" type="button">&times;</button>
+    </div>
+    <div class="infobody">
+      <h3>Datenquelle</h3>
+      <p>Die Liste basiert auf einer lokal geladenen Excel-Datei (Übersichtsliste, Schablonenregister, Matrixblatt). Es gibt keine Cloud-Anbindung &mdash; über &bdquo;Aktualisieren&ldquo; bzw. &bdquo;Andere Datei&ldquo; im Kopfbereich lässt sich die Quelle neu laden oder wechseln.</p>
+      <h3>Suche</h3>
+      <p>Bauteil- oder Schablonennummer eingeben &mdash; Trennzeichen wie Bindestrich, Unterstrich oder X/S/G sind egal. Die Suche greift auch bei Bezeichnung, Projekt oder Material. Die Chips oben grenzen die Treffer nach Bauteile, Schablonen, Einzelteile oder HT-Nummern ein.</p>
+      <h3>Long-Touch-Vorschau</h3>
+      <p>Langes Antippen einer Zeile in der Trefferliste zeigt die Kerndaten direkt in einem kleinen Vorschau-Fenster, ohne dass die Detailansicht geöffnet werden muss. Lässt sich unten unter &bdquo;Long-Touch-Vorschau&ldquo; ein- und ausschalten.</p>
+      <h3>Vergleichsfunktion</h3>
+      <p>Bis zu vier Bauteile oder Schablonen lassen sich nebeneinander in einer Tabelle vergleichen, um Unterschiede in den Feldern zu sehen. Lässt sich unten deaktivieren, falls nicht gebraucht.</p>
+      <h3>Mehrfachauswahl &amp; CSV-Export</h3>
+      <p>Mehrere Treffer per Checkbox markieren und gesammelt als CSV-Datei exportieren. Lässt sich unten deaktivieren, falls nicht gebraucht.</p>
+      <h3>Darstellung</h3>
+      <p>Hell/Dunkel lässt sich hier im Menü umschalten. Alle Einstellungen (Funktionen und Darstellung) werden nur lokal auf diesem Gerät gespeichert.</p>
+    </div>
+  </div>
 </div>
 
 <footer class="wrap" id="foot">
@@ -2256,10 +2386,11 @@ window.addEventListener('keydown', e => { if(e.key === 'Escape' && !overlay.hidd
       if(p === 'granted'){ leseDatei(await h.getFile()); return; }
       dropzone('Zuletzt verwendet: <b>' + h.name + '</b>. Der Browser fragt aus Sicherheitsgründen '
         + 'bei jedem Start einmal nach Erlaubnis &mdash; ein Klick genügt.');
-      const dz = document.getElementById('dz');
-      const b = document.getElementById('pick');
+      const bAlt = document.getElementById('pick');
+      const b = bAlt.cloneNode(true);
+      bAlt.replaceWith(b);
       b.textContent = 'Zugriff erlauben und laden';
-      b.onclick = aktualisieren;
+      b.addEventListener('click', aktualisieren);
       return;
     }catch(e){ /* weiter zur Auswahl */ }
   }
@@ -2268,16 +2399,120 @@ window.addEventListener('keydown', e => { if(e.key === 'Escape' && !overlay.hidd
 
 /* ==================== Dark Mode ==================== */
 const THEME_KEY = 'recaro-theme';
-const themebtn = document.getElementById('themebtn');
 function aktivesTheme(){
   const gesetzt = document.documentElement.getAttribute('data-theme');
   if(gesetzt === 'light' || gesetzt === 'dark') return gesetzt;
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
-themebtn.addEventListener('click', () => {
-  const naechstes = aktivesTheme() === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', naechstes);
-  try{ localStorage.setItem(THEME_KEY, naechstes); }catch(e){}
+function themeSetzen(t){
+  document.documentElement.setAttribute('data-theme', t);
+  try{ localStorage.setItem(THEME_KEY, t); }catch(e){}
+  themeSwitchAktualisieren();
+}
+function themeSwitchAktualisieren(){
+  const akt = aktivesTheme();
+  document.querySelectorAll('[data-theme-choice]').forEach(b => b.classList.toggle('active', b.dataset.themeChoice === akt));
+}
+document.querySelectorAll('[data-theme-choice]').forEach(b => {
+  b.addEventListener('click', () => themeSetzen(b.dataset.themeChoice));
+});
+themeSwitchAktualisieren();
+
+/* ==================== Funktionsschalter ==================== */
+const FEATURE_KEY = 'recaro-features';
+let features = {vergleich:true, longtouch:true, mehrfachauswahl:true};
+try{
+  const gespeichert = JSON.parse(localStorage.getItem(FEATURE_KEY) || '{}');
+  features = Object.assign({}, features, gespeichert);
+}catch(e){}
+function featuresSpeichern(){
+  try{ localStorage.setItem(FEATURE_KEY, JSON.stringify(features)); }catch(e){}
+}
+function featuresAnwenden(){
+  document.body.classList.toggle('feat-off-vergleich', !features.vergleich);
+  document.body.classList.toggle('feat-off-mehrfachauswahl', !features.mehrfachauswahl);
+}
+featuresAnwenden();
+
+/* ==================== Menü ==================== */
+const menubtn   = document.getElementById('menubtn');
+const menulay   = document.getElementById('menulay');
+const menupanel = document.getElementById('menupanel');
+const optCmp    = document.getElementById('opt-vergleich');
+const optPeek   = document.getElementById('opt-longtouch');
+const optSel    = document.getElementById('opt-mehrfachauswahl');
+
+function menuPositionieren(){
+  const margin = 10;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  menupanel.style.left = '0px'; menupanel.style.top = '0px';
+  const rect = menubtn.getBoundingClientRect();
+  const pw = menupanel.offsetWidth, ph = menupanel.offsetHeight;
+  let left = rect.right - pw;
+  if(left < margin) left = margin;
+  if(left + pw > vw - margin) left = vw - margin - pw;
+  let top = rect.bottom + 8;
+  if(top + ph > vh - margin) top = Math.max(margin, vh - margin - ph);
+  menupanel.style.left = left + 'px';
+  menupanel.style.top = top + 'px';
+}
+function menuOeffnen(){
+  optCmp.checked = features.vergleich;
+  optPeek.checked = features.longtouch;
+  optSel.checked = features.mehrfachauswahl;
+  themeSwitchAktualisieren();
+  menulay.hidden = false;
+  menuPositionieren();
+  requestAnimationFrame(() => menulay.classList.add('show'));
+  menubtn.setAttribute('aria-expanded', 'true');
+}
+function menuSchliessen(){
+  if(menulay.hidden) return;
+  menulay.classList.remove('show');
+  menubtn.setAttribute('aria-expanded', 'false');
+  setTimeout(() => { menulay.hidden = true; }, 160);
+}
+menubtn.addEventListener('click', () => { menulay.hidden ? menuOeffnen() : menuSchliessen(); });
+menulay.addEventListener('click', e => { if(e.target === menulay) menuSchliessen(); });
+document.getElementById('menuclose').addEventListener('click', menuSchliessen);
+window.addEventListener('resize', () => { if(!menulay.hidden) menuPositionieren(); });
+
+optCmp.addEventListener('change', () => {
+  features.vergleich = optCmp.checked;
+  if(!features.vergleich) vergleichZuruecksetzen();
+  featuresSpeichern(); featuresAnwenden();
+});
+optPeek.addEventListener('change', () => {
+  features.longtouch = optPeek.checked;
+  featuresSpeichern();
+});
+optSel.addEventListener('change', () => {
+  features.mehrfachauswahl = optSel.checked;
+  if(!features.mehrfachauswahl) leereAuswahl();
+  featuresSpeichern(); featuresAnwenden();
+});
+
+/* ==================== Info-Fenster ==================== */
+const infolay  = document.getElementById('infolay');
+function infoOeffnen(){
+  infolay.hidden = false;
+  requestAnimationFrame(() => infolay.classList.add('show'));
+}
+function infoSchliessen(){
+  if(infolay.hidden) return;
+  infolay.classList.remove('show');
+  setTimeout(() => { infolay.hidden = true; }, 160);
+}
+document.getElementById('menuinfobtn').addEventListener('click', () => {
+  menuSchliessen();
+  infoOeffnen();
+});
+document.getElementById('infoclose').addEventListener('click', infoSchliessen);
+infolay.addEventListener('click', e => { if(e.target === infolay) infoSchliessen(); });
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Escape') return;
+  if(!infolay.hidden) infoSchliessen();
+  else if(!menulay.hidden) menuSchliessen();
 });
 
 /* ==================== Long-Press Vorschau (Peek) ==================== */
@@ -2293,6 +2528,7 @@ function peekFeld(label, wert){
 }
 
 function peekStarten(row, x, y){
+  if(!features.longtouch) return;
   peekAbbrechenTimer();
   peekRow = row; peekStartX = x; peekStartY = y; peekBewegt = false;
   peekTimer = setTimeout(() => {
