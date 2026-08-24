@@ -124,8 +124,18 @@ body{
   font-family:var(--cond);font-size:14px;letter-spacing:.1em;text-transform:uppercase;
   color:#C9B7A8;font-weight:500;
 }
-.menubtn{
+.notizbadge{
   margin-left:auto;border:1px solid #5A473C;background:none;color:#C9B7A8;
+  height:36px;padding:0 11px;border-radius:20px;cursor:pointer;flex-shrink:0;
+  display:flex;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:13px;font-weight:600;
+}
+.notizbadge[hidden]{display:none}
+.notizbadge:hover{color:#fff;border-color:#E8C990}
+.notizbadge.has-notes{border-color:var(--teal);color:var(--teal)}
+.notizbadge:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.menubtn{
+  border:1px solid #5A473C;background:none;color:#C9B7A8;
   width:36px;height:36px;border-radius:3px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
@@ -337,6 +347,121 @@ body{
 .scanfoot .err{background:var(--red-bg-fixed);color:var(--red-text-fixed);border-radius:3px;padding:11px 13px;text-align:left;font-size:14px;line-height:1.45}
 .scanfoot .err a{color:var(--red-text-fixed);font-weight:600}
 .scanfoot .err code{font-family:var(--mono);background:rgba(94,39,22,.12);padding:1px 5px;border-radius:2px;font-size:13px}
+.scansammel{padding:10px 16px calc(14px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.14)}
+.scansammel[hidden]{display:none}
+.scansammelchips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;max-height:96px;overflow-y:auto}
+.scansammelchip{
+  font-family:var(--mono);font-size:12.5px;color:#fff;background:rgba(255,255,255,.14);
+  border-radius:3px;padding:5px 10px;
+}
+.scansammelfertig{
+  width:100%;font-family:var(--cond);font-size:14px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;
+  background:var(--teal);color:#fff;border:0;border-radius:3px;padding:12px;cursor:pointer;min-height:44px;
+}
+.scansammelfertig:disabled{opacity:.4;cursor:default}
+
+/* ---------- Sammel-Notiz (mehrere gescannte Bauteile) ---------- */
+.sammellay{
+  position:fixed;inset:0;z-index:230;background:rgba(15,11,8,.5);
+  -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;transition:opacity .16s ease-out;
+}
+.sammellay[hidden]{display:none}
+.sammellay.show{opacity:1}
+.sammelcard{
+  width:100%;max-width:460px;max-height:calc(100vh - 40px);overflow-y:auto;
+  background:var(--card);border:1px solid var(--rule-soft);border-radius:12px;
+  box-shadow:0 20px 48px rgba(0,0,0,.4);
+  transform:scale(.94);opacity:0;transition:transform .17s ease-out,opacity .17s ease-out;
+}
+.sammellay.show .sammelcard{transform:scale(1);opacity:1}
+.sammelhead{
+  position:sticky;top:0;background:var(--card);display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border-bottom:1px solid var(--rule-soft);z-index:2;
+}
+.sammelhead span{font-family:var(--cond);font-size:15px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--ink)}
+.sammelclose{border:0;background:none;color:var(--ink-3);font-size:22px;line-height:1;cursor:pointer;padding:3px 6px}
+.sammelclose:hover{color:var(--teal)}
+.sammelbody{padding:14px 16px 16px}
+.sammelbody .selchips{max-height:120px;margin-bottom:14px}
+.sammelbody .notizform{padding:0}
+.sammelbody .notizhint{padding:6px 0 0}
+
+/* ---------- Notiz-Formular (Bauteil-Detailansicht) ---------- */
+.notizform{display:flex;flex-direction:column;gap:8px;padding:12px 14px}
+.notizform textarea{
+  width:100%;resize:vertical;min-height:52px;font-family:inherit;font-size:14px;
+  padding:10px 11px;border:1px solid var(--rule);border-radius:4px;background:var(--surface-bright);color:var(--ink);
+}
+.notizform textarea:focus{outline:2px solid var(--teal);outline-offset:1px}
+.notizsend{
+  align-self:flex-start;font-family:var(--cond);font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  background:var(--teal);color:#fff;border:0;border-radius:3px;padding:9px 16px;cursor:pointer;
+}
+.notizsend:hover:not(:disabled){filter:brightness(1.12)}
+.notizsend:disabled{opacity:.5;cursor:default}
+.notizhint{padding:0 14px 12px;font-size:12.5px;color:var(--ink-3);min-height:14px}
+.notizhint.ok{color:var(--teal)}
+.notizhint.err{color:var(--red)}
+.notizfoto{display:flex;align-items:center;gap:10px}
+.notizfotobtn{
+  font-family:var(--cond);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  background:none;color:var(--ink-2);border:1px solid var(--rule);border-radius:3px;padding:8px 13px;cursor:pointer;
+}
+.notizfotobtn:hover{border-color:var(--teal);color:var(--teal)}
+.notizfotobtn[hidden]{display:none}
+.notizfotopreview{display:flex;align-items:center;gap:8px}
+.notizfotopreview[hidden]{display:none}
+.notizfotopreview img{width:52px;height:52px;object-fit:cover;border-radius:4px;border:1px solid var(--rule-soft)}
+.notizfotopreview button{border:0;background:none;color:var(--ink-3);font-size:20px;line-height:1;cursor:pointer;padding:4px 6px}
+.notizfotopreview button:hover{color:var(--red)}
+.ni-foto{display:block;margin-bottom:8px}
+.ni-foto img{max-width:100%;max-height:180px;border-radius:4px;border:1px solid var(--rule-soft);display:block}
+
+/* ---------- Offene-Notizen-Fenster ---------- */
+.notizlay{
+  position:fixed;inset:0;z-index:240;background:rgba(15,11,8,.5);
+  -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;transition:opacity .16s ease-out;
+}
+.notizlay[hidden]{display:none}
+.notizlay.show{opacity:1}
+.notizcard{
+  width:100%;max-width:520px;max-height:calc(100vh - 40px);overflow-y:auto;
+  background:var(--card);border:1px solid var(--rule-soft);border-radius:12px;
+  box-shadow:0 20px 48px rgba(0,0,0,.4);
+  transform:scale(.94);opacity:0;transition:transform .17s ease-out,opacity .17s ease-out;
+}
+.notizlay.show .notizcard{transform:scale(1);opacity:1}
+.notizhead{
+  position:sticky;top:0;background:var(--card);display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border-bottom:1px solid var(--rule-soft);z-index:2;
+}
+.notizhead span{font-family:var(--cond);font-size:15px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--ink)}
+.notizclose{border:0;background:none;color:var(--ink-3);font-size:22px;line-height:1;cursor:pointer;padding:3px 6px}
+.notizclose:hover{color:var(--teal)}
+.notizbody{padding:10px 14px 16px}
+.notizpushrow{margin-bottom:12px}
+.notiztabs{margin-bottom:12px}
+.notizexportrow{margin-bottom:12px}
+.notizitem{border:1px solid var(--rule-soft);border-radius:6px;padding:11px 13px;margin-bottom:9px}
+.notizitem .ni-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ni-status{font-family:var(--cond);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--ink-3)}
+.ni-status.done{color:var(--teal)}
+.notizitem .ni-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}
+.notizitem .ni-nr{font-family:var(--mono);font-weight:600;font-size:14px;color:var(--ink);background:none;border:0;padding:0;cursor:pointer}
+.notizitem .ni-nr:hover{color:var(--teal)}
+.notizitem .ni-zeit{font-family:var(--cond);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+.notizitem .ni-text{font-size:14px;line-height:1.45;color:var(--ink-2);margin-bottom:8px;white-space:pre-wrap}
+.ni-done{
+  font-family:var(--cond);font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  background:var(--teal);color:#fff;border:0;border-radius:20px;padding:6px 13px;cursor:pointer;
+}
+.ni-done:hover:not(:disabled){filter:brightness(1.12)}
+.ni-done:disabled{opacity:.5;cursor:default}
+.notizempty,.notizladen{padding:24px;text-align:center;color:var(--ink-3);font-size:13.5px}
 
 /* ---------- Trefferliste ---------- */
 .wrap{max-width:940px;margin:0 auto;padding:0 16px}
@@ -752,6 +877,13 @@ body.feat-off-mehrfachauswahl #selbar{display:none!important}
     <div class="brand">
       <h1>RECARO – Übersichtsliste</h1>
       <span class="sub">F-LIST · LIVE</span>
+      <button class="notizbadge" id="notizbadge" type="button" aria-label="Notizen anzeigen">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span id="notizcount">0</span>
+      </button>
       <button class="menubtn" id="menubtn" type="button" aria-label="Menü öffnen" aria-haspopup="true" aria-expanded="false">
         <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor">
           <circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>
@@ -796,6 +928,26 @@ body.feat-off-mehrfachauswahl #selbar{display:none!important}
   </div>
 </div>
 
+<div class="sammellay" id="sammellay" hidden>
+  <div class="sammelcard" id="sammelcard" role="dialog" aria-modal="true" aria-label="Notiz an mehrere Bauteile">
+    <div class="sammelhead">
+      <span id="sammeltitel">Notiz an 0 Bauteile</span>
+      <button class="sammelclose" id="sammelclose" aria-label="Schließen" type="button">&times;</button>
+    </div>
+    <div class="sammelbody" id="sammelbody"></div>
+  </div>
+</div>
+
+<div class="notizlay" id="notizlay" hidden>
+  <div class="notizcard" id="notizcard" role="dialog" aria-modal="true" aria-label="Offene Notizen">
+    <div class="notizhead">
+      <span>Offene Notizen</span>
+      <button class="notizclose" id="notizclose" aria-label="Schließen" type="button">&times;</button>
+    </div>
+    <div class="notizbody" id="notizbody"></div>
+  </div>
+</div>
+
 <main class="wrap" id="main"></main>
 
 <div class="scanoverlay" id="scanoverlay" hidden>
@@ -808,6 +960,10 @@ body.feat-off-mehrfachauswahl #selbar{display:none!important}
     <div class="scanframe"></div>
   </div>
   <div class="scanfoot" id="scanfoot"></div>
+  <div class="scansammel" id="scansammel" hidden>
+    <div class="scansammelchips" id="scansammelchips"></div>
+    <button type="button" class="scansammelfertig" id="scansammelfertig" disabled>Fertig (0)</button>
+  </div>
 </div>
 
 <div class="peeklay" id="peeklay" hidden>
@@ -1635,8 +1791,16 @@ function zeigeBauteil(nr){
   if(b.z && b.z.length) h += '<span>Übersichtsliste Zeile <b>'+b.z.join(', ')+'</b></span>';
   h += '<span>Zuordnung aus Blatt <b>Schablnr - Bauteilnr.</b></span></div></div>';
 
+  h += '<div class="block"><h2>Notiz hinterlassen</h2>'
+    + '<div class="notizform">'
+    + '<textarea id="notiztext" rows="2" maxlength="500" placeholder="z. B. Hinweis für Büro/Nesting …"></textarea>'
+    + notizFotoFeldHtml()
+    + '<button type="button" class="notizsend" id="notizsend">Notiz senden</button>'
+    + '</div><div class="notizhint" id="notizhint"></div></div>';
+
   main.innerHTML = h;
   bind();
+  notizFormBind(nr);
   window.scrollTo(0,0);
 }
 
@@ -2031,12 +2195,24 @@ function sichererKontext(){
 }
 
 function scanSchliessen(){
+  const warSammel = sammelAktiv;
+  const gesammelt = sammelListe.slice();
   scanAktiv = false;
   if(scanRAF) cancelAnimationFrame(scanRAF);
   if(zxingReader){ try{ zxingReader.reset(); }catch(e){} zxingReader = null; }
   if(scanStream){ scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
   scanVideo.srcObject = null;
   overlay.hidden = true;
+  sammelAktiv = false;
+  document.getElementById('scansammel').hidden = true;
+  if(warSammel && gesammelt.length) sammelKomponierenOeffnen(gesammelt);
+}
+
+/* Sammel-Modus (Mehrfach-Scan) leitet erkannte Barcodes an sammelTreffer()
+   um statt sofort zum Treffer zu springen - siehe scanLongpressStart(). */
+function scanErkannt(text){
+  if(sammelAktiv) sammelTreffer(text);
+  else scanTreffer(text);
 }
 
 function scanTreffer(text){
@@ -2134,7 +2310,7 @@ async function scanMitBarcodeDetector(){
     if(!scanAktiv) return;
     try{
       const treffer = await detector.detect(scanVideo);
-      if(treffer && treffer.length){ scanTreffer(treffer[0].rawValue); return; }
+      if(treffer && treffer.length){ scanErkannt(treffer[0].rawValue); if(!sammelAktiv) return; }
     }catch(e){ /* einzelnen Frame ignorieren, weiterscannen */ }
     scanRAF = requestAnimationFrame(schleife);
   };
@@ -2161,14 +2337,42 @@ async function scanMitZXing(){
     if(!scanAktiv) return;
     try{
       const treffer = zxingReader.decode(scanVideo);
-      if(treffer){ scanTreffer(treffer.getText()); return; }
+      if(treffer){ scanErkannt(treffer.getText()); if(!sammelAktiv) return; }
     }catch(e){ /* kein Barcode in diesem Frame - weiterscannen, unabhängig vom Fehlertyp */ }
     scanRAF = requestAnimationFrame(schleife);
   };
   scanRAF = requestAnimationFrame(schleife);
 }
 
-scanBtn.addEventListener('click', scanStarten);
+/* Kurzer Tipp auf den Scan-Button: normaler Einzel-Scan (springt direkt zum
+   Treffer). Langes Drücken: Mehrfach-Scan, sammelt Bauteile für eine
+   gemeinsame Notiz - selbes Interaktionsmuster wie Long-Touch auf einer
+   Trefferzeile (siehe peekStarten). */
+const SCANBTN_LONGPRESS = 550;
+let scanLongpressTimer = null, scanLongpressAusgeloest = false;
+function scanLongpressStart(){
+  scanLongpressAusgeloest = false;
+  scanLongpressTimer = setTimeout(() => {
+    scanLongpressAusgeloest = true;
+    if(navigator.vibrate) navigator.vibrate(15);
+    sammelScanStarten();
+  }, SCANBTN_LONGPRESS);
+}
+function scanLongpressCancel(){
+  clearTimeout(scanLongpressTimer);
+}
+scanBtn.addEventListener('touchstart', scanLongpressStart, {passive:true});
+scanBtn.addEventListener('touchend', scanLongpressCancel);
+scanBtn.addEventListener('touchmove', scanLongpressCancel);
+scanBtn.addEventListener('touchcancel', scanLongpressCancel);
+scanBtn.addEventListener('mousedown', scanLongpressStart);
+scanBtn.addEventListener('mouseup', scanLongpressCancel);
+scanBtn.addEventListener('mouseleave', scanLongpressCancel);
+scanBtn.addEventListener('click', e => {
+  if(scanLongpressAusgeloest){ scanLongpressAusgeloest = false; e.preventDefault(); e.stopPropagation(); return; }
+  scanStarten();
+});
+document.getElementById('scansammelfertig').addEventListener('click', scanSchliessen);
 document.getElementById('scanclose').addEventListener('click', scanSchliessen);
 overlay.addEventListener('click', e => { if(e.target === overlay) scanSchliessen(); });
 window.addEventListener('keydown', e => { if(e.key === 'Escape' && !overlay.hidden) scanSchliessen(); });
@@ -2382,6 +2586,7 @@ function peekOeffnen(row){
     + '<div class="peekfelder">'+(felder || '<div class="peekfeld"><span class="pv">Keine weiteren Angaben.</span></div>')+'</div>'
     + '<div class="peekactions">'
     + '<button type="button" class="peekbtn'+(ausgewaehlt?' active':'')+'" id="peekselbtn">'+(ausgewaehlt?'✓ In Auswahl':'Zur Auswahl hinzufügen')+'</button>'
+    + '<button type="button" class="peekbtn" id="peeknotizbtn">Notiz senden</button>'
     + '<button type="button" class="peekbtn primary" id="peekopenbtn">Details öffnen</button>'
     + '</div>';
   peeklay.hidden = false;
@@ -2395,10 +2600,29 @@ function peekOeffnen(row){
     syncCheckboxes();
     peekSchliessen();
   });
+  document.getElementById('peeknotizbtn').addEventListener('click', () => peekNotizFormular(row, nr));
   document.getElementById('peekopenbtn').addEventListener('click', () => {
     peekSchliessen();
     gehe(nr);
   });
+}
+
+/* Long-Touch: statt der Info-Vorschau direkt ein kleines Notiz-Formular für
+   dieses Bauteil/diese Schablone öffnen, ohne die Karte neu zu positionieren
+   (bleibt an derselben Stelle wie die Vorschau). */
+function peekNotizFormular(row, nr){
+  peekcard.innerHTML =
+      '<div class="peekhead"><span class="peektitel">'+esc(nr)+'</span></div>'
+    + '<div class="notizform">'
+    + '<textarea id="notiztext" rows="3" maxlength="500" placeholder="Notiz eingeben …"></textarea>'
+    + notizFotoFeldHtml()
+    + '<button type="button" class="notizsend" id="notizsend">Senden</button>'
+    + '</div><div class="notizhint" id="notizhint"></div>';
+  const rect = row.getBoundingClientRect();
+  peekPositionieren(rect);
+  const ta = document.getElementById('notiztext');
+  ta.focus();
+  notizFormBind(nr, peekSchliessen);
 }
 
 function peekPositionieren(rowRect){
@@ -2916,6 +3140,541 @@ function nestRender(){
     setTimeout(() => nestDownload(nest, 'Nestteile.csv'), 400);
   });
 }
+</script>
+<script>
+/* ==========================================================
+   Notizen & Push-Benachrichtigungen
+   Backend: Supabase-Projekt "recaro-notizen" (Tabellen notizen,
+   push_subscriptions; Edge Function send-push per Database-Trigger;
+   Storage-Bucket notiz-fotos für Foto-Anhänge). Kein Login - RLS
+   erlaubt offenen Zugriff mit dem Publishable/Anon-Key, der hier
+   bewusst im Client steht.
+   ========================================================== */
+const SB_URL = 'https://pvjzeueveetnkfdbagdx.supabase.co';
+const SB_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2anpldWV2ZWV0bmtmZGJhZ2R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTkxNzQsImV4cCI6MjEwMjU3NTE3NH0.D-mAsJVkWAnG0MsxU-aOGtCEWA_8JG5NRlDVFWyNK2M';
+const VAPID_PUBLIC_KEY = 'BMPP6ult_kyaK9orztkmugHmt13n7GwnPmSV1SrXSUHFRfcFjd2mvVj7z6E0oXICY_ZDqDfpZ4MlHNiXUNzbGrA';
+
+async function sbFetch(path, opts){
+  opts = opts || {};
+  const headers = Object.assign({
+    apikey: SB_ANON_KEY,
+    Authorization: 'Bearer ' + SB_ANON_KEY,
+    'Content-Type': 'application/json'
+  }, opts.headers || {});
+  const res = await fetch(SB_URL + '/rest/v1/' + path, Object.assign({}, opts, {headers}));
+  if(!res.ok) throw new Error('Supabase-Fehler ' + res.status);
+  return res;
+}
+
+function urlBase64ToUint8Array(base64String){
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  const arr = new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++) arr[i] = raw.charCodeAt(i);
+  return arr;
+}
+
+async function notizSenden(nr, text, fotoUrl){
+  await sbFetch('notizen', {
+    method:'POST',
+    headers:{Prefer:'return=minimal'},
+    body: JSON.stringify({bauteil_nr: nr, notiz: text, foto_url: fotoUrl || null})
+  });
+}
+async function notizErledigen(id){
+  await sbFetch('notizen?id=eq.' + encodeURIComponent(id), {
+    method:'PATCH',
+    headers:{Prefer:'return=minimal'},
+    body: JSON.stringify({erledigt:true, erledigt_am: new Date().toISOString()})
+  });
+}
+
+/* ---------- Foto-Anhang fürs Notiz-Formular (optional, überall gleich) ---------- */
+let notizFotoDatei = null;
+
+function notizFotoFeldHtml(){
+  return '<div class="notizfoto">'
+    + '<input type="file" accept="image/*" capture="environment" id="notizfotoinput" hidden>'
+    + '<button type="button" class="notizfotobtn" id="notizfotobtn">Foto aufnehmen</button>'
+    + '<div class="notizfotopreview" id="notizfotopreview" hidden>'
+    + '<img id="notizfotoimg" alt="">'
+    + '<button type="button" id="notizfotoentfernen" aria-label="Foto entfernen">&times;</button>'
+    + '</div></div>';
+}
+
+function notizFotoBind(){
+  notizFotoDatei = null;
+  const input = document.getElementById('notizfotoinput');
+  if(!input) return;
+  const btn = document.getElementById('notizfotobtn');
+  const preview = document.getElementById('notizfotopreview');
+  const img = document.getElementById('notizfotoimg');
+  btn.addEventListener('click', () => input.click());
+  input.addEventListener('change', () => {
+    const datei = input.files[0];
+    if(!datei) return;
+    notizFotoDatei = datei;
+    img.src = URL.createObjectURL(datei);
+    preview.hidden = false;
+    btn.hidden = true;
+  });
+  document.getElementById('notizfotoentfernen').addEventListener('click', () => {
+    notizFotoZuruecksetzen();
+  });
+}
+
+function notizFotoZuruecksetzen(){
+  notizFotoDatei = null;
+  const input   = document.getElementById('notizfotoinput');
+  const preview = document.getElementById('notizfotopreview');
+  const btn     = document.getElementById('notizfotobtn');
+  if(input) input.value = '';
+  if(preview) preview.hidden = true;
+  if(btn) btn.hidden = false;
+}
+
+/* Verkleinert/komprimiert ein Kamerafoto (oft 4-8MB) auf handliche Größe
+   (max. 1280px lange Kante, JPEG ~70%) vor dem Hochladen. */
+function notizFotoKomprimieren(file){
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const MAXDIM = 1280;
+      let width = img.naturalWidth, height = img.naturalHeight;
+      if(width > MAXDIM || height > MAXDIM){
+        const skala = MAXDIM / Math.max(width, height);
+        width = Math.round(width * skala);
+        height = Math.round(height * skala);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob => {
+        URL.revokeObjectURL(url);
+        if(blob) resolve(blob); else reject(new Error('Foto konnte nicht verarbeitet werden.'));
+      }, 'image/jpeg', 0.72);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Foto konnte nicht gelesen werden.')); };
+    img.src = url;
+  });
+}
+
+async function notizFotoHochladen(blob){
+  const dateiname = Date.now() + '-' + Math.random().toString(36).slice(2, 9) + '.jpg';
+  const res = await fetch(SB_URL + '/storage/v1/object/notiz-fotos/' + dateiname, {
+    method: 'POST',
+    headers: { apikey: SB_ANON_KEY, Authorization: 'Bearer ' + SB_ANON_KEY, 'Content-Type': 'image/jpeg' },
+    body: blob
+  });
+  if(!res.ok) throw new Error('Foto-Upload fehlgeschlagen (' + res.status + ')');
+  return SB_URL + '/storage/v1/object/public/notiz-fotos/' + dateiname;
+}
+
+function notizFormBind(nr, onErfolg){
+  const btn  = document.getElementById('notizsend');
+  const ta   = document.getElementById('notiztext');
+  const hint = document.getElementById('notizhint');
+  if(!btn) return;
+  notizFotoBind();
+  btn.addEventListener('click', async () => {
+    const text = ta.value.trim();
+    if(!text) return;
+    btn.disabled = true;
+    hint.className = 'notizhint';
+    hint.textContent = notizFotoDatei ? 'Foto wird hochgeladen …' : 'Wird gesendet …';
+    try{
+      let fotoUrl = null;
+      if(notizFotoDatei){
+        fotoUrl = await notizFotoHochladen(await notizFotoKomprimieren(notizFotoDatei));
+        hint.textContent = 'Wird gesendet …';
+      }
+      await notizSenden(nr, text, fotoUrl);
+      notizBadgeAktualisieren();
+      if(onErfolg){
+        onErfolg();
+      }else{
+        ta.value = '';
+        notizFotoZuruecksetzen();
+        hint.className = 'notizhint ok';
+        hint.textContent = 'Notiz gesendet.';
+        btn.disabled = false;
+      }
+    }catch(err){
+      hint.className = 'notizhint err';
+      hint.textContent = 'Konnte nicht gesendet werden — Internetverbindung prüfen.';
+      btn.disabled = false;
+    }
+  });
+}
+
+/* ---------- Badge & Notizen-Fenster (Offen / Verlauf) ---------- */
+const notizbadge   = document.getElementById('notizbadge');
+const notizcountEl = document.getElementById('notizcount');
+const notizlay     = document.getElementById('notizlay');
+const notizbody    = document.getElementById('notizbody');
+let notizOffenCache = [];
+let notizAlleCache = null; /* null = noch nicht geladen (Verlauf-Tab) */
+let notizTab = 'offen';
+
+async function notizBadgeAktualisieren(){
+  try{
+    const res = await sbFetch('notizen?erledigt=eq.false&select=id,bauteil_nr,notiz,erstellt_am,foto_url&order=erstellt_am.desc');
+    notizOffenCache = await res.json();
+    const n = notizOffenCache.length;
+    notizcountEl.textContent = n;
+    notizbadge.classList.toggle('has-notes', n > 0);
+    if(!notizlay.hidden && notizTab === 'offen') notizRender();
+  }catch(e){ /* offline o.ä. - Badge bleibt beim zuletzt bekannten Stand */ }
+}
+
+async function notizAlleLaden(){
+  const res = await sbFetch('notizen?select=id,bauteil_nr,notiz,erstellt_am,erledigt,erledigt_am,foto_url&order=erstellt_am.desc');
+  notizAlleCache = await res.json();
+}
+
+function notizZeitAnzeige(iso){
+  try{
+    const d = new Date(iso);
+    return d.toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){ return ''; }
+}
+
+function notizTabsHtml(){
+  return '<div class="nesttabs notiztabs" role="group" aria-label="Ansicht wählen">'
+    + '<button type="button" class="nesttab'+(notizTab==='offen'?' active':'')+'" data-notiztab="offen">Offen ('+notizOffenCache.length+')</button>'
+    + '<button type="button" class="nesttab'+(notizTab==='verlauf'?' active':'')+'" data-notiztab="verlauf">Verlauf</button>'
+    + '</div>';
+}
+
+function notizItemHtml(n){
+  const status = n.erledigt
+    ? '<span class="ni-status done">Erledigt · '+notizZeitAnzeige(n.erledigt_am)+'</span>'
+    : '<span class="ni-status open">Offen</span>';
+  return '<div class="notizitem">'
+    + '<div class="ni-top"><button type="button" class="ni-nr" data-gonr="'+esc(n.bauteil_nr)+'">'+esc(n.bauteil_nr)+'</button>'
+    + '<span class="ni-zeit">'+notizZeitAnzeige(n.erstellt_am)+'</span></div>'
+    + '<div class="ni-text">'+esc(n.notiz)+'</div>'
+    + (n.foto_url ? '<a class="ni-foto" href="'+esc(n.foto_url)+'" target="_blank" rel="noopener"><img src="'+esc(n.foto_url)+'" alt="Foto zur Notiz" loading="lazy"></a>' : '')
+    + '<div class="ni-bottom">'+status
+    + (!n.erledigt ? '<button type="button" class="ni-done" data-done="'+esc(n.id)+'">Erledigt</button>' : '')
+    + '</div></div>';
+}
+
+function notizVerlaufExportieren(){
+  if(!notizAlleCache || !notizAlleCache.length) return;
+  const kopf = ['Bauteilnummer','Notiz','Erstellt am','Erledigt','Erledigt am','Foto-URL'];
+  const zeilen = [kopf.map(csvZelle).join(';')];
+  notizAlleCache.forEach(n => {
+    zeilen.push([
+      n.bauteil_nr,
+      n.notiz,
+      notizZeitAnzeige(n.erstellt_am),
+      n.erledigt ? 'Ja' : 'Nein',
+      n.erledigt ? notizZeitAnzeige(n.erledigt_am) : '',
+      n.foto_url || ''
+    ].map(csvZelle).join(';'));
+  });
+  const csv = '﻿' + zeilen.join('\r\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'notizen-verlauf_' + datumHeute() + '.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function notizAufTabWechseln(tab){
+  notizTab = tab;
+  if(tab === 'verlauf' && notizAlleCache === null){
+    notizbody.innerHTML = notizPushRowHtml() + notizTabsHtml() + '<div class="notizladen">Wird geladen …</div>';
+    try{ await notizAlleLaden(); }catch(e){ notizAlleCache = []; }
+  }
+  notizRender();
+}
+
+function notizPushRowHtml(){
+  return '<div class="notizpushrow"><button type="button" class="reload alt" id="notizpushbtn">Push aktivieren</button></div>';
+}
+
+function notizRender(){
+  const liste = notizTab === 'offen' ? notizOffenCache : (notizAlleCache || []);
+  let h = notizPushRowHtml() + notizTabsHtml();
+  if(notizTab === 'verlauf'){
+    h += '<div class="notizexportrow"><button type="button" class="nestnew" id="notizexport"'+(liste.length?'':' disabled')+'>Verlauf als CSV exportieren</button></div>';
+  }
+  if(!liste.length){
+    h += '<div class="notizempty">'+(notizTab==='offen' ? 'Keine offenen Notizen.' : 'Noch keine Notizen gesendet.')+'</div>';
+  }else{
+    liste.forEach(n => { h += notizItemHtml(n); });
+  }
+  notizbody.innerHTML = h;
+  const exportBtn = document.getElementById('notizexport');
+  if(exportBtn) exportBtn.addEventListener('click', notizVerlaufExportieren);
+  notizbody.querySelectorAll('[data-notiztab]').forEach(b => b.addEventListener('click', () => notizAufTabWechseln(b.dataset.notiztab)));
+  notizbody.querySelectorAll('[data-gonr]').forEach(b => b.addEventListener('click', () => {
+    notizSchliessen();
+    gehe(b.dataset.gonr);
+  }));
+  notizbody.querySelectorAll('[data-done]').forEach(b => b.addEventListener('click', async e => {
+    const btn = e.currentTarget;
+    const id = btn.dataset.done;
+    btn.disabled = true;
+    try{
+      await notizErledigen(id);
+      notizOffenCache = notizOffenCache.filter(n => n.id !== id);
+      if(notizAlleCache){
+        const n = notizAlleCache.find(x => x.id === id);
+        if(n){ n.erledigt = true; n.erledigt_am = new Date().toISOString(); }
+      }
+      notizcountEl.textContent = notizOffenCache.length;
+      notizbadge.classList.toggle('has-notes', notizOffenCache.length > 0);
+      notizRender();
+    }catch(e){
+      btn.disabled = false;
+      alert('Konnte nicht als erledigt markiert werden — Internetverbindung prüfen.');
+    }
+  }));
+  const pushBtn = document.getElementById('notizpushbtn');
+  if(pushBtn){
+    pushStatusSync();
+    pushBtn.addEventListener('click', async () => {
+      pushBtn.disabled = true;
+      const aktiv = pushBtn.dataset.aktiv === '1';
+      const ok = aktiv ? await pushDeaktivieren() : await pushAktivieren();
+      pushBtn.disabled = false;
+      pushStatusSync();
+    });
+  }
+}
+
+function notizOeffnen(){
+  notizlay.hidden = false;
+  notizTab = 'offen';
+  notizAlleCache = null;
+  notizRender();
+  requestAnimationFrame(() => notizlay.classList.add('show'));
+  notizBadgeAktualisieren();
+}
+function notizSchliessen(){
+  if(notizlay.hidden) return;
+  notizlay.classList.remove('show');
+  setTimeout(() => { notizlay.hidden = true; }, 160);
+}
+notizbadge.addEventListener('click', notizOeffnen);
+document.getElementById('notizclose').addEventListener('click', notizSchliessen);
+notizlay.addEventListener('click', e => { if(e.target === notizlay) notizSchliessen(); });
+window.addEventListener('keydown', e => { if(e.key === 'Escape' && !notizlay.hidden) notizSchliessen(); });
+
+/* ---------- Web-Push-Abo ---------- */
+async function pushStatusSync(){
+  const pushBtn = document.getElementById('notizpushbtn');
+  if(!pushBtn) return;
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)){
+    pushBtn.textContent = 'Push nicht unterstützt';
+    pushBtn.disabled = true;
+    pushBtn.dataset.aktiv = '0';
+    return;
+  }
+  try{
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    pushBtn.dataset.aktiv = sub ? '1' : '0';
+    pushBtn.textContent = sub ? 'Push deaktivieren' : 'Push aktivieren';
+  }catch(e){ pushBtn.dataset.aktiv = '0'; pushBtn.textContent = 'Push aktivieren'; }
+}
+
+async function pushAboSpeichern(sub){
+  const j = sub.toJSON();
+  await sbFetch('push_subscriptions', {
+    method:'POST',
+    headers:{Prefer:'resolution=merge-duplicates,return=minimal'},
+    body: JSON.stringify({endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth})
+  });
+}
+
+async function pushAktivieren(){
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)){
+    alert('Push-Benachrichtigungen werden auf diesem Gerät/Browser nicht unterstützt. Auf dem iPhone: App zuerst über „Zum Home-Bildschirm“ installieren und von dort aus öffnen.');
+    return false;
+  }
+  try{
+    const perm = await Notification.requestPermission();
+    if(perm !== 'granted') return false;
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if(!sub){
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+    await pushAboSpeichern(sub);
+    return true;
+  }catch(err){
+    alert('Push konnte nicht aktiviert werden: ' + (err && err.message ? err.message : err));
+    return false;
+  }
+}
+
+async function pushDeaktivieren(){
+  try{
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if(sub){
+      await sbFetch('push_subscriptions?endpoint=eq.' + encodeURIComponent(sub.endpoint), {
+        method:'DELETE', headers:{Prefer:'return=minimal'}
+      });
+      await sub.unsubscribe();
+    }
+  }catch(e){ /* egal, Button-Status wird trotzdem neu synchronisiert */ }
+  return false;
+}
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('service-worker.js').catch(() => {});
+}
+notizBadgeAktualisieren();
+setInterval(notizBadgeAktualisieren, 60000);
+
+/* Von einem Push-Klick geöffnet ("?nr=...") - Bauteil direkt anzeigen, sobald Daten da sind */
+const notizZielNr = new URLSearchParams(location.search).get('nr');
+if(notizZielNr){
+  let notizZielVersuche = 0;
+  const wennBereit = setInterval(() => {
+    notizZielVersuche++;
+    if(DATA){
+      clearInterval(wennBereit);
+      gehe(notizZielNr);
+    }else if(notizZielVersuche > 100){
+      clearInterval(wennBereit);
+    }
+  }, 300);
+}
+
+/* ---------- Mehrfach-Scan: mehrere Barcodes sammeln, dann eine Notiz an alle ---------- */
+let sammelAktiv = false;
+let sammelListe = [];
+let sammelLetzterWert = null, sammelLetzteZeit = 0;
+
+function sammelChipsRender(){
+  const chips  = document.getElementById('scansammelchips');
+  const fertig = document.getElementById('scansammelfertig');
+  if(!chips || !fertig) return;
+  chips.innerHTML = sammelListe.map(nr => '<span class="scansammelchip">'+esc(nr)+'</span>').join('');
+  fertig.textContent = 'Fertig (' + sammelListe.length + ')';
+  fertig.disabled = !sammelListe.length;
+}
+
+function sammelTreffer(text){
+  const wert = String(text).trim();
+  const jetzt = Date.now();
+  // Derselbe Barcode bleibt oft mehrere Frames im Bild - kurze Sperre
+  // verhindert doppelte Toasts/Vibration fürs selbe Bauteil in Folge.
+  if(wert === sammelLetzterWert && jetzt - sammelLetzteZeit < 1500) return;
+  sammelLetzterWert = wert; sammelLetzteZeit = jetzt;
+
+  const treffer = suche(ohneRevision(wert));
+  const match = treffer.find(t => t.art === 'nr');
+  if(!match){
+    toast('Kein Treffer für „' + wert + '“');
+    if(navigator.vibrate) navigator.vibrate([30,40,30]);
+    return;
+  }
+  if(sammelListe.includes(match.nr)){
+    toast(match.nr + ' schon in der Liste');
+    return;
+  }
+  sammelListe.push(match.nr);
+  if(navigator.vibrate) navigator.vibrate(40);
+  toast(match.nr + ' hinzugefügt (' + sammelListe.length + ')');
+  sammelChipsRender();
+}
+
+function sammelScanStarten(){
+  sammelAktiv = true;
+  sammelListe = [];
+  sammelLetzterWert = null;
+  document.getElementById('scansammel').hidden = false;
+  sammelChipsRender();
+  scanStarten();
+}
+
+/* ---------- Sammel-Notiz: Text an alle gescannten Bauteile senden ---------- */
+const sammellay   = document.getElementById('sammellay');
+const sammelbody  = document.getElementById('sammelbody');
+const sammeltitel = document.getElementById('sammeltitel');
+
+function sammelKomponierenOeffnen(liste){
+  sammelListe = liste.slice();
+  sammellay.hidden = false;
+  sammelRender();
+  requestAnimationFrame(() => sammellay.classList.add('show'));
+}
+function sammelKomponierenSchliessen(){
+  if(sammellay.hidden) return;
+  sammellay.classList.remove('show');
+  setTimeout(() => { sammellay.hidden = true; }, 160);
+}
+
+function sammelRender(){
+  sammeltitel.textContent = 'Notiz an ' + sammelListe.length + (sammelListe.length===1 ? ' Bauteil' : ' Bauteile');
+  let h = '<div class="selchips">' + sammelListe.map(nr =>
+    '<span class="selchip">'+esc(nr)+'<button type="button" data-sammelrm="'+esc(nr)+'" aria-label="'+esc(nr)+' entfernen">&times;</button></span>'
+  ).join('') + '</div>';
+  h += '<div class="notizform">'
+    + '<textarea id="notiztext" rows="3" maxlength="500" placeholder="Notiz für alle ausgewählten Bauteile …"></textarea>'
+    + notizFotoFeldHtml()
+    + '<button type="button" class="notizsend" id="notizsend">An '+sammelListe.length+(sammelListe.length===1?' Bauteil':' Bauteile')+' senden</button>'
+    + '</div><div class="notizhint" id="notizhint"></div>';
+  sammelbody.innerHTML = h;
+  notizFotoBind();
+  sammelbody.querySelectorAll('[data-sammelrm]').forEach(b => b.addEventListener('click', () => {
+    sammelListe = sammelListe.filter(nr => nr !== b.dataset.sammelrm);
+    if(!sammelListe.length){ sammelKomponierenSchliessen(); return; }
+    sammelRender();
+  }));
+  document.getElementById('notizsend').addEventListener('click', sammelSenden);
+}
+
+async function sammelSenden(){
+  const ta   = document.getElementById('notiztext');
+  const btn  = document.getElementById('notizsend');
+  const hint = document.getElementById('notizhint');
+  const text = ta.value.trim();
+  if(!text || !sammelListe.length) return;
+  const anzahl = sammelListe.length;
+  btn.disabled = true;
+  hint.className = 'notizhint';
+  hint.textContent = notizFotoDatei ? 'Foto wird hochgeladen …' : 'Wird gesendet …';
+  try{
+    let fotoUrl = null;
+    if(notizFotoDatei){
+      fotoUrl = await notizFotoHochladen(await notizFotoKomprimieren(notizFotoDatei));
+      hint.textContent = 'Wird gesendet …';
+    }
+    await Promise.all(sammelListe.map(nr => notizSenden(nr, text, fotoUrl)));
+    notizBadgeAktualisieren();
+    sammelListe = [];
+    notizFotoZuruecksetzen();
+    sammelKomponierenSchliessen();
+    toast('Notiz an ' + anzahl + (anzahl===1?' Bauteil':' Bauteile') + ' gesendet.');
+  }catch(err){
+    hint.className = 'notizhint err';
+    hint.textContent = 'Konnte nicht an alle Bauteile gesendet werden — Internetverbindung prüfen.';
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('sammelclose').addEventListener('click', () => {
+  sammelListe = [];
+  sammelKomponierenSchliessen();
+});
+sammellay.addEventListener('click', e => {
+  if(e.target === sammellay){ sammelListe = []; sammelKomponierenSchliessen(); }
+});
+window.addEventListener('keydown', e => { if(e.key === 'Escape' && !sammellay.hidden){ sammelListe = []; sammelKomponierenSchliessen(); } });
 </script>
 </body>
 </html>
