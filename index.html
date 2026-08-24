@@ -2182,10 +2182,11 @@ window.addEventListener('keydown', e => { if(e.key === 'Escape' && !overlay.hidd
       if(p === 'granted'){ leseDatei(await h.getFile()); return; }
       dropzone('Zuletzt verwendet: <b>' + h.name + '</b>. Der Browser fragt aus Sicherheitsgründen '
         + 'bei jedem Start einmal nach Erlaubnis &mdash; ein Klick genügt.');
-      const dz = document.getElementById('dz');
-      const b = document.getElementById('pick');
+      const bAlt = document.getElementById('pick');
+      const b = bAlt.cloneNode(true);
+      bAlt.replaceWith(b);
       b.textContent = 'Zugriff erlauben und laden';
-      b.onclick = aktualisieren;
+      b.addEventListener('click', aktualisieren);
       return;
     }catch(e){ /* weiter zur Auswahl */ }
   }
