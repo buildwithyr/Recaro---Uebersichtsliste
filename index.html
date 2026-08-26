@@ -162,6 +162,23 @@ body{
 }
 .scanbtn:hover:not(:disabled){color:var(--teal);background:var(--teal-bg)}
 .scanbtn:disabled{opacity:.35;cursor:default}
+.searchhist{
+  position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:20;
+  background:var(--card);border:1px solid var(--rule-soft);border-radius:12px;
+  box-shadow:0 12px 32px rgba(0,0,0,.4);overflow:hidden;
+}
+.searchhist[hidden]{display:none}
+.searchhist-item{
+  display:block;width:100%;text-align:left;padding:10px 14px;border:0;background:none;
+  font-family:var(--mono);font-size:15px;color:var(--ink);cursor:pointer;
+}
+.searchhist-item:hover,.searchhist-item:focus-visible{background:var(--surface-bright);color:var(--teal)}
+.searchhist-clear{
+  display:block;width:100%;text-align:left;padding:9px 14px;border:0;border-top:1px solid var(--rule-soft);
+  background:none;font-family:var(--cond);font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-3);cursor:pointer;
+}
+.searchhist-clear:hover{color:var(--teal)}
 .quelle{
   display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px;
   font-family:var(--cond);font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:#C9B7A8;
@@ -908,6 +925,10 @@ body.feat-off-mehrfachauswahl #selbar{display:none!important}
           <path d="M7 9v6M10 9v6M13 9v6M16 9v6" stroke-width="1.8"/>
         </svg>
       </button>
+      <div class="searchhist" id="searchhist" hidden>
+        <div class="searchhist-list" id="searchhistList"></div>
+        <button type="button" class="searchhist-clear" id="searchhistClear">Verlauf leeren</button>
+      </div>
     </div>
     <div class="hint" id="hint">Trennzeichen egal &mdash; 16431161001 findet 164-31161-001</div>
     <div class="quelle" id="quelle" hidden>
@@ -1985,9 +2006,9 @@ function startseite(){
 
 function bind(){
   main.querySelectorAll('[data-go]').forEach(el => {
-    el.addEventListener('click', () => gehe(el.dataset.go));
+    el.addEventListener('click', () => geheAusSuche(el.dataset.go));
     el.addEventListener('keydown', e => {
-      if(e.key==='Enter' || e.key===' '){ e.preventDefault(); gehe(el.dataset.go); }
+      if(e.key==='Enter' || e.key===' '){ e.preventDefault(); geheAusSuche(el.dataset.go); }
     });
   });
   main.querySelectorAll('[data-cmp]').forEach(el => {
@@ -2007,13 +2028,76 @@ function bind(){
   if(bk) bk.addEventListener('click', zurueck);
 }
 
+/* ---------- Suchverlauf ---------- */
+const SEARCH_HISTORY_KEY = 'recaro-search-history';
+const MAX_HISTORY = 5;
+const searchhistEl = document.getElementById('searchhist');
+const searchhistListEl = document.getElementById('searchhistList');
+const searchhistClearEl = document.getElementById('searchhistClear');
+
+function ladeSuchverlauf(){
+  try { return JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY) || '[]'); }
+  catch(e){ return []; }
+}
+function speichereSuchverlauf(arr){
+  try { localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(arr)); } catch(e){}
+}
+function addToHistory(begriff){
+  const b = String(begriff || '').trim();
+  if(!b) return;
+  let h = ladeSuchverlauf().filter(x => x.toLowerCase() !== b.toLowerCase());
+  h.unshift(b);
+  h = h.slice(0, MAX_HISTORY);
+  speichereSuchverlauf(h);
+}
+function clearSuchverlauf(){
+  speichereSuchverlauf([]);
+  renderSuchverlauf();
+}
+function renderSuchverlauf(){
+  const h = ladeSuchverlauf();
+  searchhistListEl.innerHTML = '';
+  h.forEach(begriff => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'searchhist-item';
+    btn.textContent = begriff;
+    btn.addEventListener('mousedown', e => e.preventDefault());
+    btn.addEventListener('click', () => {
+      qEl.value = begriff;
+      clrEl.hidden = false;
+      typFilter = 'alle';
+      current = null; stack = [];
+      liste();
+      searchhistEl.hidden = true;
+      qEl.focus();
+    });
+    searchhistListEl.appendChild(btn);
+  });
+  searchhistEl.hidden = h.length === 0;
+}
+searchhistClearEl.addEventListener('mousedown', e => e.preventDefault());
+searchhistClearEl.addEventListener('click', clearSuchverlauf);
+
+/* Wrapper für gehe(), der nur an den Stellen verwendet wird, an denen der Nutzer
+   eine Suche über #q tatsächlich abschließt (Zeilenklick, Enter, Auto-Open bei
+   einem Treffer) - so landet im Verlauf der fertige Suchbegriff, nie ein
+   Zwischenstand beim Tippen. */
+function geheAusSuche(nr){
+  addToHistory(qEl.value);
+  gehe(nr);
+}
+
 /* ---------- Ereignisse ---------- */
 qEl.addEventListener('input', () => {
   clrEl.hidden = !qEl.value;
   if(!qEl.value) typFilter = 'alle';
   current = null; stack = [];
+  searchhistEl.hidden = true;
   liste();
 });
+qEl.addEventListener('focus', renderSuchverlauf);
+qEl.addEventListener('blur', () => { setTimeout(() => { searchhistEl.hidden = true; }, 150); });
 qEl.addEventListener('keydown', e => {
   if(!treffer.length) return;
   if(e.key==='ArrowDown' || e.key==='ArrowUp'){
@@ -2027,9 +2111,9 @@ qEl.addEventListener('keydown', e => {
   }
   if(e.key==='Enter'){
     e.preventDefault();
-    gehe(treffer[sel >= 0 ? sel : 0].nr);
+    geheAusSuche(treffer[sel >= 0 ? sel : 0].nr);
   }
-  if(e.key==='Escape'){ qEl.value=''; clrEl.hidden=true; typFilter='alle'; liste(); }
+  if(e.key==='Escape'){ qEl.value=''; clrEl.hidden=true; typFilter='alle'; searchhistEl.hidden=true; liste(); }
 });
 clrEl.addEventListener('click', () => {
   qEl.value=''; clrEl.hidden=true; typFilter='alle'; current=null; stack=[]; qEl.focus(); liste();
@@ -2224,7 +2308,7 @@ function scanTreffer(text){
   liste();
   // Bei genau einem Treffer gleich in die Detailansicht springen -
   // beim Scannen am Lager will man das Ergebnis sehen, nicht erst klicken.
-  if(treffer.length === 1) gehe(treffer[0].nr);
+  if(treffer.length === 1) geheAusSuche(treffer[0].nr);
   if(navigator.vibrate) navigator.vibrate(60);
 }
 
@@ -2603,7 +2687,7 @@ function peekOeffnen(row){
   document.getElementById('peeknotizbtn').addEventListener('click', () => peekNotizFormular(row, nr));
   document.getElementById('peekopenbtn').addEventListener('click', () => {
     peekSchliessen();
-    gehe(nr);
+    geheAusSuche(nr);
   });
 }
 
