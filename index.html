@@ -314,6 +314,7 @@ body{
 }
 .nestnew:hover:not(:disabled){color:var(--teal);border-color:var(--teal)}
 .nestnew:disabled{opacity:.4;cursor:default}
+.nestnew.danger:hover:not(:disabled){color:var(--red);border-color:var(--red)}
 .nesttablewrap{
   overflow:auto;border:1px solid var(--rule-soft);border-radius:6px;background:var(--card);
   margin-bottom:16px;-webkit-overflow-scrolling:touch;max-height:340px;
@@ -462,7 +463,7 @@ body{
 .notizbody{padding:10px 14px 16px}
 .notizpushrow{margin-bottom:12px}
 .notiztabs{margin-bottom:12px}
-.notizexportrow{margin-bottom:12px}
+.notizexportrow{margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap}
 .notizitem{border:1px solid var(--rule-soft);border-radius:6px;padding:11px 13px;margin-bottom:9px}
 .notizitem .ni-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .ni-status{font-family:var(--cond);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--ink-3)}
@@ -3469,6 +3470,22 @@ function notizVerlaufExportieren(){
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+async function notizVerlaufLoeschen(){
+  const erledigtIds = (notizAlleCache || []).filter(n => n.erledigt).map(n => n.id);
+  if(!erledigtIds.length) return;
+  if(!confirm('Alle erledigten Notizen ('+erledigtIds.length+') endgültig löschen? Dies kann nicht rückgängig gemacht werden.')) return;
+  const btn = document.getElementById('notizverlaufloeschen');
+  if(btn) btn.disabled = true;
+  try{
+    await sbFetch('notizen?erledigt=eq.true', {method:'DELETE', headers:{Prefer:'return=minimal'}});
+    notizAlleCache = notizAlleCache.filter(n => !n.erledigt);
+    notizRender();
+  }catch(e){
+    if(btn) btn.disabled = false;
+    alert('Verlauf konnte nicht gelöscht werden — Internetverbindung prüfen.');
+  }
+}
+
 async function notizAufTabWechseln(tab){
   notizTab = tab;
   if(tab === 'verlauf' && notizAlleCache === null){
@@ -3486,7 +3503,11 @@ function notizRender(){
   const liste = notizTab === 'offen' ? notizOffenCache : (notizAlleCache || []);
   let h = notizPushRowHtml() + notizTabsHtml();
   if(notizTab === 'verlauf'){
-    h += '<div class="notizexportrow"><button type="button" class="nestnew" id="notizexport"'+(liste.length?'':' disabled')+'>Verlauf als CSV exportieren</button></div>';
+    const erledigtCount = liste.filter(n => n.erledigt).length;
+    h += '<div class="notizexportrow">'
+      + '<button type="button" class="nestnew" id="notizexport"'+(liste.length?'':' disabled')+'>Verlauf als CSV exportieren</button>'
+      + '<button type="button" class="nestnew danger" id="notizverlaufloeschen"'+(erledigtCount?'':' disabled')+'>Erledigte löschen ('+erledigtCount+')</button>'
+      + '</div>';
   }
   if(!liste.length){
     h += '<div class="notizempty">'+(notizTab==='offen' ? 'Keine offenen Notizen.' : 'Noch keine Notizen gesendet.')+'</div>';
@@ -3496,6 +3517,8 @@ function notizRender(){
   notizbody.innerHTML = h;
   const exportBtn = document.getElementById('notizexport');
   if(exportBtn) exportBtn.addEventListener('click', notizVerlaufExportieren);
+  const loeschBtn = document.getElementById('notizverlaufloeschen');
+  if(loeschBtn) loeschBtn.addEventListener('click', notizVerlaufLoeschen);
   notizbody.querySelectorAll('[data-notiztab]').forEach(b => b.addEventListener('click', () => notizAufTabWechseln(b.dataset.notiztab)));
   notizbody.querySelectorAll('[data-gonr]').forEach(b => b.addEventListener('click', () => {
     notizSchliessen();
