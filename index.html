@@ -481,6 +481,42 @@ body{
 .ni-done:disabled{opacity:.5;cursor:default}
 .notizempty,.notizladen{padding:24px;text-align:center;color:var(--ink-3);font-size:13.5px}
 
+/* ---------- Zugriffscode-Abfrage (statt prompt(), da prompt() in der
+   iOS-Home-Bildschirm-App nicht unterstuetzt wird) ---------- */
+.codelay{
+  position:fixed;inset:0;z-index:280;background:rgba(15,11,8,.5);
+  -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;transition:opacity .16s ease-out;
+}
+.codelay[hidden]{display:none}
+.codelay.show{opacity:1}
+.codecard{
+  width:100%;max-width:320px;
+  background:var(--card);border:1px solid var(--rule-soft);border-radius:12px;
+  box-shadow:0 20px 48px rgba(0,0,0,.4);
+  transform:scale(.94);opacity:0;transition:transform .17s ease-out,opacity .17s ease-out;
+}
+.codelay.show .codecard{transform:scale(1);opacity:1}
+.codehead{padding:14px 16px;border-bottom:1px solid var(--rule-soft)}
+.codehead span{font-family:var(--cond);font-size:15px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--ink)}
+.codebody{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.codehint{font-size:12.5px;color:var(--ink-3);margin:0}
+.codebody input{
+  width:100%;font-family:inherit;font-size:15px;
+  padding:10px 11px;border:1px solid var(--rule);border-radius:4px;background:var(--surface-bright);color:var(--ink);
+}
+.codebody input:focus{outline:2px solid var(--teal);outline-offset:1px}
+.coderow{display:flex;justify-content:flex-end;gap:8px}
+.codeok,.codecancel{
+  font-family:var(--cond);font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  border-radius:3px;padding:9px 16px;cursor:pointer;
+}
+.codeok{background:var(--teal);color:#fff;border:0}
+.codeok:hover{filter:brightness(1.12)}
+.codecancel{background:none;color:var(--ink-2);border:1px solid var(--rule)}
+.codecancel:hover{border-color:var(--red);color:var(--red)}
+
 /* ---------- Trefferliste ---------- */
 .wrap{max-width:940px;margin:0 auto;padding:0 16px}
 .results{margin:14px 0 40px}
@@ -967,6 +1003,20 @@ body.feat-off-mehrfachauswahl #selbar{display:none!important}
       <button class="notizclose" id="notizclose" aria-label="Schließen" type="button">&times;</button>
     </div>
     <div class="notizbody" id="notizbody"></div>
+  </div>
+</div>
+
+<div class="codelay" id="codelay" hidden>
+  <div class="codecard" role="dialog" aria-modal="true" aria-label="Zugriffscode">
+    <div class="codehead"><span>Zugriffscode</span></div>
+    <div class="codebody">
+      <p class="codehint">Für Notizen/Fotos bei Kolleg:in erfragen.</p>
+      <input type="text" id="codeinput" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Zugriffscode">
+      <div class="coderow">
+        <button type="button" class="codecancel" id="codecancel">Abbrechen</button>
+        <button type="button" class="codeok" id="codeok">Bestätigen</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -3250,14 +3300,41 @@ const VAPID_PUBLIC_KEY = 'BMPP6ult_kyaK9orztkmugHmt13n7GwnPmSV1SrXSUHFRfcFjd2mvV
    abgefragt und nur lokal im Browser gespeichert - er steht nirgends im Code. */
 const ZUGRIFFSCODE_KEY = 'rue_zugriffscode';
 
-function zugriffscodeHolen(){
+/* Eigenes kleines Eingabefeld statt prompt(): prompt()/alert()/confirm()
+   funktionieren in der als "Zum Home-Bildschirm" installierten iOS-App
+   (standalone display mode) nicht zuverlässig - dort wirft prompt() einen
+   TypeError statt eine Eingabe anzuzeigen. */
+const codelay    = document.getElementById('codelay');
+const codeinput  = document.getElementById('codeinput');
+let codeAufloesen = null;
+
+function codeDialogOeffnen(){
+  return new Promise(resolve => {
+    codeAufloesen = resolve;
+    codeinput.value = '';
+    codelay.hidden = false;
+    requestAnimationFrame(() => { codelay.classList.add('show'); codeinput.focus(); });
+  });
+}
+function codeDialogSchliessen(wert){
+  if(codelay.hidden) return;
+  codelay.classList.remove('show');
+  setTimeout(() => { codelay.hidden = true; }, 160);
+  if(codeAufloesen){ codeAufloesen(wert); codeAufloesen = null; }
+}
+document.getElementById('codeok').addEventListener('click', () => codeDialogSchliessen(codeinput.value.trim()));
+document.getElementById('codecancel').addEventListener('click', () => codeDialogSchliessen(''));
+codelay.addEventListener('click', e => { if(e.target === codelay) codeDialogSchliessen(''); });
+codeinput.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); codeDialogSchliessen(codeinput.value.trim()); } });
+window.addEventListener('keydown', e => { if(e.key === 'Escape' && !codelay.hidden) codeDialogSchliessen(''); });
+
+async function zugriffscodeHolen(){
   let code = localStorage.getItem(ZUGRIFFSCODE_KEY);
   if(!code){
-    code = prompt('Zugriffscode für Notizen/Fotos (bei Kolleg:in erfragen):') || '';
-    code = code.trim();
+    code = await codeDialogOeffnen();
     if(code) localStorage.setItem(ZUGRIFFSCODE_KEY, code);
   }
-  return code;
+  return code || '';
 }
 
 function zugriffscodeZuruecksetzen(){
@@ -3273,7 +3350,7 @@ async function sbFetch(path, opts){
     Authorization: 'Bearer ' + SB_ANON_KEY,
     'Content-Type': 'application/json'
   }, opts.headers || {});
-  if(schreibend) headers['x-app-secret'] = zugriffscodeHolen();
+  if(schreibend) headers['x-app-secret'] = await zugriffscodeHolen();
   const res = await fetch(SB_URL + '/rest/v1/' + path, Object.assign({}, opts, {headers}));
   if(schreibend && (res.status === 401 || res.status === 403)){
     zugriffscodeZuruecksetzen();
@@ -3393,7 +3470,7 @@ async function sha256Hex(text){
 
 async function notizFotoHochladen(blob){
   const dateiname = Date.now() + '-' + Math.random().toString(36).slice(2, 9) + '.jpg';
-  const code  = zugriffscodeHolen();
+  const code  = await zugriffscodeHolen();
   const token = await sha256Hex(code + ':' + dateiname);
   const pfad  = token + '/' + dateiname;
   const res = await fetch(SB_URL + '/storage/v1/object/notiz-fotos/' + pfad, {
