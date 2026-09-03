@@ -3230,22 +3230,54 @@ function nestRender(){
    Notizen & Push-Benachrichtigungen
    Backend: Supabase-Projekt "recaro-notizen" (Tabellen notizen,
    push_subscriptions; Edge Function send-push per Database-Trigger;
-   Storage-Bucket notiz-fotos für Foto-Anhänge). Kein Login - RLS
-   erlaubt offenen Zugriff mit dem Publishable/Anon-Key, der hier
-   bewusst im Client steht.
+   Storage-Bucket notiz-fotos für Foto-Anhänge). Kein Login - der
+   Publishable/Anon-Key steht bewusst im Client. Lesen bleibt offen,
+   Schreiben (Notiz anlegen/erledigen, Foto hochladen, Push an/abmelden)
+   ist serverseitig per RLS an einen Zugriffscode gebunden (siehe
+   supabase/migrations/ und README, Abschnitt "Zugriffscode"). Der Code
+   wird bei Bedarf einmalig per prompt() abgefragt und nur in
+   localStorage gehalten - er steht nirgends im Quelltext.
    ========================================================== */
 const SB_URL = 'https://pvjzeueveetnkfdbagdx.supabase.co';
 const SB_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2anpldWV2ZWV0bmtmZGJhZ2R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTkxNzQsImV4cCI6MjEwMjU3NTE3NH0.D-mAsJVkWAnG0MsxU-aOGtCEWA_8JG5NRlDVFWyNK2M';
 const VAPID_PUBLIC_KEY = 'BMPP6ult_kyaK9orztkmugHmt13n7GwnPmSV1SrXSUHFRfcFjd2mvVj7z6E0oXICY_ZDqDfpZ4MlHNiXUNzbGrA';
 
+/* Schreibzugriff (Notizen anlegen/erledigen, Push an/abmelden) ist serverseitig
+   per RLS-Policy an den Header x-app-secret gebunden, Foto-Uploads an einen
+   daraus abgeleiteten Pfad-Hash (siehe notizFotoHochladen unten und
+   supabase/migrations/). Der Code wird beim ersten Schreibversuch einmalig
+   abgefragt und nur lokal im Browser gespeichert - er steht nirgends im Code. */
+const ZUGRIFFSCODE_KEY = 'rue_zugriffscode';
+
+function zugriffscodeHolen(){
+  let code = localStorage.getItem(ZUGRIFFSCODE_KEY);
+  if(!code){
+    code = prompt('Zugriffscode für Notizen/Fotos (bei Kolleg:in erfragen):') || '';
+    code = code.trim();
+    if(code) localStorage.setItem(ZUGRIFFSCODE_KEY, code);
+  }
+  return code;
+}
+
+function zugriffscodeZuruecksetzen(){
+  localStorage.removeItem(ZUGRIFFSCODE_KEY);
+}
+
 async function sbFetch(path, opts){
   opts = opts || {};
+  const methode = (opts.method || 'GET').toUpperCase();
+  const schreibend = methode !== 'GET' && methode !== 'HEAD';
   const headers = Object.assign({
     apikey: SB_ANON_KEY,
     Authorization: 'Bearer ' + SB_ANON_KEY,
     'Content-Type': 'application/json'
   }, opts.headers || {});
+  if(schreibend) headers['x-app-secret'] = zugriffscodeHolen();
   const res = await fetch(SB_URL + '/rest/v1/' + path, Object.assign({}, opts, {headers}));
+  if(schreibend && (res.status === 401 || res.status === 403)){
+    zugriffscodeZuruecksetzen();
+    throw new Error('Zugriffscode falsch — bitte erneut versuchen.');
+  }
   if(!res.ok) throw new Error('Supabase-Fehler ' + res.status);
   return res;
 }
@@ -3345,15 +3377,35 @@ function notizFotoKomprimieren(file){
   });
 }
 
+/* Supabase Storage (anders als die REST-API/PostgREST für notizen/
+   push_subscriptions) liefert eigene Request-Header nicht an RLS-Policies
+   aus - current_setting('request.headers') ist dort leer. Der Zugriffscode
+   wird deshalb hier als SHA-256-Hash aus Code+Dateiname vor den Dateinamen
+   gehängt (Ordner-Segment im Objekt-Pfad); die Policy in
+   supabase/migrations/ rechnet denselben Hash serverseitig aus dem
+   Vault-Secret nach. So landet der Klartext-Code nie in der öffentlich
+   lesbaren Foto-URL, obwohl der Vergleich vollständig serverseitig bleibt. */
+async function sha256Hex(text){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 async function notizFotoHochladen(blob){
   const dateiname = Date.now() + '-' + Math.random().toString(36).slice(2, 9) + '.jpg';
-  const res = await fetch(SB_URL + '/storage/v1/object/notiz-fotos/' + dateiname, {
+  const code  = zugriffscodeHolen();
+  const token = await sha256Hex(code + ':' + dateiname);
+  const pfad  = token + '/' + dateiname;
+  const res = await fetch(SB_URL + '/storage/v1/object/notiz-fotos/' + pfad, {
     method: 'POST',
     headers: { apikey: SB_ANON_KEY, Authorization: 'Bearer ' + SB_ANON_KEY, 'Content-Type': 'image/jpeg' },
     body: blob
   });
+  if(res.status === 401 || res.status === 403){
+    zugriffscodeZuruecksetzen();
+    throw new Error('Zugriffscode falsch — bitte erneut versuchen.');
+  }
   if(!res.ok) throw new Error('Foto-Upload fehlgeschlagen (' + res.status + ')');
-  return SB_URL + '/storage/v1/object/public/notiz-fotos/' + dateiname;
+  return SB_URL + '/storage/v1/object/public/notiz-fotos/' + pfad;
 }
 
 function notizFormBind(nr, onErfolg){
@@ -3387,7 +3439,7 @@ function notizFormBind(nr, onErfolg){
       }
     }catch(err){
       hint.className = 'notizhint err';
-      hint.textContent = 'Konnte nicht gesendet werden — Internetverbindung prüfen.';
+      hint.textContent = (err && err.message) || 'Konnte nicht gesendet werden — Internetverbindung prüfen.';
       btn.disabled = false;
     }
   });
@@ -3515,9 +3567,9 @@ function notizRender(){
       notizcountEl.textContent = notizOffenCache.length;
       notizbadge.classList.toggle('has-notes', notizOffenCache.length > 0);
       notizRender();
-    }catch(e){
+    }catch(err){
       btn.disabled = false;
-      alert('Konnte nicht als erledigt markiert werden — Internetverbindung prüfen.');
+      alert((err && err.message) || 'Konnte nicht als erledigt markiert werden — Internetverbindung prüfen.');
     }
   }));
   const pushBtn = document.getElementById('notizpushbtn');
@@ -3746,7 +3798,7 @@ async function sammelSenden(){
     toast('Notiz an ' + anzahl + (anzahl===1?' Bauteil':' Bauteile') + ' gesendet.');
   }catch(err){
     hint.className = 'notizhint err';
-    hint.textContent = 'Konnte nicht an alle Bauteile gesendet werden — Internetverbindung prüfen.';
+    hint.textContent = (err && err.message) || 'Konnte nicht an alle Bauteile gesendet werden — Internetverbindung prüfen.';
     btn.disabled = false;
   }
 }
