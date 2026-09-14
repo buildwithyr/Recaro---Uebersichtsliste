@@ -526,11 +526,13 @@ body{
 mark{background:var(--mark-bg);color:var(--mark-text);border-radius:2px;padding:0 1px}
 
 /* ---------- Desktop-Modus: Maus + Hover vorhanden ---------- */
+#menuverlaufbtn{display:none}
 @media (hover:hover) and (pointer:fine){
   .scanbtn{display:none}
   .row{padding:7px 13px;margin-bottom:3px}
   .row .n{font-size:14px}
   .row .dtxt{font-size:13px}
+  #menuverlaufbtn{display:block}
 }
 
 /* ---------- Detail ---------- */
