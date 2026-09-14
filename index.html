@@ -512,6 +512,14 @@ body{
 .tag-ez{background:var(--amber-bg);color:var(--amber)}
 mark{background:var(--mark-bg);color:var(--mark-text);border-radius:2px;padding:0 1px}
 
+/* ---------- Desktop-Modus: Maus + Hover vorhanden ---------- */
+@media (hover:hover) and (pointer:fine){
+  .scanbtn{display:none}
+  .row{padding:7px 13px;margin-bottom:3px}
+  .row .n{font-size:14px}
+  .row .dtxt{font-size:13px}
+}
+
 /* ---------- Detail ---------- */
 .back{
   display:inline-flex;align-items:center;gap:7px;background:none;border:0;
@@ -2762,15 +2770,45 @@ main.addEventListener('touchend', e => {
 });
 main.addEventListener('touchcancel', peekLoslassen);
 
-main.addEventListener('mousedown', e => {
-  if(e.button !== 0) return;
-  const row = e.target.closest('.row');
-  if(!row) return;
-  peekStarten(row, e.clientX, e.clientY);
-});
-main.addEventListener('mousemove', e => { peekBewegen(e.clientX, e.clientY); });
-document.addEventListener('mouseup', peekLoslassen);
-main.addEventListener('mouseleave', peekLoslassen);
+/* Desktop-Modus (Maus + Hover vorhanden): Vorschau erscheint beim
+   Drüberfahren statt bei Klicken-und-Halten. Touch bleibt Long-Press. */
+const isDesktopMode = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+if(isDesktopMode){
+  let peekHoverRow = null, peekHoverCloseTimer = null;
+  function peekHoverCloseCancel(){ clearTimeout(peekHoverCloseTimer); peekHoverCloseTimer = null; }
+  function peekHoverCloseSchedule(){
+    peekHoverCloseCancel();
+    peekHoverCloseTimer = setTimeout(() => { peekHoverRow = null; peekSchliessen(); }, 150);
+  }
+  main.addEventListener('mouseover', e => {
+    if(!features.longtouch) return;
+    const row = e.target.closest('.row');
+    if(!row || row.contains(e.relatedTarget)) return;
+    peekHoverCloseCancel();
+    peekHoverRow = row;
+    peekOeffnen(row);
+  });
+  main.addEventListener('mouseout', e => {
+    const row = e.target.closest('.row');
+    if(!row || row !== peekHoverRow) return;
+    if(row.contains(e.relatedTarget)) return;
+    if(e.relatedTarget && peekcard.contains(e.relatedTarget)) return;
+    peekHoverCloseSchedule();
+  });
+  peekcard.addEventListener('mouseenter', peekHoverCloseCancel);
+  peekcard.addEventListener('mouseleave', peekHoverCloseSchedule);
+}else{
+  main.addEventListener('mousedown', e => {
+    if(e.button !== 0) return;
+    const row = e.target.closest('.row');
+    if(!row) return;
+    peekStarten(row, e.clientX, e.clientY);
+  });
+  main.addEventListener('mousemove', e => { peekBewegen(e.clientX, e.clientY); });
+  document.addEventListener('mouseup', peekLoslassen);
+  main.addEventListener('mouseleave', peekLoslassen);
+}
 
 main.addEventListener('click', e => {
   if(peekSuppressClick){
