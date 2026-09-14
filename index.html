@@ -451,6 +451,7 @@ body{
   box-shadow:0 20px 48px rgba(0,0,0,.4);
   transform:scale(.94);opacity:0;transition:transform .17s ease-out,opacity .17s ease-out;
 }
+.notizcard.notizcard-tabelle{max-width:820px}
 .notizlay.show .notizcard{transform:scale(1);opacity:1}
 .notizhead{
   position:sticky;top:0;background:var(--card);display:flex;align-items:center;justify-content:space-between;
@@ -462,7 +463,24 @@ body{
 .notizbody{padding:10px 14px 16px}
 .notizpushrow{margin-bottom:12px}
 .notiztabs{margin-bottom:12px}
+.notizansicht{margin-bottom:12px}
+.notiztablefilter{margin-bottom:12px}
 .notizexportrow{margin-bottom:12px}
+.notiztablewrap{overflow-x:auto;border:1px solid var(--rule-soft);border-radius:6px}
+.notiztable{width:100%;border-collapse:collapse;font-size:13.5px}
+.notiztable th,.notiztable td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+.notiztable tbody tr:last-child td{border-bottom:0}
+.notiztable th{
+  font-family:var(--cond);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-3);cursor:pointer;user-select:none;white-space:nowrap;background:var(--surface-alt);
+}
+.notiztable th:hover{color:var(--teal)}
+.notiztable .nt-nr{font-family:var(--mono);font-weight:600;font-size:13.5px;color:var(--ink);background:none;border:0;padding:0;cursor:pointer}
+.notiztable .nt-nr:hover{color:var(--teal)}
+.notiztable .nt-text{color:var(--ink-2);max-width:260px}
+.notiztable .nt-alter{color:var(--ink-3);font-size:11.5px}
+.notiztable .ni-status{display:block;margin-bottom:4px}
+.notiztable .ni-done{padding:4px 9px;font-size:11px}
 .notizitem{border:1px solid var(--rule-soft);border-radius:6px;padding:11px 13px;margin-bottom:9px}
 .notizitem .ni-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .ni-status{font-family:var(--cond);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--ink-3)}
@@ -3489,8 +3507,11 @@ const notizcountEl = document.getElementById('notizcount');
 const notizlay     = document.getElementById('notizlay');
 const notizbody    = document.getElementById('notizbody');
 let notizOffenCache = [];
-let notizAlleCache = null; /* null = noch nicht geladen (Verlauf-Tab) */
+let notizAlleCache = null; /* null = noch nicht geladen (Verlauf-Tab / Tabelle) */
 let notizTab = 'offen';
+let notizAnsicht = 'karten'; /* 'karten' | 'tabelle' */
+let notizTabelleFilter = 'offen'; /* 'alle' | 'offen' | 'erledigt' */
+let notizTabelleSort = {feld:'datum', dir:'desc'};
 
 async function notizBadgeAktualisieren(){
   try{
@@ -3536,6 +3557,85 @@ function notizItemHtml(n){
     + '</div></div>';
 }
 
+/* ---------- Notizen-Tabellenansicht (reine Anzeige, kein Export) ---------- */
+function notizAnsichtHtml(){
+  return '<div class="nesttabs notizansicht" role="group" aria-label="Darstellung wählen">'
+    + '<button type="button" class="nesttab'+(notizAnsicht==='karten'?' active':'')+'" data-notizansicht="karten">Karten</button>'
+    + '<button type="button" class="nesttab'+(notizAnsicht==='tabelle'?' active':'')+'" data-notizansicht="tabelle">Tabelle</button>'
+    + '</div>';
+}
+
+function notizAltersText(iso){
+  try{
+    const tage = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+    if(tage <= 0) return 'heute';
+    if(tage === 1) return 'gestern';
+    return 'vor ' + tage + ' Tagen';
+  }catch(e){ return ''; }
+}
+
+function notizTabelleGefiltert(){
+  const basis = notizAlleCache || [];
+  if(notizTabelleFilter === 'offen') return basis.filter(n => !n.erledigt);
+  if(notizTabelleFilter === 'erledigt') return basis.filter(n => n.erledigt);
+  return basis;
+}
+
+function notizTabelleSortiert(liste){
+  const {feld, dir} = notizTabelleSort;
+  const vz = dir === 'asc' ? 1 : -1;
+  return liste.slice().sort((a,b) => {
+    let av, bv;
+    if(feld === 'nr'){ av = a.bauteil_nr||''; bv = b.bauteil_nr||''; }
+    else if(feld === 'text'){ av = a.notiz||''; bv = b.notiz||''; }
+    else if(feld === 'status'){ av = a.erledigt?1:0; bv = b.erledigt?1:0; }
+    else { av = new Date(a.erstellt_am).getTime()||0; bv = new Date(b.erstellt_am).getTime()||0; }
+    if(av < bv) return -1*vz;
+    if(av > bv) return 1*vz;
+    return 0;
+  });
+}
+
+function notizSortPfeil(feld){
+  if(notizTabelleSort.feld !== feld) return '';
+  return notizTabelleSort.dir === 'asc' ? ' ▲' : ' ▼';
+}
+
+function notizTabelleZeileHtml(n){
+  const text = n.notiz || '';
+  const gekuerzt = text.length > 60 ? esc(text.slice(0,60))+'…' : esc(text);
+  const status = n.erledigt
+    ? '<span class="ni-status done">Erledigt</span>'
+    : '<span class="ni-status open">Offen</span>';
+  return '<tr>'
+    + '<td><button type="button" class="nt-nr" data-gonr="'+esc(n.bauteil_nr)+'">'+esc(n.bauteil_nr)+'</button></td>'
+    + '<td class="nt-text" title="'+esc(text)+'">'+gekuerzt+'</td>'
+    + '<td class="nt-datum">'+notizZeitAnzeige(n.erstellt_am)+'<br><span class="nt-alter">'+notizAltersText(n.erstellt_am)+'</span></td>'
+    + '<td>'+status+(!n.erledigt ? '<button type="button" class="ni-done" data-done="'+esc(n.id)+'">Erledigt</button>' : '')+'</td>'
+    + '</tr>';
+}
+
+function notizTabelleHtml(){
+  if(notizAlleCache === null) return '<div class="notizladen">Wird geladen …</div>';
+  let h = '<div class="nesttabs notiztablefilter" role="group" aria-label="Status filtern">'
+    + ['alle','offen','erledigt'].map(f => '<button type="button" class="nesttab'+(notizTabelleFilter===f?' active':'')+'" data-nttfilter="'+f+'">'+(f==='alle'?'Alle':f==='offen'?'Offen':'Erledigt')+'</button>').join('')
+    + '</div>';
+  const gefiltert = notizTabelleSortiert(notizTabelleGefiltert());
+  if(!gefiltert.length){
+    h += '<div class="notizempty">Keine Notizen für diesen Filter.</div>';
+    return h;
+  }
+  h += '<div class="notiztablewrap"><table class="notiztable"><thead><tr>'
+    + '<th data-ntsort="nr">Nummer'+notizSortPfeil('nr')+'</th>'
+    + '<th data-ntsort="text">Notiz'+notizSortPfeil('text')+'</th>'
+    + '<th data-ntsort="datum">Datum'+notizSortPfeil('datum')+'</th>'
+    + '<th data-ntsort="status">Status'+notizSortPfeil('status')+'</th>'
+    + '</tr></thead><tbody>'
+    + gefiltert.map(notizTabelleZeileHtml).join('')
+    + '</tbody></table></div>';
+  return h;
+}
+
 function notizVerlaufExportieren(){
   if(!notizAlleCache || !notizAlleCache.length) return;
   const kopf = ['Bauteilnummer','Notiz','Erstellt am','Erledigt','Erledigt am','Foto-URL'];
@@ -3562,7 +3662,16 @@ function notizVerlaufExportieren(){
 async function notizAufTabWechseln(tab){
   notizTab = tab;
   if(tab === 'verlauf' && notizAlleCache === null){
-    notizbody.innerHTML = notizPushRowHtml() + notizTabsHtml() + '<div class="notizladen">Wird geladen …</div>';
+    notizbody.innerHTML = notizPushRowHtml() + notizAnsichtHtml() + notizTabsHtml() + '<div class="notizladen">Wird geladen …</div>';
+    try{ await notizAlleLaden(); }catch(e){ notizAlleCache = []; }
+  }
+  notizRender();
+}
+
+async function notizZuAnsichtWechseln(ansicht){
+  notizAnsicht = ansicht;
+  if(ansicht === 'tabelle' && notizAlleCache === null){
+    notizbody.innerHTML = notizPushRowHtml() + notizAnsichtHtml() + '<div class="notizladen">Wird geladen …</div>';
     try{ await notizAlleLaden(); }catch(e){ notizAlleCache = []; }
   }
   notizRender();
@@ -3573,20 +3682,35 @@ function notizPushRowHtml(){
 }
 
 function notizRender(){
-  const liste = notizTab === 'offen' ? notizOffenCache : (notizAlleCache || []);
-  let h = notizPushRowHtml() + notizTabsHtml();
-  if(notizTab === 'verlauf'){
-    h += '<div class="notizexportrow"><button type="button" class="nestnew" id="notizexport"'+(liste.length?'':' disabled')+'>Verlauf als CSV exportieren</button></div>';
-  }
-  if(!liste.length){
-    h += '<div class="notizempty">'+(notizTab==='offen' ? 'Keine offenen Notizen.' : 'Noch keine Notizen gesendet.')+'</div>';
+  const notizcard = document.getElementById('notizcard');
+  if(notizcard) notizcard.classList.toggle('notizcard-tabelle', notizAnsicht === 'tabelle');
+  let h = notizPushRowHtml() + notizAnsichtHtml();
+  if(notizAnsicht === 'tabelle'){
+    h += notizTabelleHtml();
   }else{
-    liste.forEach(n => { h += notizItemHtml(n); });
+    const liste = notizTab === 'offen' ? notizOffenCache : (notizAlleCache || []);
+    h += notizTabsHtml();
+    if(notizTab === 'verlauf'){
+      h += '<div class="notizexportrow"><button type="button" class="nestnew" id="notizexport"'+(liste.length?'':' disabled')+'>Verlauf als CSV exportieren</button></div>';
+    }
+    if(!liste.length){
+      h += '<div class="notizempty">'+(notizTab==='offen' ? 'Keine offenen Notizen.' : 'Noch keine Notizen gesendet.')+'</div>';
+    }else{
+      liste.forEach(n => { h += notizItemHtml(n); });
+    }
   }
   notizbody.innerHTML = h;
   const exportBtn = document.getElementById('notizexport');
   if(exportBtn) exportBtn.addEventListener('click', notizVerlaufExportieren);
+  notizbody.querySelectorAll('[data-notizansicht]').forEach(b => b.addEventListener('click', () => notizZuAnsichtWechseln(b.dataset.notizansicht)));
   notizbody.querySelectorAll('[data-notiztab]').forEach(b => b.addEventListener('click', () => notizAufTabWechseln(b.dataset.notiztab)));
+  notizbody.querySelectorAll('[data-nttfilter]').forEach(b => b.addEventListener('click', () => { notizTabelleFilter = b.dataset.nttfilter; notizRender(); }));
+  notizbody.querySelectorAll('[data-ntsort]').forEach(th => th.addEventListener('click', () => {
+    const feld = th.dataset.ntsort;
+    if(notizTabelleSort.feld === feld){ notizTabelleSort = {feld, dir: notizTabelleSort.dir === 'asc' ? 'desc' : 'asc'}; }
+    else{ notizTabelleSort = {feld, dir: feld === 'status' ? 'desc' : 'asc'}; }
+    notizRender();
+  }));
   notizbody.querySelectorAll('[data-gonr]').forEach(b => b.addEventListener('click', () => {
     notizSchliessen();
     gehe(b.dataset.gonr);
@@ -3626,6 +3750,7 @@ function notizRender(){
 function notizOeffnen(){
   notizlay.hidden = false;
   notizTab = 'offen';
+  notizAnsicht = 'karten';
   notizAlleCache = null;
   notizRender();
   requestAnimationFrame(() => notizlay.classList.add('show'));
