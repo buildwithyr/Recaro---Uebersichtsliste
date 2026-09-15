@@ -621,20 +621,21 @@ mark{background:var(--mark-bg);color:var(--mark-text);border-radius:2px;padding:
 .orggroup:hover .orgedge,.orggroup:focus-visible .orgedge{
   stroke:var(--teal);stroke-width:2;filter:drop-shadow(0 0 6px var(--teal-bg))
 }
-.orgnode-bt circle{fill:var(--ink-solid);stroke:var(--focus);stroke-width:2}
-.orgnode-bt text{fill:var(--surface-alt)}
+/* Text steht bewusst NEBEN dem Knoten, nicht darin - so gibt es kein
+   Abschneiden/Überlaufen bei langen Nummern/Bezeichnungen, und die Schrift
+   liegt immer auf dem Wrap-Hintergrund (nicht auf der Knotenfarbe), bleibt
+   also in Hell- wie Dunkelmodus automatisch lesbar (var(--ink)/var(--ink-3)
+   sind exakt für Text auf dieser Fläche gedacht). */
+.orgnode-bt rect{fill:var(--ink-solid);stroke:var(--focus);stroke-width:2}
 .orgnode-sch circle{fill:var(--card);stroke:var(--teal);stroke-width:1.6;transition:fill .15s,filter .15s}
-.orgnode-sch text{fill:var(--ink)}
 .orgnode-ez circle{stroke-dasharray:3 3}
 .orggroup:hover .orgnode-sch circle,.orggroup:focus-visible .orgnode-sch circle{
   fill:var(--teal-bg);filter:drop-shadow(0 0 8px var(--teal-bg))
 }
-.orgnode-label{font-family:var(--mono);font-size:11.5px;font-weight:600;pointer-events:none}
-.orgnode-sub{font-family:var(--sans);font-size:9.5px;fill:var(--ink-3);pointer-events:none}
-.orgbadge circle{fill:var(--teal)}
-.orgbadge text{fill:var(--ink-solid);font-family:var(--sans);font-size:9px;font-weight:700;pointer-events:none}
+.orgnode-label{font-family:var(--mono);font-size:12px;font-weight:600;fill:var(--ink);pointer-events:none}
+.orgnode-sub{font-family:var(--sans);font-size:10.5px;fill:var(--ink-3);pointer-events:none}
+.orggroup:hover .orgnode-label,.orggroup:focus-visible .orgnode-label{fill:var(--teal)}
 .orgmore circle{fill:var(--surface-alt);stroke:var(--rule)}
-.orgmore text{fill:var(--ink-2);font-family:var(--cond);font-size:11px;letter-spacing:.04em;pointer-events:none}
 .orgmore:hover circle,.orgmore:focus-visible circle{stroke:var(--teal)}
 @media (max-width:899px){ .orgchart-block{display:none} }
 
@@ -1862,16 +1863,18 @@ function orgchartSvg(zentralNr, nodesNr, rest){
   const slots = n + (rest>0 ? 1 : 0);
   /* Flow-Layout links -> rechts (wie Impact-Analyse-Diagramme): der Knoten
      steht links, seine Gegenstücke in einer Spalte rechts davon, verbunden
-     über gerichtete Kanten. Knotengröße/Zeilenabstand hängen von der Anzahl
-     ab, damit sich auch bei 20+ Gegenstücken nichts überlappt. */
-  const nodeR = slots > 18 ? 20 : slots > 12 ? 26 : 34;
-  const zentralR = 44;
-  const klein = nodeR < 30;
-  const rowH = nodeR*2 + (klein ? 16 : 22);
-  const W = 760;
-  const H = Math.max(280, slots*rowH + 60);
-  const cx = 90, cy = H/2;
-  const nx = W - 130;
+     über gerichtete Kanten. Die Beschriftung steht bewusst NEBEN dem Kreis
+     (nicht darin) - so gibt es bei langen Nummern/Bezeichnungen nie ein
+     Abschneiden mitten im Knoten, und die Knotengröße kann unabhängig von
+     der Textlänge klein bleiben, damit auch 20+ Gegenstücke nichts
+     überlappt. */
+  const nodeR = slots > 18 ? 10 : slots > 12 ? 13 : 16;
+  const zentralR = 20;
+  const rowH = Math.max(nodeR*2 + 22, 38);
+  const W = 1000;
+  const H = Math.max(240, slots*rowH + 50);
+  const cx = 220, cy = H/2;
+  const nx = W - 260;
   const startY = cy - ((slots-1)*rowH)/2;
 
   let svg = '<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'
@@ -1884,40 +1887,43 @@ function orgchartSvg(zentralNr, nodesNr, rest){
     const midX = (x1+xe)/2;
     return 'M '+x1+' '+y1+' C '+midX+' '+y1+', '+midX+' '+y2+', '+xe+' '+y2;
   };
+  /* Bauteile als Rechteck, Schablonen/Einzelteile als Kreis - eine Formunterscheidung
+     bleibt eindeutig lesbar, egal was Theme/Akzentfarbe gerade zufällig ähnlich färben. */
+  const form = (isBt, x, y, r) => isBt
+    ? '<rect x="'+(x-r)+'" y="'+(y-r)+'" width="'+(r*2)+'" height="'+(r*2)+'" rx="5"/>'
+    : '<circle cx="'+x+'" cy="'+y+'" r="'+r+'"/>';
 
   nodesNr.forEach((nr, i) => {
     const x = nx, y = startY + i*rowH;
     const info = orgNodeInfo(nr);
+    const sub = [info.bez ? orgTrunc(info.bez, 28) : '', info.others>0 ? '+'+info.others : '']
+      .filter(Boolean).join(' · ');
     svg += '<g class="orggroup">'
       + '<path class="orgedge" marker-end="url(#orgArrow)" d="'+kante(cy, x, y)+'"/>'
       + '<g class="'+(info.isBt?'orgnode-bt':'orgnode-sch'+(info.ez?' orgnode-ez':''))+'" data-go="'+esc(nr)+'" role="button" tabindex="0" aria-label="'+esc(nr)+(info.bez?', '+esc(info.bez):'')+'">'
       + '<title>'+esc(nr)+(info.bez?' — '+esc(info.bez):'')+(info.kat?' ('+esc(info.kat)+')':'')+(info.others>0?' · '+info.others+' '+info.othersLabel:'')+'</title>'
-      + '<circle cx="'+x+'" cy="'+y+'" r="'+nodeR+'"/>'
-      + '<text class="orgnode-label" x="'+x+'" y="'+(klein?y+4:y-2)+'" text-anchor="middle" style="font-size:'+(klein?'9.5px':'11.5px')+'">'+esc(orgTrunc(nr, klein?9:12))+'</text>'
-      + (info.bez && !klein ? '<text class="orgnode-sub" x="'+x+'" y="'+(y+12)+'" text-anchor="middle">'+esc(orgTrunc(info.bez,20))+'</text>' : '')
+      + form(info.isBt, x, y, nodeR)
+      + '<text class="orgnode-label" x="'+(x+nodeR+10)+'" y="'+(sub?y-3:y+4)+'" text-anchor="start">'+esc(orgTrunc(nr,18))+'</text>'
+      + (sub ? '<text class="orgnode-sub" x="'+(x+nodeR+10)+'" y="'+(y+11)+'" text-anchor="start">'+esc(sub)+'</text>' : '')
       + '</g>'
-      + (info.others>0
-          ? '<g class="orgbadge"><circle cx="'+(x+nodeR-6)+'" cy="'+(y-nodeR+6)+'" r="10"/>'
-            + '<text x="'+(x+nodeR-6)+'" y="'+(y-nodeR+7)+'" text-anchor="middle" dominant-baseline="middle" style="font-size:8.5px">+'+info.others+'</text></g>'
-          : '')
       + '</g>';
   });
 
   if(rest > 0){
     const x = nx, y = startY + n*rowH;
-    svg += '<g class="orggroup orgmore" id="orgMoreBtn" role="button" tabindex="0" aria-label="'+rest+' weitere Schablonen anzeigen">'
+    svg += '<g class="orggroup orgmore" id="orgMoreBtn" role="button" tabindex="0" aria-label="'+rest+' weitere anzeigen">'
       + '<path class="orgedge" marker-end="url(#orgArrow)" stroke-dasharray="3 4" d="'+kante(cy, x, y)+'"/>'
       + '<circle cx="'+x+'" cy="'+y+'" r="'+nodeR+'"/>'
-      + '<text x="'+x+'" y="'+(y-3)+'" text-anchor="middle" style="font-size:'+(klein?'11px':'13px')+'">+'+rest+'</text>'
-      + '<text x="'+x+'" y="'+(y+11)+'" text-anchor="middle" style="font-size:9px">weitere</text>'
+      + '<text class="orgnode-label" x="'+(x+nodeR+10)+'" y="'+(y+4)+'" text-anchor="start">+'+rest+' weitere</text>'
       + '</g>';
   }
 
+  const bez = zi.bez ? orgTrunc(zi.bez, 26) : '';
   svg += '<g class="'+(zi.isBt?'orgnode-bt':'orgnode-sch'+(zi.ez?' orgnode-ez':''))+'" aria-label="'+esc(zentralNr)+'">'
     + '<title>'+esc(zentralNr)+(zi.bez ? ' — '+esc(zi.bez) : '')+'</title>'
-    + '<circle cx="'+cx+'" cy="'+cy+'" r="'+zentralR+'"/>'
-    + '<text class="orgnode-label" x="'+cx+'" y="'+(cy-3)+'" text-anchor="middle" style="font-size:12.5px">'+esc(orgTrunc(zentralNr,13))+'</text>'
-    + (zi.bez ? '<text class="orgnode-sub" x="'+cx+'" y="'+(cy+13)+'" text-anchor="middle">'+esc(orgTrunc(zi.bez,18))+'</text>' : '')
+    + form(zi.isBt, cx, cy, zentralR)
+    + '<text class="orgnode-label" x="'+(cx-zentralR-10)+'" y="'+(bez?cy-3:cy+4)+'" text-anchor="end">'+esc(orgTrunc(zentralNr,18))+'</text>'
+    + (bez ? '<text class="orgnode-sub" x="'+(cx-zentralR-10)+'" y="'+(cy+11)+'" text-anchor="end">'+esc(bez)+'</text>' : '')
     + '</g>';
 
   svg += '</g></svg>';
