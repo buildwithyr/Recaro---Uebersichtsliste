@@ -53,6 +53,11 @@
   --cond:'Barlow Condensed',system-ui,-apple-system,'Segoe UI',sans-serif;
   --sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   color-scheme:light;
+  /* War fix 940px - auf einem vollen großen Bildschirm blieb dadurch viel
+     Fläche links/rechts leer. Bei einem schmalen Fenster (z.B. Split-
+     Screen) bleibt es unverändert bei ~940px, weil max-width dann eh nie
+     erreicht wird. */
+  --content-max: min(1600px, 94vw);
 }
 /* Dark Mode: greift automatisch, solange keine manuelle Wahl in
    localStorage hinterlegt ist (siehe [data-theme] weiter unten). Werte
@@ -499,7 +504,7 @@ body{
 .notizempty,.notizladen{padding:24px;text-align:center;color:var(--ink-3);font-size:13.5px}
 
 /* ---------- Trefferliste ---------- */
-.wrap{max-width:940px;margin:0 auto;padding:0 16px}
+.wrap{max-width:var(--content-max);margin:0 auto;padding:0 16px}
 .results{margin:14px 0 40px}
 .rescount{
   font-family:var(--cond);font-size:13px;letter-spacing:.1em;text-transform:uppercase;
@@ -618,6 +623,7 @@ mark{background:var(--mark-bg);color:var(--mark-text);border-radius:2px;padding:
 .orgedge{stroke:var(--rule);stroke-width:1.4;fill:none;transition:stroke .15s,stroke-width .15s,filter .15s}
 .orgarrowhead{fill:var(--rule)}
 .orggroup{cursor:pointer;outline:none}
+.orghit{fill:transparent;pointer-events:all}
 .orggroup:hover .orgedge,.orggroup:focus-visible .orgedge{
   stroke:var(--teal);stroke-width:2;filter:drop-shadow(0 0 6px var(--teal-bg))
 }
@@ -710,7 +716,7 @@ footer{
   box-shadow:0 -2px 10px rgba(0,0,0,.22);
 }
 .cmpbar[hidden]{display:none}
-.cmpbar-inner{max-width:940px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.cmpbar-inner{max-width:var(--content-max);margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .cmpchips{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0}
 .cmpchip{
   display:inline-flex;align-items:center;gap:4px;background:#4A3B32;border-radius:3px;
@@ -746,7 +752,7 @@ body.has-cmpbar{padding-bottom:104px}
   box-shadow:0 -2px 10px rgba(0,0,0,.22);
 }
 .selbar[hidden]{display:none}
-.selbar-inner{max-width:940px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.selbar-inner{max-width:var(--content-max);margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .selchips{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0;max-height:88px;overflow-y:auto}
 .selchip{
   display:inline-flex;align-items:center;gap:4px;background:#4A3B32;border-radius:3px;
@@ -1901,6 +1907,12 @@ function orgchartSvg(zentralNr, nodesNr, rest){
   const form = (isBt, x, y, r) => isBt
     ? '<rect x="'+(x-r)+'" y="'+(y-r)+'" width="'+(r*2)+'" height="'+(r*2)+'" rx="5"/>'
     : '<circle cx="'+x+'" cy="'+y+'" r="'+r+'"/>';
+  /* Unsichtbare, aber klickbare Trefferfläche über Form + Beschriftung -
+     ohne die wäre nur der kleine Kreis/das Rechteck klickbar, obwohl der
+     Text daneben (pointer-events:none, damit er die Kanten nicht blockiert)
+     wie der eigentliche "Button" aussieht. */
+  const hitRechts = (x, y) =>
+    '<rect class="orghit" x="'+(x-nodeR-4)+'" y="'+(y-rowH/2)+'" width="'+(W-(x-nodeR-4))+'" height="'+rowH+'"/>';
 
   nodesNr.forEach((nr, i) => {
     const x = nx, y = startY + i*rowH;
@@ -1911,6 +1923,7 @@ function orgchartSvg(zentralNr, nodesNr, rest){
       + '<path class="orgedge" marker-end="url(#orgArrow)" d="'+kante(cy, x, y)+'"/>'
       + '<g class="'+(info.isBt?'orgnode-bt':'orgnode-sch'+(info.ez?' orgnode-ez':''))+'" data-go="'+esc(nr)+'" role="button" tabindex="0" aria-label="'+esc(nr)+(info.bez?', '+esc(info.bez):'')+'">'
       + '<title>'+esc(nr)+(info.bez?' — '+esc(info.bez):'')+(info.kat?' ('+esc(info.kat)+')':'')+(info.others>0?' · '+info.others+' '+info.othersLabel:'')+'</title>'
+      + hitRechts(x, y)
       + form(info.isBt, x, y, nodeR)
       + '<text class="orgnode-label" x="'+(x+nodeR+10)+'" y="'+(sub?y-3:y+4)+'" text-anchor="start">'+esc(orgTrunc(nr,18))+'</text>'
       + (sub ? '<text class="orgnode-sub" x="'+(x+nodeR+10)+'" y="'+(y+11)+'" text-anchor="start">'+esc(sub)+'</text>' : '')
@@ -1922,6 +1935,7 @@ function orgchartSvg(zentralNr, nodesNr, rest){
     const x = nx, y = startY + n*rowH;
     svg += '<g class="orggroup orgmore" id="orgMoreBtn" role="button" tabindex="0" aria-label="'+rest+' weitere anzeigen">'
       + '<path class="orgedge" marker-end="url(#orgArrow)" stroke-dasharray="3 4" d="'+kante(cy, x, y)+'"/>'
+      + hitRechts(x, y)
       + '<circle cx="'+x+'" cy="'+y+'" r="'+nodeR+'"/>'
       + '<text class="orgnode-label" x="'+(x+nodeR+10)+'" y="'+(y+4)+'" text-anchor="start">+'+rest+' weitere</text>'
       + '</g>';
@@ -1995,12 +2009,17 @@ function orgchartZoomPan(svg){
   const pointers = new Map();
   let pinchDist = 0, pinchScale = 1;
 
+  /* Pointer erst dann einfangen (setPointerCapture), wenn wirklich gezogen
+     wird - nicht schon bei jedem Pointerdown. Chromium leitet den click
+     sonst auf das SVG-Root um statt auf den tatsächlich getroffenen Knoten,
+     wodurch ein reiner Klick (ohne Bewegung) nie beim data-go-Handler
+     ankommt. */
   svg.addEventListener('pointerdown', e => {
-    svg.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
     if(pointers.size === 1){ dragging = true; moved = false; lastX = e.clientX; lastY = e.clientY; }
     else if(pointers.size === 2){
       dragging = false;
+      try{ svg.setPointerCapture(e.pointerId); }catch(_){}
       const pts = Array.from(pointers.values());
       pinchDist = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
       pinchScale = scale;
@@ -2024,7 +2043,11 @@ function orgchartZoomPan(svg){
     }
     if(!dragging) return;
     const dx = e.clientX - lastX, dy = e.clientY - lastY;
-    if(Math.abs(dx) > 2 || Math.abs(dy) > 2) moved = true;
+    if(!moved){
+      if(Math.abs(dx) < 3 && Math.abs(dy) < 3) return;
+      moved = true;
+      try{ svg.setPointerCapture(e.pointerId); }catch(_){}
+    }
     tx += dx; ty += dy;
     lastX = e.clientX; lastY = e.clientY;
     apply();
