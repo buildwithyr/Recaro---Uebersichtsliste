@@ -604,6 +604,39 @@ mark{background:var(--mark-bg);color:var(--mark-text);border-radius:2px;padding:
 .chip .cd{font-family:var(--sans);font-size:12px;color:var(--ink-3);margin-left:6px}
 .chip:hover .cd{color:var(--teal)}
 
+/* Organigramm (Struktur-Ansicht Bauteil -> Schablonen), nur Desktop */
+.orgchart-hint{
+  font-family:var(--cond);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-3);padding:8px 14px 0;
+}
+.orgchart-wrap{
+  position:relative;height:440px;cursor:grab;
+  background:radial-gradient(circle at 50% 46%, var(--surface-alt) 0%, transparent 68%);
+}
+.orgchart-wrap:active{cursor:grabbing}
+.orgchart-wrap svg{display:block;width:100%;height:100%;touch-action:none}
+.orgedge{stroke:var(--rule);stroke-width:1.4;fill:none;transition:stroke .15s,stroke-width .15s,filter .15s}
+.orggroup{cursor:pointer;outline:none}
+.orggroup:hover .orgedge,.orggroup:focus-visible .orgedge{
+  stroke:var(--teal);stroke-width:2;filter:drop-shadow(0 0 6px var(--teal-bg))
+}
+.orgnode-bt circle{fill:var(--ink-solid);stroke:var(--focus);stroke-width:2}
+.orgnode-bt text{fill:var(--surface-alt)}
+.orgnode-sch circle{fill:var(--card);stroke:var(--teal);stroke-width:1.6;transition:fill .15s,filter .15s}
+.orgnode-sch text{fill:var(--ink)}
+.orgnode-ez circle{stroke-dasharray:3 3}
+.orggroup:hover .orgnode-sch circle,.orggroup:focus-visible .orgnode-sch circle{
+  fill:var(--teal-bg);filter:drop-shadow(0 0 8px var(--teal-bg))
+}
+.orgnode-label{font-family:var(--mono);font-size:11.5px;font-weight:600;pointer-events:none}
+.orgnode-sub{font-family:var(--sans);font-size:9.5px;fill:var(--ink-3);pointer-events:none}
+.orgbadge circle{fill:var(--teal)}
+.orgbadge text{fill:var(--ink-solid);font-family:var(--sans);font-size:9px;font-weight:700;pointer-events:none}
+.orgmore circle{fill:var(--surface-alt);stroke:var(--rule)}
+.orgmore text{fill:var(--ink-2);font-family:var(--cond);font-size:11px;letter-spacing:.04em;pointer-events:none}
+.orgmore:hover circle,.orgmore:focus-visible circle{stroke:var(--teal)}
+@media (max-width:899px){ .orgchart-block{display:none} }
+
 /* Notiz */
 .note{
   display:flex;gap:9px;padding:10px 13px;border-radius:3px;margin-bottom:12px;
@@ -1776,6 +1809,197 @@ function chipsHTML(list, art){
   }).join('')+'</div>';
 }
 
+/* ---------- Organigramm (Struktur-Ansicht Bauteil -> Schablonen) ----------
+   Nur am Desktop sichtbar (siehe orgchartDesktop). Bewusst kein Force-Layout:
+   die Struktur ist immer ein flacher Stern (1 Bauteil, direkt zugeordnete
+   Schablonen, keine Rekursion), dafür reicht ein deterministisches
+   Kreis-Layout - stabil, ohne Bibliothek, auch bei vielen Knoten sofort da. */
+const ORGCHART_MIN_WIDTH = 900;
+const ORGCHART_LIMIT = 20;
+
+function orgchartDesktop(){
+  return window.matchMedia('(min-width:'+ORGCHART_MIN_WIDTH+'px)').matches;
+}
+const orgTrunc = (s, n) => s.length > n ? s.slice(0, n-1)+'…' : s;
+
+function orgchartBlockHTML(bauteilNr){
+  const b = BT.get(bauteilNr);
+  if(!b || !b.sch || !b.sch.length) return '';
+  return '<div class="block orgchart-block">'
+    + '<h2>Struktur &mdash; Bauteil &rarr; Schablonen</h2>'
+    + '<div class="orgchart-hint">Scrollen zum Zoomen &middot; Ziehen zum Verschieben</div>'
+    + '<div class="orgchart-wrap" id="orgchartWrap"></div>'
+    + '</div>';
+}
+
+function orgchartSvg(bauteilNr, nodesNr, rest){
+  const b = BT.get(bauteilNr);
+  const n = nodesNr.length;
+  const slots = n + (rest>0 ? 1 : 0);
+  const W = 900, H = 640, cx = W/2, cy = H/2;
+  /* Knotengröße und -Abstand hängen von der Anzahl ab, damit sich auch bei
+     20+ Schablonen (Ausreißer laut Anforderung) nichts überlappt: kleinere
+     Knoten + ein Kreisumfang, der pro Knoten genug Bogenlänge garantiert. */
+  const nodeR = slots > 18 ? 23 : slots > 12 ? 27 : 34;
+  const zentralR = 46;
+  const maxR = Math.min(W,H)/2 - nodeR - 34;
+  const wunschR = slots > 0 ? (slots * nodeR * 2.5) / (2*Math.PI) : 0;
+  const r = Math.max(zentralR + nodeR + 40, Math.min(wunschR, maxR));
+  const klein = nodeR < 30;
+  let svg = '<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'
+    + '<g id="orgViewport">';
+
+  nodesNr.forEach((nr, i) => {
+    const angle = -Math.PI/2 + (i/slots) * Math.PI*2;
+    const x = cx + r*Math.cos(angle), y = cy + r*Math.sin(angle);
+    const s = SCH.get(nr) || {};
+    const ez = s.ebene === 'Einzelteil';
+    const bez = s.bez || s.beschr || s.material || '';
+    const kat = s.material || (ez ? 'Einzelteil' : 'Schablone');
+    const others = ((btVonSch.get(nr)||[]).length) - 1;
+    svg += '<g class="orggroup">'
+      + '<path class="orgedge" d="M '+cx+' '+cy+' L '+x+' '+y+'"/>'
+      + '<g class="orgnode-sch'+(ez?' orgnode-ez':'')+'" data-go="'+esc(nr)+'" role="button" tabindex="0" aria-label="'+esc(nr)+(bez?', '+esc(bez):'')+'">'
+      + '<title>'+esc(nr)+(bez?' — '+esc(bez):'')+(kat?' ('+esc(kat)+')':'')+(others>0?' · '+others+' weitere Bauteile':'')+'</title>'
+      + '<circle cx="'+x+'" cy="'+y+'" r="'+nodeR+'"/>'
+      + '<text class="orgnode-label" x="'+x+'" y="'+(klein?y+4:y-2)+'" text-anchor="middle" style="font-size:'+(klein?'9.5px':'11.5px')+'">'+esc(orgTrunc(nr, klein?9:12))+'</text>'
+      + (bez && !klein ? '<text class="orgnode-sub" x="'+x+'" y="'+(y+12)+'" text-anchor="middle">'+esc(orgTrunc(bez,20))+'</text>' : '')
+      + '</g>'
+      + (others>0
+          ? '<g class="orgbadge"><circle cx="'+(x+nodeR-8)+'" cy="'+(y-nodeR+8)+'" r="10"/>'
+            + '<text x="'+(x+nodeR-8)+'" y="'+(y-nodeR+9)+'" text-anchor="middle" dominant-baseline="middle" style="font-size:8.5px">+'+others+'</text></g>'
+          : '')
+      + '</g>';
+  });
+
+  if(rest > 0){
+    const angle = -Math.PI/2 + (n/slots) * Math.PI*2;
+    const x = cx + r*Math.cos(angle), y = cy + r*Math.sin(angle);
+    svg += '<g class="orggroup orgmore" id="orgMoreBtn" role="button" tabindex="0" aria-label="'+rest+' weitere Schablonen anzeigen">'
+      + '<path class="orgedge" d="M '+cx+' '+cy+' L '+x+' '+y+'" stroke-dasharray="3 4"/>'
+      + '<circle cx="'+x+'" cy="'+y+'" r="'+nodeR+'"/>'
+      + '<text x="'+x+'" y="'+(y-3)+'" text-anchor="middle" style="font-size:'+(klein?'11px':'13px')+'">+'+rest+'</text>'
+      + '<text x="'+x+'" y="'+(y+11)+'" text-anchor="middle" style="font-size:9px">weitere</text>'
+      + '</g>';
+  }
+
+  svg += '<g class="orgnode-bt" aria-label="Bauteil '+esc(bauteilNr)+'">'
+    + '<title>'+esc(bauteilNr)+(b && b.bez ? ' — '+esc(b.bez) : '')+'</title>'
+    + '<circle cx="'+cx+'" cy="'+cy+'" r="46"/>'
+    + '<text class="orgnode-label" x="'+cx+'" y="'+(cy-3)+'" text-anchor="middle" style="font-size:13px">'+esc(orgTrunc(bauteilNr,15))+'</text>'
+    + (b && b.bez ? '<text class="orgnode-sub" x="'+cx+'" y="'+(cy+13)+'" text-anchor="middle">'+esc(orgTrunc(b.bez,22))+'</text>' : '')
+    + '</g>';
+
+  svg += '</g></svg>';
+  return svg;
+}
+
+function orgchartMount(bauteilNr, full){
+  const wrap = document.getElementById('orgchartWrap');
+  if(!wrap) return;
+  const b = BT.get(bauteilNr);
+  const alle = (b && b.sch) || [];
+  const nodesNr = full ? alle : alle.slice(0, ORGCHART_LIMIT);
+  const rest = alle.length - nodesNr.length;
+  wrap.innerHTML = orgchartSvg(bauteilNr, nodesNr, rest);
+
+  wrap.querySelectorAll('[data-go]').forEach(el => {
+    el.addEventListener('click', () => geheAusSuche(el.dataset.go));
+    el.addEventListener('keydown', e => {
+      if(e.key==='Enter' || e.key===' '){ e.preventDefault(); geheAusSuche(el.dataset.go); }
+    });
+  });
+  const moreBtn = document.getElementById('orgMoreBtn');
+  if(moreBtn){
+    const zeigeAlle = () => orgchartMount(bauteilNr, true);
+    moreBtn.addEventListener('click', zeigeAlle);
+    moreBtn.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); zeigeAlle(); } });
+  }
+
+  orgchartZoomPan(wrap.querySelector('svg'));
+}
+
+/* Zoom (Mausrad, Pinch) und Pan (Ziehen) über die viewBox-Gruppe #orgViewport -
+   bewusst ohne Bibliothek, da nur Translate/Scale auf einer Gruppe nötig sind. */
+function orgchartZoomPan(svg){
+  if(!svg) return;
+  const vp = svg.querySelector('#orgViewport');
+  let scale = 1, tx = 0, ty = 0;
+  let dragging = false, moved = false, lastX = 0, lastY = 0;
+
+  function apply(){ vp.setAttribute('transform', 'translate('+tx+' '+ty+') scale('+scale+')'); }
+  function toSvgPoint(clientX, clientY){
+    const pt = svg.createSVGPoint();
+    pt.x = clientX; pt.y = clientY;
+    const ctm = svg.getScreenCTM();
+    return ctm ? pt.matrixTransform(ctm.inverse()) : {x:0,y:0};
+  }
+  function zoomAt(clientX, clientY, factor){
+    const p = toSvgPoint(clientX, clientY);
+    const before = {x:(p.x - tx)/scale, y:(p.y - ty)/scale};
+    scale = Math.min(4, Math.max(0.4, scale*factor));
+    tx = p.x - before.x*scale;
+    ty = p.y - before.y*scale;
+    apply();
+  }
+
+  svg.addEventListener('wheel', e => {
+    e.preventDefault();
+    zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.12 : 1/1.12);
+  }, {passive:false});
+
+  const pointers = new Map();
+  let pinchDist = 0, pinchScale = 1;
+
+  svg.addEventListener('pointerdown', e => {
+    svg.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if(pointers.size === 1){ dragging = true; moved = false; lastX = e.clientX; lastY = e.clientY; }
+    else if(pointers.size === 2){
+      dragging = false;
+      const pts = Array.from(pointers.values());
+      pinchDist = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
+      pinchScale = scale;
+    }
+  });
+  svg.addEventListener('pointermove', e => {
+    if(!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if(pointers.size === 2){
+      const pts = Array.from(pointers.values());
+      const dist = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
+      if(pinchDist > 0){
+        const mid = {x:(pts[0].x+pts[1].x)/2, y:(pts[0].y+pts[1].y)/2};
+        const p = toSvgPoint(mid.x, mid.y);
+        const before = {x:(p.x - tx)/scale, y:(p.y - ty)/scale};
+        scale = Math.min(4, Math.max(0.4, pinchScale * (dist/pinchDist)));
+        tx = p.x - before.x*scale; ty = p.y - before.y*scale;
+        apply();
+      }
+      return;
+    }
+    if(!dragging) return;
+    const dx = e.clientX - lastX, dy = e.clientY - lastY;
+    if(Math.abs(dx) > 2 || Math.abs(dy) > 2) moved = true;
+    tx += dx; ty += dy;
+    lastX = e.clientX; lastY = e.clientY;
+    apply();
+  });
+  function end(e){
+    pointers.delete(e.pointerId);
+    if(pointers.size < 2) pinchDist = 0;
+    if(pointers.size === 0) dragging = false;
+  }
+  svg.addEventListener('pointerup', end);
+  svg.addEventListener('pointercancel', end);
+  svg.addEventListener('pointerleave', end);
+  svg.addEventListener('click', e => {
+    if(moved){ e.stopPropagation(); e.preventDefault(); moved = false; }
+  }, true);
+
+  apply();
+}
+
 /* Spalte H der Übersichtsliste ist gemischt belegt: echte HT-Rohteilnummern,
    ProAlpha-Nummern mit angehängter Bauteilstärke (z.B. "160-1100-142-9.5"),
    oder vereinzelt Freitext (z.B. "Schützplatte"). Nicht mehr pauschal als
@@ -1818,6 +2042,8 @@ function zeigeBauteil(nr){
        : '<div class="chips" style="color:var(--ink-3)">Keine Zuordnung hinterlegt</div>';
   h += '</div>';
 
+  if(orgchartDesktop()) h += orgchartBlockHTML(nr);
+
   const kern = feld('Externe Nummer', b.extern, 1) + feld('Interne Bezeichnung', b.bez)
              + feld('Projekt', b.projekt) + feldHT(b.ht)
              + feld('Top Assy', b.topassy, 1) + feld('Mastermodell', b.mastermodell, 1);
@@ -1848,6 +2074,7 @@ function zeigeBauteil(nr){
   main.innerHTML = h;
   bind();
   notizFormBind(nr);
+  if(orgchartDesktop() && b.sch && b.sch.length) orgchartMount(nr, false);
   window.scrollTo(0,0);
 }
 
