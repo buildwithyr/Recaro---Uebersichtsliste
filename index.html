@@ -637,7 +637,9 @@ mark{background:var(--mark-bg);color:var(--mark-text);border-radius:2px;padding:
 .orggroup:hover .orgnode-label,.orggroup:focus-visible .orgnode-label{fill:var(--teal)}
 .orgmore circle{fill:var(--surface-alt);stroke:var(--rule)}
 .orgmore:hover circle,.orgmore:focus-visible circle{stroke:var(--teal)}
-@media (max-width:899px){ .orgchart-block{display:none} }
+@media (max-width:639px){ .orgchart-block{display:none} }
+@media (pointer:coarse){ .orgchart-block{display:none} }
+@media (hover:none){ .orgchart-block{display:none} }
 
 /* Notiz */
 .note{
@@ -1820,11 +1822,18 @@ function chipsHTML(list, art){
    sofort da. Funktioniert für beide Richtungen: Bauteil -> Schablonen
    (zeigeBauteil) und Schablone -> Bauteile (zeigeSchablone) - welcher Typ
    ein Knoten ist, wird einfach über BT/SCH erkannt, keine Sonderfälle. */
-const ORGCHART_MIN_WIDTH = 900;
+const ORGCHART_MIN_WIDTH = 640;
 const ORGCHART_LIMIT = 20;
 
+/* "Desktop" heißt hier vor allem: Maus statt Touch. Reine Breiten-Checks
+   (min-width) hängen an der von CSS gemessenen Fensterbreite, die bei
+   Browser-Zoom (z.B. 125-150%) auf breiten Bildschirmen trotzdem unter
+   jede Schwelle fallen kann - dieselbe Erkennung nutzt die App schon an
+   anderer Stelle (isDesktopMode). Die niedrige Mindestbreite bleibt nur
+   als Schutz gegen ein winziges Desktop-Fenster bestehen. */
 function orgchartDesktop(){
-  return window.matchMedia('(min-width:'+ORGCHART_MIN_WIDTH+'px)').matches;
+  return window.matchMedia('(hover:hover) and (pointer:fine)').matches
+      && window.matchMedia('(min-width:'+ORGCHART_MIN_WIDTH+'px)').matches;
 }
 const orgTrunc = (s, n) => s.length > n ? s.slice(0, n-1)+'…' : s;
 
