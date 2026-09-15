@@ -616,6 +616,7 @@ mark{background:var(--mark-bg);color:var(--mark-text);border-radius:2px;padding:
 .orgchart-wrap:active{cursor:grabbing}
 .orgchart-wrap svg{display:block;width:100%;height:100%;touch-action:none}
 .orgedge{stroke:var(--rule);stroke-width:1.4;fill:none;transition:stroke .15s,stroke-width .15s,filter .15s}
+.orgarrowhead{fill:var(--rule)}
 .orggroup{cursor:pointer;outline:none}
 .orggroup:hover .orgedge,.orggroup:focus-visible .orgedge{
   stroke:var(--teal);stroke-width:2;filter:drop-shadow(0 0 6px var(--teal-bg))
@@ -1809,11 +1810,15 @@ function chipsHTML(list, art){
   }).join('')+'</div>';
 }
 
-/* ---------- Organigramm (Struktur-Ansicht Bauteil -> Schablonen) ----------
+/* ---------- Organigramm (Struktur-Ansicht Bauteil <-> Schablonen) ----------
    Nur am Desktop sichtbar (siehe orgchartDesktop). Bewusst kein Force-Layout:
-   die Struktur ist immer ein flacher Stern (1 Bauteil, direkt zugeordnete
-   Schablonen, keine Rekursion), dafür reicht ein deterministisches
-   Kreis-Layout - stabil, ohne Bibliothek, auch bei vielen Knoten sofort da. */
+   die Struktur ist immer ein flacher Stern (1 Knoten im Zentrum, direkt
+   zugeordnete Gegenstücke, keine Rekursion), dafür reicht ein
+   deterministisches Flow-Layout links -> rechts (wie eine
+   Impact-Analyse-Ansicht) - stabil, ohne Bibliothek, auch bei vielen Knoten
+   sofort da. Funktioniert für beide Richtungen: Bauteil -> Schablonen
+   (zeigeBauteil) und Schablone -> Bauteile (zeigeSchablone) - welcher Typ
+   ein Knoten ist, wird einfach über BT/SCH erkannt, keine Sonderfälle. */
 const ORGCHART_MIN_WIDTH = 900;
 const ORGCHART_LIMIT = 20;
 
@@ -1822,86 +1827,110 @@ function orgchartDesktop(){
 }
 const orgTrunc = (s, n) => s.length > n ? s.slice(0, n-1)+'…' : s;
 
-function orgchartBlockHTML(bauteilNr){
-  const b = BT.get(bauteilNr);
-  if(!b || !b.sch || !b.sch.length) return '';
+/* Liefert Label/Kategorie/Gegenstück-Anzahl für einen Knoten, egal ob es
+   eine Bauteil- oder eine Schablonen-/Einzelteil-Nummer ist. */
+function orgNodeInfo(nr){
+  if(BT.has(nr)){
+    const bt = BT.get(nr);
+    return {
+      isBt:true, ez:false, bez: bt.bez || bt.projekt || '',
+      kat: bt.projekt || 'Bauteil',
+      others: ((bt.sch||[]).length) - 1, othersLabel:'weitere Schablonen'
+    };
+  }
+  const s = SCH.get(nr) || {};
+  const ez = s.ebene === 'Einzelteil';
+  return {
+    isBt:false, ez, bez: s.bez || s.beschr || s.material || '',
+    kat: s.material || (ez ? 'Einzelteil' : 'Schablone'),
+    others: ((btVonSch.get(nr)||[]).length) - 1, othersLabel:'weitere Bauteile'
+  };
+}
+
+function orgchartBlockHTML(zentralNr, satNrs, ueberschrift){
+  if(!satNrs || !satNrs.length) return '';
   return '<div class="block orgchart-block">'
-    + '<h2>Struktur &mdash; Bauteil &rarr; Schablonen</h2>'
+    + '<h2>'+ueberschrift+'</h2>'
     + '<div class="orgchart-hint">Scrollen zum Zoomen &middot; Ziehen zum Verschieben</div>'
     + '<div class="orgchart-wrap" id="orgchartWrap"></div>'
     + '</div>';
 }
 
-function orgchartSvg(bauteilNr, nodesNr, rest){
-  const b = BT.get(bauteilNr);
+function orgchartSvg(zentralNr, nodesNr, rest){
+  const zi = orgNodeInfo(zentralNr);
   const n = nodesNr.length;
   const slots = n + (rest>0 ? 1 : 0);
-  const W = 900, H = 640, cx = W/2, cy = H/2;
-  /* Knotengröße und -Abstand hängen von der Anzahl ab, damit sich auch bei
-     20+ Schablonen (Ausreißer laut Anforderung) nichts überlappt: kleinere
-     Knoten + ein Kreisumfang, der pro Knoten genug Bogenlänge garantiert. */
-  const nodeR = slots > 18 ? 23 : slots > 12 ? 27 : 34;
-  const zentralR = 46;
-  const maxR = Math.min(W,H)/2 - nodeR - 34;
-  const wunschR = slots > 0 ? (slots * nodeR * 2.5) / (2*Math.PI) : 0;
-  const r = Math.max(zentralR + nodeR + 40, Math.min(wunschR, maxR));
+  /* Flow-Layout links -> rechts (wie Impact-Analyse-Diagramme): der Knoten
+     steht links, seine Gegenstücke in einer Spalte rechts davon, verbunden
+     über gerichtete Kanten. Knotengröße/Zeilenabstand hängen von der Anzahl
+     ab, damit sich auch bei 20+ Gegenstücken nichts überlappt. */
+  const nodeR = slots > 18 ? 20 : slots > 12 ? 26 : 34;
+  const zentralR = 44;
   const klein = nodeR < 30;
+  const rowH = nodeR*2 + (klein ? 16 : 22);
+  const W = 760;
+  const H = Math.max(280, slots*rowH + 60);
+  const cx = 90, cy = H/2;
+  const nx = W - 130;
+  const startY = cy - ((slots-1)*rowH)/2;
+
   let svg = '<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'
+    + '<defs><marker id="orgArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">'
+    + '<path class="orgarrowhead" d="M0,0 L10,5 L0,10 z"/></marker></defs>'
     + '<g id="orgViewport">';
 
+  const kante = (y1, x2, y2) => {
+    const x1 = cx + zentralR, xe = x2 - nodeR - 7;
+    const midX = (x1+xe)/2;
+    return 'M '+x1+' '+y1+' C '+midX+' '+y1+', '+midX+' '+y2+', '+xe+' '+y2;
+  };
+
   nodesNr.forEach((nr, i) => {
-    const angle = -Math.PI/2 + (i/slots) * Math.PI*2;
-    const x = cx + r*Math.cos(angle), y = cy + r*Math.sin(angle);
-    const s = SCH.get(nr) || {};
-    const ez = s.ebene === 'Einzelteil';
-    const bez = s.bez || s.beschr || s.material || '';
-    const kat = s.material || (ez ? 'Einzelteil' : 'Schablone');
-    const others = ((btVonSch.get(nr)||[]).length) - 1;
+    const x = nx, y = startY + i*rowH;
+    const info = orgNodeInfo(nr);
     svg += '<g class="orggroup">'
-      + '<path class="orgedge" d="M '+cx+' '+cy+' L '+x+' '+y+'"/>'
-      + '<g class="orgnode-sch'+(ez?' orgnode-ez':'')+'" data-go="'+esc(nr)+'" role="button" tabindex="0" aria-label="'+esc(nr)+(bez?', '+esc(bez):'')+'">'
-      + '<title>'+esc(nr)+(bez?' — '+esc(bez):'')+(kat?' ('+esc(kat)+')':'')+(others>0?' · '+others+' weitere Bauteile':'')+'</title>'
+      + '<path class="orgedge" marker-end="url(#orgArrow)" d="'+kante(cy, x, y)+'"/>'
+      + '<g class="'+(info.isBt?'orgnode-bt':'orgnode-sch'+(info.ez?' orgnode-ez':''))+'" data-go="'+esc(nr)+'" role="button" tabindex="0" aria-label="'+esc(nr)+(info.bez?', '+esc(info.bez):'')+'">'
+      + '<title>'+esc(nr)+(info.bez?' — '+esc(info.bez):'')+(info.kat?' ('+esc(info.kat)+')':'')+(info.others>0?' · '+info.others+' '+info.othersLabel:'')+'</title>'
       + '<circle cx="'+x+'" cy="'+y+'" r="'+nodeR+'"/>'
       + '<text class="orgnode-label" x="'+x+'" y="'+(klein?y+4:y-2)+'" text-anchor="middle" style="font-size:'+(klein?'9.5px':'11.5px')+'">'+esc(orgTrunc(nr, klein?9:12))+'</text>'
-      + (bez && !klein ? '<text class="orgnode-sub" x="'+x+'" y="'+(y+12)+'" text-anchor="middle">'+esc(orgTrunc(bez,20))+'</text>' : '')
+      + (info.bez && !klein ? '<text class="orgnode-sub" x="'+x+'" y="'+(y+12)+'" text-anchor="middle">'+esc(orgTrunc(info.bez,20))+'</text>' : '')
       + '</g>'
-      + (others>0
-          ? '<g class="orgbadge"><circle cx="'+(x+nodeR-8)+'" cy="'+(y-nodeR+8)+'" r="10"/>'
-            + '<text x="'+(x+nodeR-8)+'" y="'+(y-nodeR+9)+'" text-anchor="middle" dominant-baseline="middle" style="font-size:8.5px">+'+others+'</text></g>'
+      + (info.others>0
+          ? '<g class="orgbadge"><circle cx="'+(x+nodeR-6)+'" cy="'+(y-nodeR+6)+'" r="10"/>'
+            + '<text x="'+(x+nodeR-6)+'" y="'+(y-nodeR+7)+'" text-anchor="middle" dominant-baseline="middle" style="font-size:8.5px">+'+info.others+'</text></g>'
           : '')
       + '</g>';
   });
 
   if(rest > 0){
-    const angle = -Math.PI/2 + (n/slots) * Math.PI*2;
-    const x = cx + r*Math.cos(angle), y = cy + r*Math.sin(angle);
+    const x = nx, y = startY + n*rowH;
     svg += '<g class="orggroup orgmore" id="orgMoreBtn" role="button" tabindex="0" aria-label="'+rest+' weitere Schablonen anzeigen">'
-      + '<path class="orgedge" d="M '+cx+' '+cy+' L '+x+' '+y+'" stroke-dasharray="3 4"/>'
+      + '<path class="orgedge" marker-end="url(#orgArrow)" stroke-dasharray="3 4" d="'+kante(cy, x, y)+'"/>'
       + '<circle cx="'+x+'" cy="'+y+'" r="'+nodeR+'"/>'
       + '<text x="'+x+'" y="'+(y-3)+'" text-anchor="middle" style="font-size:'+(klein?'11px':'13px')+'">+'+rest+'</text>'
       + '<text x="'+x+'" y="'+(y+11)+'" text-anchor="middle" style="font-size:9px">weitere</text>'
       + '</g>';
   }
 
-  svg += '<g class="orgnode-bt" aria-label="Bauteil '+esc(bauteilNr)+'">'
-    + '<title>'+esc(bauteilNr)+(b && b.bez ? ' — '+esc(b.bez) : '')+'</title>'
-    + '<circle cx="'+cx+'" cy="'+cy+'" r="46"/>'
-    + '<text class="orgnode-label" x="'+cx+'" y="'+(cy-3)+'" text-anchor="middle" style="font-size:13px">'+esc(orgTrunc(bauteilNr,15))+'</text>'
-    + (b && b.bez ? '<text class="orgnode-sub" x="'+cx+'" y="'+(cy+13)+'" text-anchor="middle">'+esc(orgTrunc(b.bez,22))+'</text>' : '')
+  svg += '<g class="'+(zi.isBt?'orgnode-bt':'orgnode-sch'+(zi.ez?' orgnode-ez':''))+'" aria-label="'+esc(zentralNr)+'">'
+    + '<title>'+esc(zentralNr)+(zi.bez ? ' — '+esc(zi.bez) : '')+'</title>'
+    + '<circle cx="'+cx+'" cy="'+cy+'" r="'+zentralR+'"/>'
+    + '<text class="orgnode-label" x="'+cx+'" y="'+(cy-3)+'" text-anchor="middle" style="font-size:12.5px">'+esc(orgTrunc(zentralNr,13))+'</text>'
+    + (zi.bez ? '<text class="orgnode-sub" x="'+cx+'" y="'+(cy+13)+'" text-anchor="middle">'+esc(orgTrunc(zi.bez,18))+'</text>' : '')
     + '</g>';
 
   svg += '</g></svg>';
   return svg;
 }
 
-function orgchartMount(bauteilNr, full){
+function orgchartMount(zentralNr, satAlle, full){
   const wrap = document.getElementById('orgchartWrap');
   if(!wrap) return;
-  const b = BT.get(bauteilNr);
-  const alle = (b && b.sch) || [];
+  const alle = satAlle || [];
   const nodesNr = full ? alle : alle.slice(0, ORGCHART_LIMIT);
   const rest = alle.length - nodesNr.length;
-  wrap.innerHTML = orgchartSvg(bauteilNr, nodesNr, rest);
+  wrap.innerHTML = orgchartSvg(zentralNr, nodesNr, rest);
 
   wrap.querySelectorAll('[data-go]').forEach(el => {
     el.addEventListener('click', () => geheAusSuche(el.dataset.go));
@@ -1911,7 +1940,7 @@ function orgchartMount(bauteilNr, full){
   });
   const moreBtn = document.getElementById('orgMoreBtn');
   if(moreBtn){
-    const zeigeAlle = () => orgchartMount(bauteilNr, true);
+    const zeigeAlle = () => orgchartMount(zentralNr, alle, true);
     moreBtn.addEventListener('click', zeigeAlle);
     moreBtn.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); zeigeAlle(); } });
   }
@@ -2042,7 +2071,7 @@ function zeigeBauteil(nr){
        : '<div class="chips" style="color:var(--ink-3)">Keine Zuordnung hinterlegt</div>';
   h += '</div>';
 
-  if(orgchartDesktop()) h += orgchartBlockHTML(nr);
+  if(orgchartDesktop()) h += orgchartBlockHTML(nr, b.sch, 'Struktur &mdash; Bauteil &rarr; Schablonen');
 
   const kern = feld('Externe Nummer', b.extern, 1) + feld('Interne Bezeichnung', b.bez)
              + feld('Projekt', b.projekt) + feldHT(b.ht)
@@ -2074,7 +2103,7 @@ function zeigeBauteil(nr){
   main.innerHTML = h;
   bind();
   notizFormBind(nr);
-  if(orgchartDesktop() && b.sch && b.sch.length) orgchartMount(nr, false);
+  if(orgchartDesktop() && b.sch && b.sch.length) orgchartMount(nr, b.sch, false);
   window.scrollTo(0,0);
 }
 
@@ -2109,6 +2138,8 @@ function zeigeSchablone(nr){
          + '</div>';
   h += '</div>';
 
+  if(orgchartDesktop() && bts.length) h += orgchartBlockHTML(nr, bts, 'Struktur &mdash; Schablone &rarr; Bauteile');
+
   const f = feld('Bezeichnung', s.bez) + feld('Beschreibung', s.beschr)
           + feld('Material / Hinweis', s.material) + feld('Vorlage', s.pdf);
   if(f) h += '<div class="block"><h2>Registerdaten</h2><div class="fields">'+f+'</div></div>';
@@ -2120,6 +2151,7 @@ function zeigeSchablone(nr){
 
   main.innerHTML = h;
   bind();
+  if(orgchartDesktop() && bts.length) orgchartMount(nr, bts, false);
   window.scrollTo(0,0);
 }
 
