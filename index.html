@@ -167,23 +167,18 @@ body{
 }
 .scanbtn:hover:not(:disabled){color:var(--teal);background:var(--teal-bg)}
 .scanbtn:disabled{opacity:.35;cursor:default}
-.searchhist{
-  position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:20;
-  background:var(--card);border:1px solid var(--rule-soft);border-radius:12px;
-  box-shadow:0 12px 32px rgba(0,0,0,.4);overflow:hidden;
-}
-.searchhist[hidden]{display:none}
 .searchhist-item{
   display:block;width:100%;text-align:left;padding:10px 14px;border:0;background:none;
-  font-family:var(--mono);font-size:15px;color:var(--ink);cursor:pointer;
+  font-family:var(--mono);font-size:15px;color:var(--ink);cursor:pointer;border-radius:6px;
 }
 .searchhist-item:hover,.searchhist-item:focus-visible{background:var(--surface-bright);color:var(--teal)}
 .searchhist-clear{
-  display:block;width:100%;text-align:left;padding:9px 14px;border:0;border-top:1px solid var(--rule-soft);
+  display:block;width:100%;text-align:left;padding:9px 14px;margin-top:6px;border:0;border-top:1px solid var(--rule-soft);
   background:none;font-family:var(--cond);font-size:12px;letter-spacing:.06em;text-transform:uppercase;
   color:var(--ink-3);cursor:pointer;
 }
 .searchhist-clear:hover{color:var(--teal)}
+.searchhistempty{padding:10px 14px;color:var(--ink-3);font-size:13.5px}
 .quelle{
   display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px;
   font-family:var(--cond);font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:#C9B7A8;
@@ -536,11 +531,13 @@ body{
 mark{background:var(--mark-bg);color:var(--mark-text);border-radius:2px;padding:0 1px}
 
 /* ---------- Desktop-Modus: Maus + Hover vorhanden ---------- */
+#menuverlaufbtn{display:none}
 @media (hover:hover) and (pointer:fine){
   .scanbtn{display:none}
   .row{padding:7px 13px;margin-bottom:3px}
   .row .n{font-size:14px}
   .row .dtxt{font-size:13px}
+  #menuverlaufbtn{display:block}
 }
 
 /* ---------- Detail ---------- */
@@ -994,10 +991,6 @@ body.feat-off-mehrfachauswahl #selbar{display:none!important}
           <path d="M7 9v6M10 9v6M13 9v6M16 9v6" stroke-width="1.8"/>
         </svg>
       </button>
-      <div class="searchhist" id="searchhist" hidden>
-        <div class="searchhist-list" id="searchhistList"></div>
-        <button type="button" class="searchhist-clear" id="searchhistClear">Verlauf leeren</button>
-      </div>
     </div>
     <div class="hint" id="hint">Trennzeichen egal &mdash; 16431161001 findet 164-31161-001</div>
     <div class="quelle" id="quelle" hidden>
@@ -1087,8 +1080,19 @@ body.feat-off-mehrfachauswahl #selbar{display:none!important}
       </div>
     </div>
     <div class="menusec">
+      <button type="button" class="menuinfo" id="menuverlaufbtn">Suchverlauf</button>
       <button type="button" class="menuinfo" id="menuinfobtn">Info &amp; Workflow</button>
     </div>
+  </div>
+</div>
+
+<div class="infolay" id="searchhistlay" hidden>
+  <div class="infocard" id="searchhistcard" role="dialog" aria-modal="true" aria-label="Suchverlauf">
+    <div class="infohead">
+      <span>Suchverlauf</span>
+      <button class="infoclose" id="searchhistclose" aria-label="Schließen" type="button">&times;</button>
+    </div>
+    <div class="infobody" id="searchhistbody"></div>
   </div>
 </div>
 
@@ -1100,17 +1104,23 @@ body.feat-off-mehrfachauswahl #selbar{display:none!important}
     </div>
     <div class="infobody">
       <h3>Datenquelle</h3>
-      <p>Die Liste basiert auf einer lokal geladenen Excel-Datei (Übersichtsliste, Schablonenregister, Matrixblatt). Es gibt keine Cloud-Anbindung &mdash; über &bdquo;Aktualisieren&ldquo; bzw. &bdquo;Andere Datei&ldquo; im Kopfbereich lässt sich die Quelle neu laden oder wechseln.</p>
+      <p>Die Liste selbst basiert auf einer lokal geladenen Excel-Datei (Übersichtsliste, Schablonenregister, Matrixblatt) &mdash; keine Cloud-Anbindung dafür. Über &bdquo;Aktualisieren&ldquo; bzw. &bdquo;Andere Datei&ldquo; im Kopfbereich lässt sich die Quelle neu laden oder wechseln. Notizen, Fotos und Push-Benachrichtigungen (siehe unten) laufen dagegen über eine Cloud-Datenbank.</p>
       <h3>Suche</h3>
-      <p>Bauteil- oder Schablonennummer eingeben &mdash; Trennzeichen wie Bindestrich, Unterstrich oder X/S/G sind egal. Die Suche greift auch bei Bezeichnung, Projekt oder Material. Die Chips oben grenzen die Treffer nach Bauteile, Schablonen, Einzelteile oder HT-Nummern ein.</p>
+      <p>Bauteil- oder Schablonennummer eingeben &mdash; Trennzeichen wie Bindestrich, Unterstrich oder X/S/G sind egal. Die Suche greift auch bei Bezeichnung, Projekt oder Material. Die Chips oben grenzen die Treffer nach Bauteile, Schablonen, Einzelteile oder HT-Nummern ein. Barcode-Scan über das Symbol im Suchfeld, sobald eine Datei geladen ist.</p>
+      <h3>Suchverlauf</h3>
+      <p>Die letzten Suchbegriffe lassen sich unten im Menü unter &bdquo;Suchverlauf&ldquo; nachschlagen und mit einem Klick erneut ausführen, oder dort komplett leeren.</p>
       <h3>Long-Touch-Vorschau</h3>
-      <p>Langes Antippen einer Zeile in der Trefferliste zeigt die Kerndaten direkt in einem kleinen Vorschau-Fenster, ohne dass die Detailansicht geöffnet werden muss. Lässt sich unten unter &bdquo;Long-Touch-Vorschau&ldquo; ein- und ausschalten.</p>
+      <p>Klicken-und-Halten (Maus) bzw. langes Antippen (Touch) einer Zeile in der Trefferliste zeigt die Kerndaten direkt in einem kleinen Vorschau-Fenster, inklusive Schnellzugriff auf Auswahl und Notiz senden &mdash; ohne dass die Detailansicht geöffnet werden muss. Lässt sich unten unter &bdquo;Long-Touch-Vorschau&ldquo; ein- und ausschalten.</p>
       <h3>Vergleichsfunktion</h3>
       <p>Bis zu vier Bauteile oder Schablonen lassen sich nebeneinander in einer Tabelle vergleichen, um Unterschiede in den Feldern zu sehen. Lässt sich unten deaktivieren, falls nicht gebraucht.</p>
       <h3>Mehrfachauswahl &amp; CSV-Export</h3>
       <p>Mehrere Treffer per Checkbox markieren und gesammelt als CSV-Datei exportieren. Lässt sich unten deaktivieren, falls nicht gebraucht.</p>
+      <h3>Notizen</h3>
+      <p>Über das Glocken-Symbol oben lassen sich Notizen (mit optionalem Foto) zu einem Bauteil oder einer Schablone anlegen, offene und erledigte Notizen einsehen &mdash; wahlweise als Karten oder als sortier- und filterbare Tabelle &mdash; und Push-Benachrichtigungen für neue Notizen aktivieren. Schreibende Aktionen (Notiz anlegen/erledigen, Foto hochladen, Push an-/abmelden) verlangen einmalig einen Zugriffscode.</p>
+      <h3>Nesting-Teileliste</h3>
+      <p>Über den Knopf &bdquo;Nesting-Teileliste&ldquo; im Kopfbereich lässt sich eine Nesting-CSV importieren und als aufbereitete, exportierbare Teileliste anzeigen.</p>
       <h3>Darstellung</h3>
-      <p>Hell/Dunkel lässt sich hier im Menü umschalten. Alle Einstellungen (Funktionen und Darstellung) werden nur lokal auf diesem Gerät gespeichert.</p>
+      <p>Hell/Dunkel lässt sich hier im Menü umschalten. Auf Geräten mit Maus und Hover (Desktop) blendet die App den Scan-Button automatisch aus und zeigt die Trefferliste etwas kompakter &mdash; ganz ohne Einstellung. Alle Einstellungen (Funktionen und Darstellung) werden nur lokal auf diesem Gerät gespeichert.</p>
     </div>
   </div>
 </div>
@@ -2354,9 +2364,8 @@ function bind(){
 /* ---------- Suchverlauf ---------- */
 const SEARCH_HISTORY_KEY = 'recaro-search-history';
 const MAX_HISTORY = 5;
-const searchhistEl = document.getElementById('searchhist');
-const searchhistListEl = document.getElementById('searchhistList');
-const searchhistClearEl = document.getElementById('searchhistClear');
+const searchhistlay  = document.getElementById('searchhistlay');
+const searchhistbody = document.getElementById('searchhistbody');
 
 function ladeSuchverlauf(){
   try { return JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY) || '[]'); }
@@ -2379,28 +2388,45 @@ function clearSuchverlauf(){
 }
 function renderSuchverlauf(){
   const h = ladeSuchverlauf();
-  searchhistListEl.innerHTML = '';
-  h.forEach(begriff => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'searchhist-item';
-    btn.textContent = begriff;
-    btn.addEventListener('mousedown', e => e.preventDefault());
+  if(!h.length){
+    searchhistbody.innerHTML = '<div class="searchhistempty">Noch keine Suchen gespeichert.</div>';
+    return;
+  }
+  searchhistbody.innerHTML = h.map(begriff => '<button type="button" class="searchhist-item">'+esc(begriff)+'</button>').join('')
+    + '<button type="button" class="searchhist-clear" id="searchhistClear">Verlauf leeren</button>';
+  searchhistbody.querySelectorAll('.searchhist-item').forEach(btn => {
     btn.addEventListener('click', () => {
-      qEl.value = begriff;
+      qEl.value = btn.textContent;
       clrEl.hidden = false;
       typFilter = 'alle';
       current = null; stack = [];
       liste();
-      searchhistEl.hidden = true;
+      searchhistSchliessen();
       qEl.focus();
     });
-    searchhistListEl.appendChild(btn);
   });
-  searchhistEl.hidden = h.length === 0;
+  document.getElementById('searchhistClear').addEventListener('click', clearSuchverlauf);
 }
-searchhistClearEl.addEventListener('mousedown', e => e.preventDefault());
-searchhistClearEl.addEventListener('click', clearSuchverlauf);
+function searchhistOeffnen(){
+  renderSuchverlauf();
+  searchhistlay.hidden = false;
+  requestAnimationFrame(() => searchhistlay.classList.add('show'));
+}
+function searchhistSchliessen(){
+  if(searchhistlay.hidden) return;
+  searchhistlay.classList.remove('show');
+  setTimeout(() => { searchhistlay.hidden = true; }, 160);
+}
+document.getElementById('menuverlaufbtn').addEventListener('click', () => {
+  menuSchliessen();
+  searchhistOeffnen();
+});
+document.getElementById('searchhistclose').addEventListener('click', searchhistSchliessen);
+searchhistlay.addEventListener('click', e => { if(e.target === searchhistlay) searchhistSchliessen(); });
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Escape') return;
+  if(!searchhistlay.hidden) searchhistSchliessen();
+});
 
 /* Wrapper für gehe(), der nur an den Stellen verwendet wird, an denen der Nutzer
    eine Suche über #q tatsächlich abschließt (Zeilenklick, Enter, Auto-Open bei
@@ -2416,11 +2442,8 @@ qEl.addEventListener('input', () => {
   clrEl.hidden = !qEl.value;
   if(!qEl.value) typFilter = 'alle';
   current = null; stack = [];
-  searchhistEl.hidden = true;
   liste();
 });
-qEl.addEventListener('focus', renderSuchverlauf);
-qEl.addEventListener('blur', () => { setTimeout(() => { searchhistEl.hidden = true; }, 150); });
 qEl.addEventListener('keydown', e => {
   if(!treffer.length) return;
   if(e.key==='ArrowDown' || e.key==='ArrowUp'){
@@ -2436,7 +2459,7 @@ qEl.addEventListener('keydown', e => {
     e.preventDefault();
     geheAusSuche(treffer[sel >= 0 ? sel : 0].nr);
   }
-  if(e.key==='Escape'){ qEl.value=''; clrEl.hidden=true; typFilter='alle'; searchhistEl.hidden=true; liste(); }
+  if(e.key==='Escape'){ qEl.value=''; clrEl.hidden=true; typFilter='alle'; liste(); }
 });
 clrEl.addEventListener('click', () => {
   qEl.value=''; clrEl.hidden=true; typFilter='alle'; current=null; stack=[]; qEl.focus(); liste();
@@ -3085,45 +3108,15 @@ main.addEventListener('touchend', e => {
 });
 main.addEventListener('touchcancel', peekLoslassen);
 
-/* Desktop-Modus (Maus + Hover vorhanden): Vorschau erscheint beim
-   Drüberfahren statt bei Klicken-und-Halten. Touch bleibt Long-Press. */
-const isDesktopMode = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-
-if(isDesktopMode){
-  let peekHoverRow = null, peekHoverCloseTimer = null;
-  function peekHoverCloseCancel(){ clearTimeout(peekHoverCloseTimer); peekHoverCloseTimer = null; }
-  function peekHoverCloseSchedule(){
-    peekHoverCloseCancel();
-    peekHoverCloseTimer = setTimeout(() => { peekHoverRow = null; peekSchliessen(); }, 150);
-  }
-  main.addEventListener('mouseover', e => {
-    if(!features.longtouch) return;
-    const row = e.target.closest('.row');
-    if(!row || row.contains(e.relatedTarget)) return;
-    peekHoverCloseCancel();
-    peekHoverRow = row;
-    peekOeffnen(row);
-  });
-  main.addEventListener('mouseout', e => {
-    const row = e.target.closest('.row');
-    if(!row || row !== peekHoverRow) return;
-    if(row.contains(e.relatedTarget)) return;
-    if(e.relatedTarget && peekcard.contains(e.relatedTarget)) return;
-    peekHoverCloseSchedule();
-  });
-  peekcard.addEventListener('mouseenter', peekHoverCloseCancel);
-  peekcard.addEventListener('mouseleave', peekHoverCloseSchedule);
-}else{
-  main.addEventListener('mousedown', e => {
-    if(e.button !== 0) return;
-    const row = e.target.closest('.row');
-    if(!row) return;
-    peekStarten(row, e.clientX, e.clientY);
-  });
-  main.addEventListener('mousemove', e => { peekBewegen(e.clientX, e.clientY); });
-  document.addEventListener('mouseup', peekLoslassen);
-  main.addEventListener('mouseleave', peekLoslassen);
-}
+main.addEventListener('mousedown', e => {
+  if(e.button !== 0) return;
+  const row = e.target.closest('.row');
+  if(!row) return;
+  peekStarten(row, e.clientX, e.clientY);
+});
+main.addEventListener('mousemove', e => { peekBewegen(e.clientX, e.clientY); });
+document.addEventListener('mouseup', peekLoslassen);
+main.addEventListener('mouseleave', peekLoslassen);
 
 main.addEventListener('click', e => {
   if(peekSuppressClick){
